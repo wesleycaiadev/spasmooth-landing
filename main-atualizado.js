@@ -80,7 +80,7 @@ function initBookingForm() {
     msgSucesso.classList.remove('hidden');
 
     setTimeout(() => {
-      window.open(`https://wa.me/5579118914?text=${texto}`, '_blank');
+      window.open(`https://wa.me/557991189140?text=${texto}`, '_blank');
       form.reset();
       msgSucesso.classList.add('hidden');
     }, 700);
