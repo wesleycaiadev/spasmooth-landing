@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initBookingForm();
   initFAQ();
   renderTreatments();
+  initGSAPAnimations();
 });
 
 // ============================================
@@ -235,4 +236,226 @@ function renderTreatments() {
 
   // Reinicializa os ícones Lucide
   lucide.createIcons();
+}
+
+// ============================================
+// GSAP ANIMATIONS
+// ============================================
+
+function initGSAPAnimations() {
+  // Registra ScrollTrigger
+  gsap.registerPlugin(ScrollTrigger);
+
+  // ========== HERO ANIMATIONS ==========
+  // Headline e texto do hero aparecem com fade in e slide up
+  gsap.to('.hero h1, .hero p, .hero .cta-buttons', {
+    duration: 0.8,
+    y: 0,
+    opacity: 1,
+    delay: 0.2,
+    ease: 'power2.out'
+  });
+
+  // Blob gradient animação contínua e suave
+  gsap.to('.blob-gradient', {
+    duration: 15,
+    rotation: 360,
+    repeat: -1,
+    ease: 'none'
+  });
+
+  // ========== SERVICES CARDS ANIMATIONS ==========
+  // Stagger animation das cards ao entrar na viewport
+  gsap.utils.toArray('.glass-card').forEach((card, index) => {
+    gsap.fromTo(card, 
+      {
+        opacity: 0,
+        y: 30
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.6,
+        delay: 0.1 * index,
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 80%',
+          toggleActions: 'play none none none'
+        }
+      }
+    );
+
+    // Hover animation
+    card.addEventListener('mouseenter', () => {
+      gsap.to(card, {
+        duration: 0.4,
+        scale: 1.05,
+        boxShadow: '0 20px 40px rgba(6, 182, 212, 0.3)',
+        ease: 'power2.out'
+      });
+    });
+
+    card.addEventListener('mouseleave', () => {
+      gsap.to(card, {
+        duration: 0.4,
+        scale: 1,
+        boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)',
+        ease: 'power2.out'
+      });
+    });
+  });
+
+  // ========== TESTIMONIALS ANIMATIONS ==========
+  // Fade in dos depoimentos ao rolar
+  gsap.utils.toArray('.testimonial-card').forEach((card) => {
+    gsap.fromTo(card,
+      {
+        opacity: 0,
+        x: -30
+      },
+      {
+        opacity: 1,
+        x: 0,
+        duration: 0.8,
+        scrollTrigger: {
+          trigger: card,
+          start: 'top 85%',
+          toggleActions: 'play none none none'
+        }
+      }
+    );
+  });
+
+  // ========== FAQ ANIMATIONS ==========
+  // Animação suave ao abrir e fechar FAQ
+  const faqItems = document.querySelectorAll('.faq-item');
+  faqItems.forEach((item, index) => {
+    gsap.fromTo(item,
+      {
+        opacity: 0,
+        y: 20
+      },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        delay: 0.1 * index,
+        scrollTrigger: {
+          trigger: item,
+          start: 'top 90%',
+          toggleActions: 'play none none none'
+        }
+      }
+    );
+  });
+
+  // ========== BUTTONS ANIMATIONS ==========
+  // Hover effect em todos os botões
+  gsap.utils.toArray('button, a[class*="bg-"], .cta-buttons a').forEach((btn) => {
+    if (!btn.classList.contains('w-6') && !btn.classList.contains('h-6')) {
+      btn.addEventListener('mouseenter', () => {
+        gsap.to(btn, {
+          duration: 0.3,
+          scale: 1.05,
+          ease: 'back.out'
+        });
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        gsap.to(btn, {
+          duration: 0.3,
+          scale: 1,
+          ease: 'back.out'
+        });
+      });
+    }
+  });
+
+  // ========== SCROLL ANIMATIONS COUNTERS ==========
+  // Números dos serviços com contagem
+  const stats = document.querySelectorAll('[data-number]');
+  stats.forEach((stat) => {
+    const finalValue = parseInt(stat.getAttribute('data-number'), 10);
+    gsap.fromTo(stat,
+      { textContent: 0 },
+      {
+        textContent: finalValue,
+        duration: 2,
+        snap: { textContent: 1 },
+        scrollTrigger: {
+          trigger: stat,
+          start: 'top 80%',
+          toggleActions: 'play none none none'
+        }
+      }
+    );
+  });
+
+  // ========== WHATSAPP FLOAT BUTTON ==========
+  // Animação contínua de pulse suave
+  const whatsappBtn = document.querySelector('.fixed.bottom-6.right-6');
+  if (whatsappBtn) {
+    gsap.to(whatsappBtn, {
+      duration: 1.5,
+      boxShadow: '0 0 30px rgba(34, 197, 94, 0.6)',
+      repeat: -1,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    // Hover effect
+    whatsappBtn.addEventListener('mouseenter', () => {
+      gsap.to(whatsappBtn, {
+        duration: 0.3,
+        scale: 1.1
+      });
+    });
+
+    whatsappBtn.addEventListener('mouseleave', () => {
+      gsap.to(whatsappBtn, {
+        duration: 0.3,
+        scale: 1
+      });
+    });
+  }
+
+  // ========== HEADER SCROLL ANIMATION ==========
+  // Header ficando mais compacto ao rolar
+  const header = document.querySelector('header');
+  if (header) {
+    gsap.to(header, {
+      scrollTrigger: {
+        trigger: 'body',
+        start: 'top 0',
+        onUpdate: (self) => {
+          if (self.getVelocity() > 0) {
+            gsap.to(header, { y: -100, duration: 0.3 });
+          } else {
+            gsap.to(header, { y: 0, duration: 0.3 });
+          }
+        }
+      }
+    });
+  }
+
+  // ========== PARALLAX EFFECT ==========
+  // Efeito paralax suave em seções
+  const parallaxElements = document.querySelectorAll('[data-parallax]');
+  parallaxElements.forEach((element) => {
+    gsap.fromTo(element,
+      {
+        y: 0
+      },
+      {
+        y: -50,
+        scrollTrigger: {
+          trigger: element,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 0.5,
+          markers: false
+        }
+      }
+    );
+  });
 }

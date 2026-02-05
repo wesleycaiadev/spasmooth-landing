@@ -858,4 +858,53 @@ html {
     }
   }
 }
+
+/* GSAP Animation Initialization States */
+.hero h1,
+.hero p,
+.hero .cta-buttons {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.glass-card {
+  transform: scale(1);
+  transition: none;
+}
+
+.testimonial-card {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.faq-item {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Performance optimization for animations */
+.glass-card,
+button,
+a[class*="bg-"] {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Loading state for images */
+img {
+  backface-visibility: hidden;
+}
+
+/* GSAP Button hover states */
+button:not([class*="w-6"]):not([class*="h-6"]),
+a[class*="px-"] {
+  cursor: pointer;
+}
+```
 ```

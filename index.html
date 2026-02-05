@@ -3,7 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SpaSmooth | Massoterapia em Aracaju</title>
+  <title>SpaSmooth | Massoterapia em Aracaju - Relaxe e Regenere</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="SpaSmooth - Massoterapia profissional em Aracaju. Oferecemos massagem relaxante, terapêutica, drenagem linfática e reflexologia para seu bem-estar." />
+  <meta name="keywords" content="massoterapia, massagem, spa, aracaju, relaxamento, bem-estar, massagem relaxante, massagem terapêutica" />
+  <meta name="author" content="SpaSmooth Massoterapia" />
+  <meta name="theme-color" content="#0891b2" />
+  <meta name="robots" content="index, follow" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://spasmooth.com.br" />
+  <meta property="og:title" content="SpaSmooth | Massoterapia em Aracaju" />
+  <meta property="og:description" content="Massoterapia profissional com relaxamento e regeneração. Agende seu horário!" />
+  <meta property="og:image" content="assets/og-image.jpg" />
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:title" content="SpaSmooth | Massoterapia em Aracaju" />
+  <meta property="twitter:description" content="Massoterapia profissional com relaxamento e regeneração." />
+  
+  <!-- Canonical -->
+  <link rel="canonical" href="https://spasmooth.com.br" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
@@ -433,7 +455,7 @@
 
         <div class="space-y-4">
           <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white faq-item">
-            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700" onclick="toggleFaq(this)">
+            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700 cursor-pointer">
               Qual a forma de pagamento?
               <i data-lucide="chevron-down" class="text-slate-400 transition-transform duration-300"></i>
             </button>
@@ -443,7 +465,7 @@
           </div>
 
           <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white faq-item">
-            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700" onclick="toggleFaq(this)">
+            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700 cursor-pointer">
               Preciso levar algo?
               <i data-lucide="chevron-down" class="text-slate-400 transition-transform duration-300"></i>
             </button>
@@ -453,7 +475,7 @@
           </div>
 
           <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white faq-item">
-            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700" onclick="toggleFaq(this)">
+            <button class="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700 cursor-pointer">
               Como funciona a confirmação?
               <i data-lucide="chevron-down" class="text-slate-400 transition-transform duration-300"></i>
             </button>
@@ -533,6 +555,57 @@
   </main>
 
   <!-- Scripts -->
+  <!-- GSAP Animation Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "HealthAndBeautyBusiness"],
+    "name": "SpaSmooth Massoterapia",
+    "image": "assets/og-image.jpg",
+    "description": "Massoterapia profissional em Aracaju com serviços de massagem relaxante, terapêutica, drenagem linfática e reflexologia.",
+    "url": "https://spasmooth.com.br",
+    "telephone": "+557991189140",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Aracaju",
+      "addressLocality": "Aracaju",
+      "addressRegion": "SE",
+      "postalCode": "",
+      "addressCountry": "BR"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": "-10.9090",
+      "longitude": "-37.0676"
+    },
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        "opens": "08:00",
+        "closes": "20:00"
+      },
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": "Saturday",
+        "opens": "09:00",
+        "closes": "16:00"
+      }
+    ],
+    "priceRange": "$$",
+    "areaServed": {
+      "@type": "City",
+      "name": "Aracaju",
+      "addressRegion": "SE",
+      "addressCountry": "BR"
+    }
+  }
+  </script>
+  
   <script src="data.js"></script>
   <script src="main-atualizado.js"></script>
   <script src="sections-atualizado.js"></script>
