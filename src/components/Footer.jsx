@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Instagram, MessageCircle, MapPin, Phone, Lock } from 'lucide-react';
 
 export default function Footer() {
@@ -58,9 +59,9 @@ export default function Footer() {
 
                 <div className="border-t border-slate-700 pt-8 text-center text-sm text-slate-500 relative flex justify-center items-center">
                     <p>&copy; 2026 SpaSmooth Massoterapia. Todos os direitos reservados.</p>
-                    <a href="/admin/dashboard" className="absolute right-0 text-slate-700 hover:text-cyan-500 transition-colors p-1" title="Acesso Administrativo">
+                    <Link href="/admin/dashboard" className="absolute right-0 text-slate-700 hover:text-cyan-500 transition-colors p-1" title="Acesso Administrativo">
                         <Lock className="w-3 h-3" />
-                    </a>
+                    </Link>
                 </div>
             </div>
         </footer>

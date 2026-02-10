@@ -25,8 +25,9 @@ export default function AdminLayout({ children }) {
         if (isLoaded && !isSignedIn) {
             router.push('/entrar');
         } else if (isLoaded && isSignedIn) {
-            const userEmail = user?.primaryEmailAddress?.emailAddress;
-            if (!ALLOWED_EMAILS.includes(userEmail)) {
+            const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+            const allowed = ALLOWED_EMAILS.map(e => e.toLowerCase());
+            if (!allowed.includes(userEmail)) {
                 router.push('/');
             }
         }
@@ -40,8 +41,8 @@ export default function AdminLayout({ children }) {
         );
     }
 
-    const userEmail = user?.primaryEmailAddress?.emailAddress;
-    const isAuthorized = isSignedIn && ALLOWED_EMAILS.includes(userEmail);
+    const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
+    const isAuthorized = isSignedIn && ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(userEmail);
 
     if (!isAuthorized) {
         return (
