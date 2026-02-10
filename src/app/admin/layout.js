@@ -19,12 +19,14 @@ export default function AdminLayout({ children }) {
     const { user, isLoaded, isSignedIn } = useUser();
     const router = useRouter();
 
+    const ALLOWED_EMAILS = ['wesleycaia.dev@gmail.com', 'Layararenata123@gmail.com'];
+
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             router.push('/entrar');
         } else if (isLoaded && isSignedIn) {
             const userEmail = user?.primaryEmailAddress?.emailAddress;
-            if (userEmail !== 'wesleycaia.dev@gmail.com') {
+            if (!ALLOWED_EMAILS.includes(userEmail)) {
                 router.push('/');
             }
         }
@@ -39,7 +41,7 @@ export default function AdminLayout({ children }) {
     }
 
     const userEmail = user?.primaryEmailAddress?.emailAddress;
-    const isAuthorized = isSignedIn && userEmail === 'wesleycaia.dev@gmail.com';
+    const isAuthorized = isSignedIn && ALLOWED_EMAILS.includes(userEmail);
 
     if (!isAuthorized) {
         return (
