@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { UserPlus, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { UserPlus, Trash2, CheckCircle, XCircle, Pencil } from 'lucide-react';
 
 export default function ProfessionalsPage() {
     const [pros, setPros] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
+    const [editingId, setEditingId] = useState(null);
     const [newPro, setNewPro] = useState({ name: '', specialties: '', photo_url: '' });
 
     const fetchPros = async () => {
@@ -25,27 +26,53 @@ export default function ProfessionalsPage() {
         fetchPros();
     }, []);
 
-    const handleAdd = async (e) => {
+    const handleSave = async (e) => {
         e.preventDefault();
         if (!newPro.name) return;
 
         const specialtiesArray = newPro.specialties.split(',').map(s => s.trim());
+        const proData = {
+            name: newPro.name,
+            specialties: specialtiesArray,
+            photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name
+        };
 
-        const { error } = await supabase
-            .from('professionals')
-            .insert([{
-                name: newPro.name,
-                specialties: specialtiesArray,
-                photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name
-            }]);
+        let error;
+
+        if (editingId) {
+            // Update existing
+            const { error: updateError } = await supabase
+                .from('professionals')
+                .update(proData)
+                .eq('id', editingId);
+            error = updateError;
+        } else {
+            // Create new
+            const { error: insertError } = await supabase
+                .from('professionals')
+                .insert([proData]);
+            error = insertError;
+        }
 
         if (!error) {
             setNewPro({ name: '', specialties: '', photo_url: '' });
             setIsAdding(false);
+            setEditingId(null);
             fetchPros();
         } else {
-            alert('Erro ao adicionar profissional');
+            alert('Erro ao salvar profissional');
+            console.error(error);
         }
+    };
+
+    const handleEdit = (pro) => {
+        setNewPro({
+            name: pro.name,
+            specialties: pro.specialties ? pro.specialties.join(', ') : '',
+            photo_url: pro.photo_url
+        });
+        setEditingId(pro.id);
+        setIsAdding(true);
     };
 
     const toggleActive = async (id, currentStatus) => {
@@ -68,6 +95,12 @@ export default function ProfessionalsPage() {
         }
     };
 
+    const closeForm = () => {
+        setIsAdding(false);
+        setEditingId(null);
+        setNewPro({ name: '', specialties: '', photo_url: '' });
+    };
+
     return (
         <div className="max-w-6xl mx-auto animate-fadeIn pb-12">
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
@@ -76,7 +109,11 @@ export default function ProfessionalsPage() {
                     <p className="text-slate-500 mt-2 font-light">Gerencie os terapeutas e suas especialidades.</p>
                 </div>
                 <button
-                    onClick={() => setIsAdding(!isAdding)}
+                    onClick={() => {
+                        setEditingId(null);
+                        setNewPro({ name: '', specialties: '', photo_url: '' });
+                        setIsAdding(!isAdding);
+                    }}
                     className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center gap-3 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                     <UserPlus size={20} />
@@ -88,8 +125,10 @@ export default function ProfessionalsPage() {
                 <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl border border-white/50 shadow-xl mb-12 animate-slideDown relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl -z-10"></div>
 
-                    <h3 className="font-bold text-slate-800 text-xl mb-6">Cadastrar Novo Terapeuta</h3>
-                    <form onSubmit={handleAdd} className="grid md:grid-cols-2 gap-6">
+                    <h3 className="font-bold text-slate-800 text-xl mb-6">
+                        {editingId ? 'Editar Profissional' : 'Cadastrar Novo Terapeuta'}
+                    </h3>
+                    <form onSubmit={handleSave} className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nome Completo</label>
                             <input
@@ -119,8 +158,10 @@ export default function ProfessionalsPage() {
                             />
                         </div>
                         <div className="col-span-2 flex justify-end gap-3 mt-4">
-                            <button type="button" onClick={() => setIsAdding(false)} className="text-slate-500 hover:bg-slate-100 px-6 py-3 rounded-xl font-medium transition-colors">Cancelar</button>
-                            <button type="submit" className="bg-cyan-600 text-white px-8 py-3 rounded-xl hover:bg-cyan-700 font-bold shadow-lg shadow-cyan-200 transition-all">Salvar Cadastro</button>
+                            <button type="button" onClick={closeForm} className="text-slate-500 hover:bg-slate-100 px-6 py-3 rounded-xl font-medium transition-colors">Cancelar</button>
+                            <button type="submit" className="bg-cyan-600 text-white px-8 py-3 rounded-xl hover:bg-cyan-700 font-bold shadow-lg shadow-cyan-200 transition-all">
+                                {editingId ? 'Atualizar Dados' : 'Salvar Cadastro'}
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -151,7 +192,14 @@ export default function ProfessionalsPage() {
                                 ))}
                             </div>
 
-                            <div className="flex items-center gap-4 w-full pt-4 border-t border-slate-100/50">
+                            <div className="flex items-center gap-2 w-full pt-4 border-t border-slate-100/50">
+                                <button
+                                    onClick={() => handleEdit(pro)}
+                                    className="p-2 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all"
+                                    title="Editar"
+                                >
+                                    <Pencil size={20} />
+                                </button>
                                 <button
                                     onClick={() => toggleActive(pro.id, pro.active)}
                                     className={`flex-1 py-2 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors ${pro.active ? 'bg-slate-100 text-slate-500 hover:bg-slate-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
