@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw, Send } from 'lucide-react';
 import StatusDropdown from '@/components/StatusDropdown';
 
 const COLUMNS = {
