@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw, Send } from 'lucide-react';
+import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw, Send, Trash2 } from 'lucide-react';
+
 import StatusDropdown from '@/components/StatusDropdown';
 
 const COLUMNS = {
@@ -103,6 +104,24 @@ export default function KanbanPage() {
 
     const [selectedLead, setSelectedLead] = useState(null);
     const [note, setNote] = useState('');
+
+    const handleDeleteLead = async (e, id) => {
+        e.stopPropagation();
+        if (!confirm('Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.')) return;
+
+        const { error } = await supabase
+            .from('leads')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Erro ao excluir:', error);
+            alert('Erro ao excluir lead.');
+        } else {
+            setLeads(leads.filter(lead => lead.id !== id));
+            if (selectedLead?.id === id) setSelectedLead(null);
+        }
+    };
 
     const handleCardClick = (lead) => {
         setSelectedLead(lead);
@@ -250,6 +269,13 @@ export default function KanbanPage() {
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => handleDeleteLead(e, lead.id)}
+                                                    className="p-1.5 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors"
+                                                    title="Excluir Lead"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
                                                 <StatusDropdown
                                                     currentStatus={lead.status_kanban || 'novo'}
                                                     onStatusChange={(newStatus) => updateStatus(lead.id, newStatus)}

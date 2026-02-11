@@ -65,17 +65,41 @@ export default function BookingWizard() {
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
-    const [bookedIntervals, setBookedIntervals] = useState([]); // Changed from bookedSlots
+    const [bookedIntervals, setBookedIntervals] = useState([]);
 
     const [booking, setBooking] = useState({
         professional_id: null,
-        service: null, // Entire object or string
-        service_option: null, // { label, price }
+        service: null,
+        service_option: null,
         date: '',
         time: '',
         name: '',
         whatsapp: ''
     });
+
+    // Validar se há serviço pré-selecionado vindo dos cards
+    useEffect(() => {
+        const savedService = sessionStorage.getItem('selected_service');
+        if (savedService) {
+            try {
+                const parsed = JSON.parse(savedService);
+                // Pre-fill booking with service info, but retain null professional
+                // This will make Step 2 automatically "open" that service once reached
+                setBooking(prev => ({
+                    ...prev,
+                    service: parsed.name,
+                    service_option: {
+                        label: parsed.defaultOption.time,
+                        price: parsed.defaultOption.price
+                    }
+                }));
+                // Clear validation
+                sessionStorage.removeItem('selected_service');
+            } catch (e) {
+                console.error('Error parsing saved service', e);
+            }
+        }
+    }, []);
 
     const handleNext = () => setStep(step + 1);
     const handleBack = () => setStep(step - 1);
@@ -255,15 +279,14 @@ export default function BookingWizard() {
                     <div className="animate-fadeIn">
                         <ProfessionalSelector
                             selectedId={booking.professional_id}
-                            onSelect={(id) => setBooking({ ...booking, professional_id: id })}
+                            onSelect={(id) => {
+                                setBooking({ ...booking, professional_id: id });
+                                setStep(2);
+                            }}
                         />
-                        <button
-                            onClick={handleNext}
-                            disabled={!booking.professional_id}
-                            className="w-full bg-[#1a1a1a] text-cyan-400 font-bold py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-black transition-colors shadow-lg uppercase tracking-wide text-sm"
-                        >
-                            Escolher Profissional
-                        </button>
+                        <div className="text-center text-xs text-slate-400 mt-4">
+                            Clique na profissional para continuar
+                        </div>
                     </div>
                 )}
 
@@ -276,124 +299,114 @@ export default function BookingWizard() {
 
                             <div className="space-y-3">
                                 {SERVICES.map(service => (
-                                    <div key={service.id} className="bg-[#fcfbf9] border border-[#f0e6d2] rounded-xl p-4 hover:border-cyan-600/50 transition-colors">
-                                        <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
-                                        <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
+                                    <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
+                                        <div className="p-4">
+                                            <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
+                                            <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
 
-                                        <div className="flex flex-wrap gap-2">
-                                            {service.options.map((option, idx) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => handleServiceSelect(service, option)}
-                                                    className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
-                                                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-md'
-                                                        : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
-                                                        }`}
-                                                >
-                                                    {option.label} <span className="font-bold ml-1">{option.price}</span>
-                                                </button>
-                                            ))}
+                                            <div className="flex flex-wrap gap-2">
+                                                {service.options.map((option, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => handleServiceSelect(service, option)}
+                                                        className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
+                                                            ? 'bg-cyan-600 text-white border-cyan-600 shadow-md'
+                                                            : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
+                                                            }`}
+                                                    >
+                                                        {option.label} <span className="font-bold ml-1">{option.price}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
+
+                                        {/* Render Booking Details INSIDE the card if selected */}
+                                        {booking.service === service.name && (
+                                            <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
+                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                                    <Clock size={16} className="text-cyan-600" />
+                                                    Escolha Data e Horário
+                                                </h4>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type="date"
+                                                                required
+                                                                min={new Date().toISOString().split('T')[0]}
+                                                                value={booking.date}
+                                                                onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
+                                                        <TimeSlotPicker
+                                                            selectedDate={booking.date}
+                                                            bookedIntervals={bookedIntervals}
+                                                            duration={currentDuration}
+                                                            schedule={dailySchedule}
+                                                            selectedTime={booking.time}
+                                                            onSelect={(time) => setBooking({ ...booking, time })}
+                                                            isLoading={slotsLoading}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {booking.time && (
+                                                    <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
+                                                        <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                                            <Sparkles size={16} className="text-cyan-600" />
+                                                            Seus Dados para Confirmação
+                                                        </h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="Nome Completo"
+                                                                required
+                                                                value={booking.name}
+                                                                onChange={(e) => setBooking({ ...booking, name: e.target.value })}
+                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                            />
+
+                                                            <input
+                                                                type="tel"
+                                                                placeholder="WhatsApp (com DDD)"
+                                                                required
+                                                                value={booking.whatsapp}
+                                                                onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
+                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                            />
+                                                        </div>
+
+                                                        <div className="flex gap-3 pt-6 mt-4">
+                                                            <button
+                                                                type="button" // Prevent form submit if wrapped
+                                                                onClick={handleSubmit}
+                                                                disabled={loading || !booking.name || !booking.whatsapp}
+                                                                className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                                                            >
+                                                                {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-[#f0e6d2]">
-                            <div>
-                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
-                                <div className="relative">
-                                    <input
-                                        type="date"
-                                        required
-                                        min={new Date().toISOString().split('T')[0]}
-                                        value={booking.date}
-                                        onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })} // Reset time on date change
-                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
-                                    />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
-                                <TimeSlotPicker
-                                    selectedDate={booking.date}
-                                    bookedIntervals={bookedIntervals}
-                                    duration={currentDuration}
-                                    schedule={dailySchedule}
-                                    selectedTime={booking.time}
-                                    onSelect={(time) => setBooking({ ...booking, time })}
-                                    isLoading={slotsLoading}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-3 pt-4">
+                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
                             <button onClick={handleBack} className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors">
                                 Voltar
                             </button>
-                            <button
-                                onClick={handleNext}
-                                disabled={!booking.service || !booking.date || !booking.time}
-                                className="flex-1 bg-cyan-600 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:bg-cyan-700 transition-colors shadow-lg"
-                            >
-                                Continuar
-                            </button>
                         </div>
                     </div>
-                )}
-
-                {step === 3 && (
-                    <form onSubmit={handleSubmit} className="space-y-6 animate-fadeIn">
-
-                        <div className="bg-[#fcfbf9] p-4 rounded-xl border border-[#f0e6d2] flex gap-4 items-start">
-                            <div className="w-12 h-12 rounded-full bg-cyan-600/10 flex items-center justify-center shrink-0">
-                                <Sparkles className="text-cyan-600 w-6 h-6" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-[#4a4a4a] text-sm">Resumo do Pedido</h4>
-                                <p className="text-xs text-[#666] mt-1">
-                                    <span className="font-bold">{booking.service}</span> • {booking.service_option?.label}
-                                </p>
-                                <p className="text-xs text-[#666]">
-                                    {new Date(booking.date + 'T00:00:00').toLocaleDateString('pt-BR')} às {booking.time}
-                                </p>
-                                <p className="text-sm font-bold text-cyan-600 mt-2">{booking.service_option?.price}</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Nome Completo"
-                                required
-                                value={booking.name}
-                                onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                            />
-
-                            <input
-                                type="tel"
-                                placeholder="WhatsApp (com DDD)"
-                                required
-                                value={booking.whatsapp}
-                                onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
-                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                            />
-                        </div>
-
-                        <div className="flex gap-3 pt-2">
-                            <button type="button" onClick={handleBack} className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors">
-                                Voltar
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                            >
-                                {loading ? 'Confirmando...' : 'Finalizar Agendamento'}
-                            </button>
-                        </div>
-                    </form>
                 )}
             </div>
         </div>

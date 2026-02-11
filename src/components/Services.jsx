@@ -1,15 +1,5 @@
 import { TREATMENTS } from '@/lib/data';
-import { Sparkles, Wind, Droplets, Flame, Hand, CircleDot, CheckCircle } from 'lucide-react';
-
-const iconMap = {
-    Sparkles,
-    Wind,
-    Droplets,
-    Flame,
-    Hand,
-    CircleDot,
-    'check-circle': CheckCircle
-};
+import ServiceBookingCard from './booking/ServiceBookingCard';
 
 export default function Services() {
     return (
@@ -25,42 +15,9 @@ export default function Services() {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-grid">
-                    {TREATMENTS.map((treatment) => {
-                        const Icon = iconMap[treatment.icon] || Sparkles;
-                        return (
-                            <div key={treatment.id} className={`glass-card p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 flex flex-col h-full ${treatment.featured ? 'border-2 border-cyan-300' : ''}`}>
-                                <div className="flex items-start justify-between gap-4 mb-6">
-                                    <div className="bg-[#e2f6fc] w-16 h-16 rounded-2xl flex items-center justify-center">
-                                        <Icon className="w-8 h-8 text-cyan-600" />
-                                    </div>
-                                    <div className="text-right">
-                                        {treatment.durations.map((d, idx) => (
-                                            <div key={idx}>
-                                                <div className="text-sm text-slate-400">{d.time}</div>
-                                                <div className="font-bold text-slate-700">{d.price}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                                <h3 className="text-2xl font-bold text-slate-700 mb-3">{treatment.name}</h3>
-                                <p className="text-slate-500 mb-5 text-sm">{treatment.description}</p>
-
-                                <div className="bg-white/60 rounded-2xl p-5 border border-white/40">
-                                    <p className="text-sm font-bold text-slate-700 mb-2">Etapas</p>
-                                    <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                                        {treatment.stages.map((stage, i) => (
-                                            <li key={i}>{stage}</li>
-                                        ))}
-                                    </ul>
-                                    {treatment.note && <p className="text-xs text-slate-500 mt-4">{treatment.note}</p>}
-                                </div>
-
-                                <a href="#agendar" className="mt-auto inline-block text-center px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-200/50 w-full animate-fadeIn animation-delay-4000">
-                                    Agendar
-                                </a>
-                            </div>
-                        );
-                    })}
+                    {TREATMENTS.map((treatment) => (
+                        <ServiceBookingCard key={treatment.id} treatment={treatment} />
+                    ))}
                 </div>
 
                 <div className="mt-10 text-center text-xs text-slate-400">
