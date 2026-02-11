@@ -106,7 +106,9 @@ export default function ServiceBookingCard({ treatment }) {
     }, [booking.date, booking.professional_id]);
 
 
-    const handleBooking = () => {
+    const handleBooking = (e) => {
+        if (e) e.preventDefault();
+
         // Save the service details to localStorage to be picked up by BookingWizard
         const serviceData = {
             id: treatment.id,
@@ -117,12 +119,12 @@ export default function ServiceBookingCard({ treatment }) {
         sessionStorage.setItem('selected_service', JSON.stringify(serviceData));
 
         // Scroll to the booking wizard section
-        const wizardSection = document.getElementById('agendamento');
+        const wizardSection = document.getElementById('agendar');
         if (wizardSection) {
             wizardSection.scrollIntoView({ behavior: 'smooth' });
         } else {
             // Fallback if ID not found immediately (e.g. different page)
-            window.location.href = '/#agendamento';
+            window.location.href = '/#agendar';
         }
     };
 
@@ -155,6 +157,7 @@ export default function ServiceBookingCard({ treatment }) {
             </div>
 
             <button
+                type="button"
                 onClick={handleBooking} // Changed to trigger scroll & save
                 className="mt-auto inline-block text-center px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-200/50 w-full"
             >
