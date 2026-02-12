@@ -50,7 +50,7 @@ export default function ServiceBookingCard({ treatment }) {
         return 60;
     };
     const duration = getDuration();
-    const BUFFER_MINUTES = 15;
+    const BUFFER_MINUTES = 0;
 
     // Fetch Slots Effect (similar to BookingWizard)
     useEffect(() => {

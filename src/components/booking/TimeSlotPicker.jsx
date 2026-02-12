@@ -46,7 +46,7 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
         const startMinutes = h * 60 + m;
         // Check if THIS slot + duration + buffer overlaps with anything
         // effectively: we need a gap of 'duration + buffer' before the next appt starts.
-        const buffer = 15;
+        const buffer = 0;
         const endMinutes = startMinutes + duration + buffer;
 
         // Check availability against dynamic business hours
