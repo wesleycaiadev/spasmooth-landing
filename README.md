@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌿 SpaSmooth Landing
 
-## Getting Started
+![Project Status](https://img.shields.io/badge/status-em_desenvolvimento-orange) ![License](https://img.shields.io/github/license/wesleycaiadev/spasmooth-landing)
 
-First, run the development server:
+Uma Landing Page moderna do tipo **SPA (Single Page Application)**, focada numa experiência de utilizador fluída com animações suaves e *smooth scrolling*. Este projeto foi desenvolvido para demonstrar competências em Front-End, design responsivo e interatividade.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Funcionalidades
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Navegação Suave (Smooth Scroll):** Transições fluídas entre as secções da página.
+- **Animações Interativas:** Elementos que reagem ao scroll e à interação do utilizador (possível uso de GSAP/Framer Motion).
+- **Design Responsivo:** Totalmente adaptado para dispositivos móveis, tablets e desktops.
+- **Performance Otimizada:** Carregamento rápido e boas práticas de SEO.
+- **UI/UX Moderna:** Layout limpo e focado na usabilidade.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🛠️ Tecnologias Utilizadas
 
-To learn more about Next.js, take a look at the following resources:
+Este projeto foi construído utilizando as seguintes tecnologias e ferramentas:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **HTML5** & **CSS3** (Semântico e Responsivo)
+- **JavaScript (ES6+)** / **TypeScript**
+- **Node.js** (Ambiente de desenvolvimento)
+- **Bibliotecas de Animação:** (Ex: GSAP, Framer Motion ou Anime.js - *ajustar conforme o que usaste*)
+- **Git** & **GitHub**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 📦 Como executar o projeto
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Para obteres uma cópia local e executares o projeto, segue estes passos simples:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Pré-requisitos
+
+Certifica-te de que tens o [Node.js](https://nodejs.org/) e o [npm](https://www.npmjs.com/) instalados na tua máquina.
+
+### Instalação
+
+1. Clona o repositório:
+   ```bash
+   git clone [https://github.com/wesleycaiadev/spasmooth-landing.git](https://github.com/wesleycaiadev/spasmooth-landing.git)
