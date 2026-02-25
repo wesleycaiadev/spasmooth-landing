@@ -37,12 +37,33 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "HealthAndBeautyBusiness",
+    "name": "SpaSmooth",
+    "image": "https://spasmooth.vercel.app/images/ambiente.jpg",
+    "url": "https://spasmooth.vercel.app",
+    "telephone": "+5579998356598",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Centro",
+      "addressLocality": "Aracaju",
+      "addressRegion": "SE",
+      "addressCountry": "BR"
+    },
+    "priceRange": "$$"
+  };
+
   return (
     <ClerkProvider>
       <html lang="pt-BR" className={nunito.variable}>
         <head>
           <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
           <script defer src="https://unpkg.com/lucide@latest"></script>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
         </head>
         <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
           {children}

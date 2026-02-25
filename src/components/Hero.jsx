@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { MapPin, Star, Sparkles, CheckCircle } from 'lucide-react';
 
@@ -10,10 +11,12 @@ export default function Hero() {
         <section className="hero relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#fafafa]">
             {/* Background Image with Gold Overlay */}
             <div className="absolute inset-0 z-0">
-                <img
+                <Image
                     src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
                     alt="Ambiente de massagem luxuoso"
-                    className="w-full h-full object-cover opacity-80"
+                    fill
+                    priority
+                    className="object-cover opacity-80"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-white via-cyan-50/50 to-cyan-100/40"></div>
             </div>
