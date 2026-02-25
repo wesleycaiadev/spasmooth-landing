@@ -16,7 +16,8 @@ export default function Hero() {
                     alt="Ambiente de massagem luxuoso"
                     fill
                     priority
-                    className="object-cover opacity-80"
+                    style={{ objectFit: 'cover' }}
+                    className="opacity-80"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-white via-cyan-50/50 to-cyan-100/40"></div>
             </div>
