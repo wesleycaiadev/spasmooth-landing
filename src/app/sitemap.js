@@ -3,8 +3,8 @@ export default function sitemap() {
         {
             url: 'https://spasmooth.vercel.app',
             lastModified: new Date(),
-            changeFrequency: 'weekly',
+            changeFrequency: 'monthly',
             priority: 1,
-        }
+        },
     ]
 }

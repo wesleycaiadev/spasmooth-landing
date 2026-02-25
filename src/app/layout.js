@@ -58,7 +58,6 @@ export default function RootLayout({ children }) {
                 "telephone": "+557991189140",
                 "address": {
                   "@type": "PostalAddress",
-                  "streetAddress": "Insira a sua Rua e Número aqui",
                   "addressLocality": "Aracaju",
                   "addressRegion": "SE",
                   "postalCode": "00000-000",
