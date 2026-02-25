@@ -244,7 +244,30 @@ export default function BookingWizard() {
 
             if (error) throw error;
 
-            if (data) localStorage.setItem('current_lead_id', data);
+            if (data) {
+                localStorage.setItem('current_lead_id', data);
+
+                // Notificar admin via WhatsApp e forçar leitura de erro
+                try {
+                    const notifyRes = await fetch(`${window.location.origin}/api/booking/notify`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lead_id: data })
+                    });
+
+                    // Verifica se a API respondeu mas deu erro
+                    if (!notifyRes.ok) {
+                        const errorText = await notifyRes.text();
+                        console.error("Notify API Error Response (" + notifyRes.status + "):", errorText);
+                    } else {
+                        console.log("Notificação enviada com sucesso!");
+                    }
+                } catch (notifyErr) {
+                    // Erro de rede (não conseguiu nem alcançar a API)
+                    console.error("Network Exception trigger notification:", notifyErr);
+                }
+            }
+
             router.push('/obrigado');
 
         } catch (error) {

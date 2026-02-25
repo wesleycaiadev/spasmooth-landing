@@ -29,11 +29,11 @@ export default function Hero() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif text-[#4a4a4a] leading-tight">
-                        O refúgio perfeito para o seu <span className="text-cyan-500 italic">renascimento</span>.
+                        Massoterapia e Spa em <span className="text-cyan-500 italic">Aracaju</span>
                     </h1>
 
                     <p className="text-lg md:text-2xl text-[#7a7a7a] leading-relaxed max-w-2xl mx-auto">
-                        Redescubra o equilíbrio entre corpo e mente com terapias personalizadas em um ambiente de alto padrão.
+                        O refúgio perfeito para o seu renascimento. Redescubra o equilíbrio entre corpo e mente com terapias personalizadas em um ambiente de alto padrão.
                     </p>
 
                     <div className="flex flex-col items-center gap-6 pt-4">
