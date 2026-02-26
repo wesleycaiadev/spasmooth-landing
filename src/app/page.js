@@ -8,13 +8,13 @@ import FAQ from '@/components/FAQ';
 import Footer from '@/components/Footer';
 import AmbienceSection from '@/components/AmbienceSection';
 import Preloader from '@/components/Preloader';
-import GSAPController from '@/components/GSAPController';
+import ScrollAnimations from '@/components/ScrollAnimations';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-white">
-      <GSAPController />
+      <ScrollAnimations />
       <Preloader />
 
       <Header />

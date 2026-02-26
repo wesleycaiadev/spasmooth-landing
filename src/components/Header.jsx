@@ -27,29 +27,29 @@ export default function Header() {
                 </div>
 
                 {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center gap-8 text-slate-600 font-semibold">
-                    <a href="#servicos" className="hover:text-cyan-500 transition-colors">Tratamentos</a>
-                    <a href="#agendar" className="hover:text-cyan-500 transition-colors">Agendar</a>
-                    <a href="#depoimentos" className="hover:text-cyan-500 transition-colors">Depoimentos</a>
-                    <a href="#faq" className="hover:text-cyan-500 transition-colors">Dúvidas</a>
-                    <a href="#agendar" className="px-8 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md bg-orange-400 hover:bg-orange-500 text-white shadow-orange-200">
+                <nav aria-label="Navegação Principal" className="hidden md:flex items-center gap-8 text-slate-600 font-semibold">
+                    <a href="#servicos" title="Ver Tratamentos" className="hover:text-cyan-500 transition-colors">Tratamentos</a>
+                    <a href="#agendar" title="Agendar Sessão" className="hover:text-cyan-500 transition-colors">Agendar</a>
+                    <a href="#depoimentos" title="Ler Depoimentos" className="hover:text-cyan-500 transition-colors">Depoimentos</a>
+                    <a href="#faq" title="Dúvidas Frequentes" className="hover:text-cyan-500 transition-colors">Dúvidas</a>
+                    <a href="#agendar" title="Agendar Sessão Agora" className="px-8 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md bg-orange-400 hover:bg-orange-500 text-white shadow-orange-200">
                         Agendar Agora
                     </a>
                 </nav>
 
                 {/* Mobile Toggle */}
-                <button id="menu-btn" className="md:hidden text-slate-600" onClick={toggleMenu}>
-                    <Menu className="w-7 h-7" />
+                <button aria-label="Abrir Menu" id="menu-btn" className="md:hidden text-slate-600" onClick={toggleMenu}>
+                    <Menu className="w-7 h-7" aria-hidden="true" />
                 </button>
             </div>
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div id="mobile-menu" className="md:hidden bg-white w-full border-b border-slate-100 shadow-lg py-6 px-6 flex flex-col gap-4 absolute top-full left-0">
-                    <a href="#servicos" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Tratamentos</a>
-                    <a href="#agendar" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Agendar</a>
-                    <a href="#depoimentos" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Depoimentos</a>
-                    <a href="#agendar" className="w-full mt-2 px-8 py-3 rounded-full font-bold bg-orange-400 text-white text-center shadow-md" onClick={closeMenu}>
+                <div id="mobile-menu" role="menu" className="md:hidden bg-white w-full border-b border-slate-100 shadow-lg py-6 px-6 flex flex-col gap-4 absolute top-full left-0">
+                    <a href="#servicos" role="menuitem" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Tratamentos</a>
+                    <a href="#agendar" role="menuitem" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Agendar</a>
+                    <a href="#depoimentos" role="menuitem" className="mobile-link text-lg py-2 border-b border-slate-50" onClick={closeMenu}>Depoimentos</a>
+                    <a href="#agendar" role="menuitem" className="w-full mt-2 px-8 py-3 rounded-full font-bold bg-orange-400 text-white text-center shadow-md" onClick={closeMenu}>
                         Agendar Sessão
                     </a>
                 </div>

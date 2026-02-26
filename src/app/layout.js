@@ -64,7 +64,6 @@ export default function RootLayout({ children }) {
       <html lang="pt-BR" className={nunito.variable}>
         <head>
           <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-          <script defer src="https://unpkg.com/lucide@latest"></script>
           <script
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
@@ -73,6 +72,7 @@ export default function RootLayout({ children }) {
         <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
           {children}
           {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+          <script defer src="https://unpkg.com/lucide@latest"></script>
         </body>
       </html>
     </ClerkProvider>

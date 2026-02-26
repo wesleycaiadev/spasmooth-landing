@@ -16,6 +16,7 @@ export default function Hero() {
                     alt="Ambiente de massagem luxuoso no SpaSmooth Aracaju"
                     fill
                     priority
+                    loading="eager"
                     sizes="100vw"
                     className="object-cover opacity-80"
                 />
