@@ -2,18 +2,22 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
-import { MapPin, Star, Sparkles, CheckCircle } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 export default function Hero() {
     return (
         <section className="hero relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#fafafa]">
             {/* Background Image with Gold Overlay */}
-            <div className="absolute inset-0 z-0">
-                <img
+            <div className="absolute inset-0 z-0 text-transparent">
+                <Image
                     src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80"
-                    alt="Ambiente de massagem luxuoso"
-                    className="w-full h-full object-cover opacity-80"
+                    alt="Ambiente de massagem luxuoso no SpaSmooth Aracaju"
+                    fill
+                    priority
+                    sizes="100vw"
+                    className="object-cover opacity-80"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-white via-cyan-50/50 to-cyan-100/40"></div>
             </div>
@@ -29,7 +33,7 @@ export default function Hero() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif text-[#4a4a4a] leading-tight">
-                        O refúgio perfeito para o seu <span className="text-cyan-500 italic">renascimento</span>.
+                        Spa e Massoterapia de Excelência <span className="text-cyan-500 italic">em Aracaju</span>.
                     </h1>
 
                     <p className="text-lg md:text-2xl text-[#7a7a7a] leading-relaxed max-w-2xl mx-auto">
