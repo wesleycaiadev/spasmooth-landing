@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle } from 'lucide-react';
 
@@ -35,8 +36,19 @@ export default function ProfessionalSelector({ onSelect, selectedId }) {
                     onClick={() => onSelect(pro.id)}
                     className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${selectedId === pro.id ? 'border-cyan-500 shadow-lg ring-2 ring-cyan-500/20' : 'border-transparent hover:border-cyan-200'}`}
                 >
-                    <div className="aspect-square relative">
-                        <img src={pro.photo_url} alt={pro.name} className="w-full h-full object-cover object-top" />
+                    <div className="aspect-square relative flex items-center justify-center bg-slate-100">
+                        {pro.photo_url ? (
+                            <Image
+                                src={pro.photo_url}
+                                alt={pro.name}
+                                fill
+                                sizes="(max-width: 768px) 50vw, 33vw"
+                                unoptimized={true}
+                                className="object-cover object-top"
+                            />
+                        ) : (
+                            <span className="text-slate-300 text-xs">Sem foto</span>
+                        )}
                         {selectedId === pro.id && (
                             <div className="absolute inset-0 bg-cyan-500/40 flex items-center justify-center">
                                 <CheckCircle className="text-white w-10 h-10 drop-shadow-lg" />

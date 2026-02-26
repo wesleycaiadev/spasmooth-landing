@@ -1,5 +1,6 @@
 import { Nunito } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
 
 const nunito = Nunito({ subsets: ["latin"], variable: '--font-nunito' });
@@ -17,6 +18,14 @@ export const metadata = {
     description: "Referência em massoterapia e bem-estar em Aracaju. Agende sua sessão e renove suas energias em um ambiente preparado para relaxar e regenerar a saúde.",
     url: 'https://spasmooth.vercel.app',
     siteName: 'SpaSmooth',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
+        width: 1200,
+        height: 630,
+        alt: 'Interior relaxante do SpaSmooth Aracaju',
+      }
+    ],
     locale: 'pt_BR',
     type: 'website',
   },
@@ -60,6 +69,7 @@ export default function RootLayout({ children }) {
         </head>
         <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
           {children}
+          <GoogleAnalytics gaId="G-XYZ1234567" />
         </body>
       </html>
     </ClerkProvider>
