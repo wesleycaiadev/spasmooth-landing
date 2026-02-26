@@ -39,7 +39,7 @@ export const metadata = {
     },
   },
   verification: {
-    google: 'adicione-seu-codigo-google-search-console-aqui',
+    google: process.env.NEXT_PUBLIC_GSC_VERIFICATION || 'adicione-seu-codigo-google-search-console-aqui',
   },
 };
 
@@ -72,7 +72,7 @@ export default function RootLayout({ children }) {
         </head>
         <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
           {children}
-          <GoogleAnalytics gaId="G-XYZ1234567" />
+          {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
         </body>
       </html>
     </ClerkProvider>
