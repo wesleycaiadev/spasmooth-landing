@@ -52,8 +52,10 @@ html {
   }
 }
 
-.animate-fadeIn {
-  animation: fadeIn 1s ease-out forwards;
+@layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 1s ease-out forwards;
+  }
 }
 
 @keyframes blob {

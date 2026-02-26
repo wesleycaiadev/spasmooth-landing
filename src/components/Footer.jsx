@@ -57,10 +57,10 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="border-t border-slate-700 pt-8 text-center text-sm text-slate-500 relative flex justify-center items-center">
+                <div className="border-t border-slate-700 pt-8 text-center text-sm text-slate-400 relative flex justify-center items-center">
                     <p>&copy; 2026 SpaSmooth Massoterapia. Todos os direitos reservados.</p>
-                    <Link href="/admin/dashboard" className="absolute right-0 text-slate-700 hover:text-cyan-500 transition-colors p-1" title="Acesso Administrativo">
-                        <Lock className="w-3 h-3" />
+                    <Link href="/admin/dashboard" className="absolute right-0 text-slate-700 hover:text-cyan-500 transition-colors p-3" title="Acesso Administrativo">
+                        <Lock className="w-4 h-4" />
                     </Link>
                 </div>
             </div>

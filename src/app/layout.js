@@ -43,6 +43,13 @@ export const metadata = {
   },
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: '#ffffff',
+};
+
 const schemaData = {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
@@ -72,7 +79,6 @@ export default function RootLayout({ children }) {
         <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
           {children}
           {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
-          <script defer src="https://unpkg.com/lucide@latest"></script>
         </body>
       </html>
     </ClerkProvider>
