@@ -12,9 +12,9 @@ export default function Header() {
         <header className="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
             <div className="container mx-auto px-6 py-4 flex justify-between items-center">
                 {/* Logo */}
-                <div className="flex flex-col items-center leading-none select-none cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
+                <button aria-label="Voltar ao início" className="flex flex-col items-center leading-none select-none cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
                     <div className="relative mb-1">
-                        <svg width="40" height="30" viewBox="0 0 100 80" fill="none" stroke="#bddee7" strokeWidth="3">
+                        <svg aria-hidden="true" width="40" height="30" viewBox="0 0 100 80" fill="none" stroke="#bddee7" strokeWidth="3">
                             <path d="M50 10 C30 30, 10 50, 10 80 H90 C90 50, 70 30, 50 10" />
                             <path d="M50 10 C40 40, 30 60, 30 80" strokeWidth="2" />
                             <path d="M50 10 C60 40, 70 60, 70 80" strokeWidth="2" />
@@ -24,7 +24,7 @@ export default function Header() {
                         Spa<span className="font-bold text-slate-700">SmooTh</span>
                     </h1>
                     <span className="text-xs text-cyan-700 tracking-[0.2em] uppercase mt-1">Massoterapia</span>
-                </div>
+                </button>
 
                 {/* Desktop Nav */}
                 <nav aria-label="Navegação Principal" className="hidden md:flex items-center gap-8 text-slate-600 font-semibold">

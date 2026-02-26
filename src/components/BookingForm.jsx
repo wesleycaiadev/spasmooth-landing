@@ -95,28 +95,28 @@ export default function BookingForm() {
                     <div className="bg-gradient-to-br from-slate-50 to-white p-8 rounded-3xl shadow-lg border border-slate-100">
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Nome completo *</label>
+                                <label htmlFor="nome" className="block text-sm font-bold text-slate-700 mb-2">Nome completo *</label>
                                 <input type="text" id="nome" required value={formData.nome} onChange={handleChange}
                                     className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all"
                                     placeholder="Seu nome" />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">CPF (opcional)</label>
+                                <label htmlFor="cpf" className="block text-sm font-bold text-slate-700 mb-2">CPF (opcional)</label>
                                 <input type="text" id="cpf" value={formData.cpf} onChange={handleChange}
                                     className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all"
                                     placeholder="000.000.000-00" />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Telefone/WhatsApp *</label>
+                                <label htmlFor="telefone" className="block text-sm font-bold text-slate-700 mb-2">Telefone/WhatsApp *</label>
                                 <input type="text" id="telefone" required value={formData.telefone} onChange={handleChange}
                                     className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all"
                                     placeholder="(79) 9118-9140" />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 mb-2">Tratamento *</label>
+                                <label htmlFor="servico" className="block text-sm font-bold text-slate-700 mb-2">Tratamento *</label>
                                 <select id="servico" required value={formData.servico} onChange={handleChange}
                                     className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all appearance-none cursor-pointer">
                                     <option value="" disabled>Escolha um tratamento</option>
@@ -133,13 +133,13 @@ export default function BookingForm() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Data *</label>
+                                    <label htmlFor="data" className="block text-sm font-bold text-slate-700 mb-2">Data *</label>
                                     <input type="date" id="data" required value={formData.data} onChange={handleChange} min={today}
                                         className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all text-slate-600" />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Horário *</label>
+                                    <label htmlFor="horario" className="block text-sm font-bold text-slate-700 mb-2">Horário *</label>
                                     <select id="horario" required value={formData.horario} onChange={handleChange}
                                         className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 outline-none transition-all cursor-pointer">
                                         <option value="" disabled>Selecione</option>

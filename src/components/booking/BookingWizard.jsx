@@ -334,6 +334,7 @@ export default function BookingWizard() {
                                                         <div className="relative">
                                                             <input
                                                                 type="date"
+                                                                aria-label="Data do agendamento"
                                                                 required
                                                                 min={new Date().toISOString().split('T')[0]}
                                                                 value={booking.date}
@@ -365,6 +366,7 @@ export default function BookingWizard() {
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             <input
                                                                 type="text"
+                                                                aria-label="Seu nome completo"
                                                                 placeholder="Nome Completo"
                                                                 required
                                                                 value={booking.name}
@@ -374,6 +376,7 @@ export default function BookingWizard() {
 
                                                             <input
                                                                 type="tel"
+                                                                aria-label="Seu WhatsApp (com DDD)"
                                                                 placeholder="WhatsApp (com DDD)"
                                                                 required
                                                                 value={booking.whatsapp}

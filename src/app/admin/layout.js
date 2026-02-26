@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { UserButton, useUser } from "@clerk/nextjs";
+import { UserButton, useUser, ClerkProvider } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard, Users, Settings, Briefcase, Calendar } from 'lucide-react';
 
@@ -16,6 +16,14 @@ const sidebarItems = [
 import AdminNotifications from '@/components/admin/AdminNotifications';
 
 export default function AdminLayout({ children }) {
+    return (
+        <ClerkProvider>
+            <AdminContent>{children}</AdminContent>
+        </ClerkProvider>
+    );
+}
+
+function AdminContent({ children }) {
     const { user, isLoaded, isSignedIn } = useUser();
     const router = useRouter();
 
