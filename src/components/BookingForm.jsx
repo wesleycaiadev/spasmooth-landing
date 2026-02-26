@@ -61,11 +61,11 @@ export default function BookingForm() {
 
                         <div className="space-y-4">
                             <div className="flex items-center gap-4 bg-cyan-50 p-4 rounded-xl border border-cyan-100">
-                                <div className="bg-cyan-100 p-3 rounded-full text-cyan-600 flex-shrink-0">
+                                <div className="bg-cyan-100 p-3 rounded-full text-cyan-800 flex-shrink-0">
                                     <MessageSquare />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-700">Confirmação por WhatsApp</h4>
+                                    <h3 className="font-bold text-slate-700">Confirmação por WhatsApp</h3>
                                     <p className="text-sm text-slate-400">Rápido e prático</p>
                                 </div>
                             </div>
@@ -75,7 +75,7 @@ export default function BookingForm() {
                                     <ShieldCheck />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-700">Atendimento reservado</h4>
+                                    <h3 className="font-bold text-slate-700">Atendimento reservado</h3>
                                     <p className="text-sm text-slate-400">Com discrição e conforto</p>
                                 </div>
                             </div>
@@ -85,7 +85,7 @@ export default function BookingForm() {
                                     <Clock />
                                 </div>
                                 <div>
-                                    <h4 className="font-bold text-slate-700">Duração transparente</h4>
+                                    <h3 className="font-bold text-slate-700">Duração transparente</h3>
                                     <p className="text-sm text-slate-400">Você escolhe o tempo e o tratamento</p>
                                 </div>
                             </div>
@@ -162,7 +162,7 @@ export default function BookingForm() {
                             )}
 
                             <button type="submit"
-                                className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-200 transition-all transform hover:-translate-y-1 mt-4 flex justify-center items-center gap-2">
+                                className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-cyan-200 transition-all transform hover:-translate-y-1 mt-4 flex justify-center items-center gap-2">
                                 <Send className="w-5 h-5" /> Enviar para WhatsApp
                             </button>
 

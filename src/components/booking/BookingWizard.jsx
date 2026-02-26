@@ -260,7 +260,7 @@ export default function BookingWizard() {
             {/* Header Steps */}
             <div className="bg-[#FFFDF9] p-4 md:p-6 flex justify-between items-end border-b border-[#f0e6d2]">
                 <div>
-                    <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest block mb-1">
+                    <span className="text-[10px] font-bold text-cyan-700 uppercase tracking-widest block mb-1">
                         PASSO {step} DE 3
                     </span>
                     <h2 className="text-xl font-serif text-[#4a4a4a] leading-tight">
@@ -293,7 +293,7 @@ export default function BookingWizard() {
                 {step === 2 && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="space-y-4">
-                            <label className="text-xs font-bold text-cyan-600 uppercase tracking-wider flex items-center gap-2">
+                            <label className="text-xs font-bold text-cyan-700 uppercase tracking-wider flex items-center gap-2">
                                 <Sparkles size={14} /> Menu de Experiências
                             </label>
 
@@ -310,7 +310,7 @@ export default function BookingWizard() {
                                                         key={idx}
                                                         onClick={() => handleServiceSelect(service, option)}
                                                         className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
-                                                            ? 'bg-cyan-600 text-white border-cyan-600 shadow-md'
+                                                            ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
                                                             : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
                                                             }`}
                                                     >
@@ -324,7 +324,7 @@ export default function BookingWizard() {
                                         {booking.service === service.name && (
                                             <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
                                                 <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                    <Clock size={16} className="text-cyan-600" />
+                                                    <Clock size={16} className="text-cyan-700" />
                                                     Escolha Data e Horário
                                                 </h4>
 
@@ -359,7 +359,7 @@ export default function BookingWizard() {
                                                 {booking.time && (
                                                     <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
                                                         <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                            <Sparkles size={16} className="text-cyan-600" />
+                                                            <Sparkles size={16} className="text-cyan-700" />
                                                             Seus Dados para Confirmação
                                                         </h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,7 +387,7 @@ export default function BookingWizard() {
                                                                 type="button" // Prevent form submit if wrapped
                                                                 onClick={handleSubmit}
                                                                 disabled={loading || !booking.name || !booking.whatsapp}
-                                                                className="w-full bg-gradient-to-r from-cyan-600 to-cyan-700 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                                                                className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
                                                             >
                                                                 {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
                                                             </button>

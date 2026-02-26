@@ -114,8 +114,8 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
                                 ${!available
                                     ? 'bg-slate-100 text-slate-300 border-slate-100 cursor-not-allowed decoration-slice line-through'
                                     : isSelected
-                                        ? 'bg-cyan-600 text-white border-cyan-600 shadow-md transform scale-105'
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-400 hover:text-cyan-600 hover:shadow-sm'
+                                        ? 'bg-cyan-700 text-white border-cyan-700 shadow-md transform scale-105'
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-cyan-500 hover:text-cyan-700 hover:shadow-sm'
                                 }
                             `}
                         >

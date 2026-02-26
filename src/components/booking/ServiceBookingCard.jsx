@@ -132,7 +132,7 @@ export default function ServiceBookingCard({ treatment }) {
         <div className={`glass-card p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 flex flex-col h-full ${treatment.featured ? 'border-2 border-cyan-300' : ''}`}>
             <div className="flex items-start justify-between gap-4 mb-6">
                 <div className="bg-[#e2f6fc] w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <Icon className="w-8 h-8 text-cyan-600" />
+                    <Icon className="w-8 h-8 text-cyan-700" />
                 </div>
                 <div className="text-right">
                     {treatment.durations.map((d, idx) => (
@@ -159,7 +159,7 @@ export default function ServiceBookingCard({ treatment }) {
             <button
                 type="button"
                 onClick={handleBooking} // Changed to trigger scroll & save
-                className="mt-auto inline-block text-center px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg shadow-cyan-200/50 w-full"
+                className="mt-auto inline-block text-center px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 bg-cyan-700 hover:bg-cyan-800 text-white shadow-lg shadow-cyan-200/50 w-full"
             >
                 Agendar
             </button>

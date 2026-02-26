@@ -43,7 +43,6 @@ export default function ProfessionalSelector({ onSelect, selectedId }) {
                                 alt={pro.name}
                                 fill
                                 sizes="(max-width: 768px) 50vw, 33vw"
-                                unoptimized={true}
                                 className="object-cover object-top"
                             />
                         ) : (

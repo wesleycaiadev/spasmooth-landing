@@ -28,7 +28,7 @@ export default function FAQ() {
         <section id="faq" className="py-20 bg-[#f8fafc]">
             <div className="container mx-auto px-6 max-w-3xl">
                 <div className="text-center mb-12 max-w-2xl mx-auto px-4">
-                    <span className="text-cyan-600 font-semibold tracking-wider uppercase text-sm mb-2 block">Dúvidas Frequentes</span>
+                    <span className="text-cyan-700 font-semibold tracking-wider uppercase text-sm mb-2 block">Dúvidas Frequentes</span>
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-700 mb-4">Ficou alguma questão?</h2>
                     <div className="w-24 h-1 bg-cyan-200 mx-auto rounded-full"></div>
                 </div>
