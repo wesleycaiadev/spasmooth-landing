@@ -38,6 +38,9 @@ export const metadata = {
       'max-image-preview': 'large',
     },
   },
+  verification: {
+    google: 'adicione-seu-codigo-google-search-console-aqui',
+  },
 };
 
 const schemaData = {

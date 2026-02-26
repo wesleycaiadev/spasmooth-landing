@@ -2,26 +2,25 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Preloader({ onComplete }) {
+export default function Preloader() {
     const [isVisible, setIsVisible] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
 
     useEffect(() => {
+        setIsMounted(true);
         // Tempo total de exibição antes de iniciar a saída
         const timer = setTimeout(() => {
             setIsVisible(false);
-        }, 2500); // 2.5 segundos de "leitura"
+        }, 2200); // Ligeiramente mais rápido p/ LCP
 
         return () => clearTimeout(timer);
     }, []);
 
+    // Evita erro de hidratação e bloqueio imediato
+    if (!isMounted) return null;
+
     return (
-        <AnimatePresence
-            mode="wait"
-            onExitComplete={() => {
-                // Avisa a página principal SOMENTE depois que a animação de saída terminar
-                if (onComplete) onComplete();
-            }}
-        >
+        <AnimatePresence mode="wait">
             {isVisible && (
                 <motion.div
                     key="preloader-container"

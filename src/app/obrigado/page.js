@@ -1,6 +1,13 @@
 import Link from 'next/link';
 import { CheckCircle, Clock } from 'lucide-react';
 
+export const metadata = {
+    robots: {
+        index: false,
+        follow: false,
+    },
+};
+
 export default function ObrigadoPage() {
     return (
         <div className="min-h-screen bg-[#FFFDF9] flex flex-col items-center justify-center p-6 text-center">

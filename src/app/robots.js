@@ -1,11 +1,11 @@
 export default function robots() {
-    const baseUrl = 'https://spasmooth.vercel.app'; // Substitua pelo domínio real
+    const baseUrl = 'https://spasmooth.vercel.app';
 
     return {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: ['/admin/', '/api/'], // Evitar indexação das rotas de API e Painel Admin
+            disallow: ['/admin/', '/api/', '/obrigado/', '/entrar/'],
         },
         sitemap: `${baseUrl}/sitemap.xml`,
     };
