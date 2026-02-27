@@ -234,7 +234,7 @@ export default function KanbanPage() {
                             key={statusKey}
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, statusKey)}
-                            className={`min-w-[320px] max-w-[320px] snap-center bg-white/60 backdrop-blur-md rounded-3xl p-5 h-auto border-2 ${draggedLeadId ? 'border-dashed border-cyan-300 transition-colors' : 'border-white/50 border-solid shadow-sm'} flex flex-col max-h-[calc(100vh-200px)]`}
+                            className={`min-w-[350px] shrink-0 snap-center bg-white/60 backdrop-blur-md rounded-3xl p-5 h-auto border-2 ${draggedLeadId ? 'border-dashed border-cyan-300 transition-colors' : 'border-white/50 border-solid shadow-sm'} flex flex-col max-h-[calc(100vh-200px)]`}
                         >
                             {/* Column Header */}
                             <div className={`flex items-center justify-between mb-6 p-4 rounded-2xl ${config.color} bg-opacity-80 backdrop-blur-sm shadow-sm`}>
