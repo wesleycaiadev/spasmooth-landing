@@ -7,58 +7,18 @@ import ProfessionalSelector from './ProfessionalSelector';
 import TimeSlotPicker from './TimeSlotPicker'; // Import the new component
 import { Calendar, Clock, Sparkles } from 'lucide-react';
 
-const SERVICES = [
-    {
-        id: 'tantrica',
-        name: 'Terapia Tântrica',
-        description: 'Massagem relaxante/meditação, sensitive e orgástica. Promove autoconhecimento e sensações únicas.',
-        options: [
-            { label: '1 Hora', price: 'R$ 350,00' },
-            { label: '2 Horas', price: 'R$ 450,00' }
-        ]
-    },
-    {
-        id: 'relaxante_especial',
-        name: 'Massagem Relaxante Especial',
-        description: 'Dividida em duas etapas: Massagem relaxante e Massagem orgástica.',
-        options: [
-            { label: '1 Hora', price: 'R$ 200,00' }
-        ]
-    },
-    {
-        id: 'nuru',
-        name: 'Massagem Nuru',
-        description: 'Relaxante, sensitive, corpo a corpo e orgástica. Terapeuta realiza a sessão despida.',
-        options: [
-            { label: '1 Hora', price: 'R$ 400,00' }
-        ]
-    },
-    {
-        id: 'delirium',
-        name: 'Vivência Delirium',
-        description: 'Massagem sensual com troca de massagem (5 etapas). Terapeuta inicia de lingerie e fica despida.',
-        options: [
-            { label: '1 Hora', price: 'R$ 500,00' }
-        ]
-    },
-    {
-        id: 'tailandesa',
-        name: 'Tailandesa',
-        description: 'Relaxante + Sensitive + deslizamento dos seios pelo corpo. Terapeuta de lingerie na parte de baixo.',
-        options: [
-            { label: 'Sessão Completa', price: 'R$ 300,00' }
-        ]
-    },
-    {
-        id: 'ventosa',
-        name: 'Ventosa com Relaxante',
-        description: 'Terapia com ventosas para alívio de tensão + massagem.',
-        options: [
-            { label: '40 min', price: 'R$ 150,00' },
-            { label: '60 min (com finalização)', price: 'R$ 250,00' }
-        ]
-    }
-];
+import { TREATMENTS } from '@/lib/data';
+
+const SERVICES = TREATMENTS.map(treatment => ({
+    id: treatment.id,
+    category: treatment.category,
+    name: treatment.name,
+    description: treatment.description,
+    options: treatment.durations.map(d => ({
+        label: d.time,
+        price: d.price
+    }))
+}));
 
 export default function BookingWizard() {
     const router = useRouter();
@@ -297,110 +257,224 @@ export default function BookingWizard() {
                                 <Sparkles size={14} /> Menu de Experiências
                             </label>
 
-                            <div className="space-y-3">
-                                {SERVICES.map(service => (
-                                    <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
-                                        <div className="p-4">
-                                            <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
-                                            <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider">Massagens & Vivências</h3>
+                                    <div className="space-y-3">
+                                        {SERVICES.filter(s => s.category === 'massage').map(service => (
+                                            <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
+                                                <div className="p-4">
+                                                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
+                                                    <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
 
-                                            <div className="flex flex-wrap gap-2">
-                                                {service.options.map((option, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        onClick={() => handleServiceSelect(service, option)}
-                                                        className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
-                                                            ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
-                                                            : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
-                                                            }`}
-                                                    >
-                                                        {option.label} <span className="font-bold ml-1">{option.price}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Render Booking Details INSIDE the card if selected */}
-                                        {booking.service === service.name && (
-                                            <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
-                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                    <Clock size={16} className="text-cyan-700" />
-                                                    Escolha Data e Horário
-                                                </h4>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
-                                                        <div className="relative">
-                                                            <input
-                                                                type="date"
-                                                                aria-label="Data do agendamento"
-                                                                required
-                                                                min={new Date().toISOString().split('T')[0]}
-                                                                value={booking.date}
-                                                                onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
-                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
-                                                        <TimeSlotPicker
-                                                            selectedDate={booking.date}
-                                                            bookedIntervals={bookedIntervals}
-                                                            duration={currentDuration}
-                                                            schedule={dailySchedule}
-                                                            selectedTime={booking.time}
-                                                            onSelect={(time) => setBooking({ ...booking, time })}
-                                                            isLoading={slotsLoading}
-                                                        />
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {service.options.map((option, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => handleServiceSelect(service, option)}
+                                                                className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
+                                                                    ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
+                                                                    : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
+                                                                    }`}
+                                                            >
+                                                                {option.label} <span className="font-bold ml-1">{option.price}</span>
+                                                            </button>
+                                                        ))}
                                                     </div>
                                                 </div>
 
-                                                {booking.time && (
-                                                    <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
+                                                {/* Render Booking Details INSIDE the card if selected */}
+                                                {booking.service === service.name && (
+                                                    <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
                                                         <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                            <Sparkles size={16} className="text-cyan-700" />
-                                                            Seus Dados para Confirmação
+                                                            <Clock size={16} className="text-cyan-700" />
+                                                            Escolha Data e Horário
                                                         </h4>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <input
-                                                                type="text"
-                                                                aria-label="Seu nome completo"
-                                                                placeholder="Nome Completo"
-                                                                required
-                                                                value={booking.name}
-                                                                onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                            />
 
-                                                            <input
-                                                                type="tel"
-                                                                aria-label="Seu WhatsApp (com DDD)"
-                                                                placeholder="WhatsApp (com DDD)"
-                                                                required
-                                                                value={booking.whatsapp}
-                                                                onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
-                                                                className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                            />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="date"
+                                                                        aria-label="Data do agendamento"
+                                                                        required
+                                                                        min={new Date().toISOString().split('T')[0]}
+                                                                        value={booking.date}
+                                                                        onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
+                                                                <TimeSlotPicker
+                                                                    selectedDate={booking.date}
+                                                                    bookedIntervals={bookedIntervals}
+                                                                    duration={currentDuration}
+                                                                    schedule={dailySchedule}
+                                                                    selectedTime={booking.time}
+                                                                    onSelect={(time) => setBooking({ ...booking, time })}
+                                                                    isLoading={slotsLoading}
+                                                                />
+                                                            </div>
                                                         </div>
 
-                                                        <div className="flex gap-3 pt-6 mt-4">
-                                                            <button
-                                                                type="button" // Prevent form submit if wrapped
-                                                                onClick={handleSubmit}
-                                                                disabled={loading || !booking.name || !booking.whatsapp}
-                                                                className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                                                            >
-                                                                {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
-                                                            </button>
-                                                        </div>
+                                                        {booking.time && (
+                                                            <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
+                                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                                                    <Sparkles size={16} className="text-cyan-700" />
+                                                                    Seus Dados para Confirmação
+                                                                </h4>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <input
+                                                                        type="text"
+                                                                        aria-label="Seu nome completo"
+                                                                        placeholder="Nome Completo"
+                                                                        required
+                                                                        value={booking.name}
+                                                                        onChange={(e) => setBooking({ ...booking, name: e.target.value })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                                    />
+
+                                                                    <input
+                                                                        type="tel"
+                                                                        aria-label="Seu WhatsApp (com DDD)"
+                                                                        placeholder="WhatsApp (com DDD)"
+                                                                        required
+                                                                        value={booking.whatsapp}
+                                                                        onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="flex gap-3 pt-6 mt-4">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleSubmit}
+                                                                        disabled={loading || !booking.name || !booking.whatsapp}
+                                                                        className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                                                                    >
+                                                                        {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
-                                        )}
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+
+                                <div>
+                                    <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">Depilação na Máquina</h3>
+                                    <div className="space-y-3">
+                                        {SERVICES.filter(s => s.category === 'waxing').map(service => (
+                                            <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
+                                                <div className="p-4">
+                                                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
+                                                    <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
+
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {service.options.map((option, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                onClick={() => handleServiceSelect(service, option)}
+                                                                className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
+                                                                    ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
+                                                                    : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
+                                                                    }`}
+                                                            >
+                                                                {option.label} <span className="font-bold ml-1">{option.price}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                {/* Render Booking Details INSIDE the card if selected */}
+                                                {booking.service === service.name && (
+                                                    <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
+                                                        <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                                            <Clock size={16} className="text-cyan-700" />
+                                                            Escolha Data e Horário
+                                                        </h4>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
+                                                                <div className="relative">
+                                                                    <input
+                                                                        type="date"
+                                                                        aria-label="Data do agendamento"
+                                                                        required
+                                                                        min={new Date().toISOString().split('T')[0]}
+                                                                        value={booking.date}
+                                                                        onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
+                                                                <TimeSlotPicker
+                                                                    selectedDate={booking.date}
+                                                                    bookedIntervals={bookedIntervals}
+                                                                    duration={currentDuration}
+                                                                    schedule={dailySchedule}
+                                                                    selectedTime={booking.time}
+                                                                    onSelect={(time) => setBooking({ ...booking, time })}
+                                                                    isLoading={slotsLoading}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        {booking.time && (
+                                                            <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
+                                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                                                    <Sparkles size={16} className="text-cyan-700" />
+                                                                    Seus Dados para Confirmação
+                                                                </h4>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    <input
+                                                                        type="text"
+                                                                        aria-label="Seu nome completo"
+                                                                        placeholder="Nome Completo"
+                                                                        required
+                                                                        value={booking.name}
+                                                                        onChange={(e) => setBooking({ ...booking, name: e.target.value })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                                    />
+
+                                                                    <input
+                                                                        type="tel"
+                                                                        aria-label="Seu WhatsApp (com DDD)"
+                                                                        placeholder="WhatsApp (com DDD)"
+                                                                        required
+                                                                        value={booking.whatsapp}
+                                                                        onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
+                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                                                    />
+                                                                </div>
+
+                                                                <div className="flex gap-3 pt-6 mt-4">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={handleSubmit}
+                                                                        disabled={loading || !booking.name || !booking.whatsapp}
+                                                                        className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+                                                                    >
+                                                                        {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 

@@ -9,18 +9,30 @@ export default function Services() {
 
             <div className="container mx-auto px-6 relative z-10">
                 <div className="text-center mb-12 max-w-2xl mx-auto px-4">
-                    <span className="text-cyan-700 font-semibold tracking-wider uppercase text-sm mb-2 block">Tratamentos</span>
+                    <span className="text-cyan-700 font-semibold tracking-wider uppercase text-sm mb-2 block">Nosso Menu</span>
                     <h2 className="text-3xl md:text-4xl font-bold text-slate-700 mb-4">Escolha sua experiência</h2>
                     <div className="w-24 h-1 bg-cyan-200 mx-auto rounded-full"></div>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-grid">
-                    {TREATMENTS.map((treatment) => (
-                        <ServiceBookingCard key={treatment.id} treatment={treatment} />
-                    ))}
+                <div className="mb-16">
+                    <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Massagens & Vivências</h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-massagens">
+                        {TREATMENTS.filter(t => t.category === 'massage').map((treatment) => (
+                            <ServiceBookingCard key={treatment.id} treatment={treatment} />
+                        ))}
+                    </div>
                 </div>
 
-                <div className="mt-10 text-center text-xs text-slate-400">
+                <div>
+                    <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Depilação na Máquina</h3>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-depilacao">
+                        {TREATMENTS.filter(t => t.category === 'waxing').map((treatment) => (
+                            <ServiceBookingCard key={treatment.id} treatment={treatment} />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-16 text-center text-xs text-slate-400">
                     Informações e valores podem ser ajustados conforme disponibilidade e confirmação via WhatsApp.
                 </div>
             </div>

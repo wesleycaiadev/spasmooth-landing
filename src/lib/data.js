@@ -1,6 +1,7 @@
 export const TREATMENTS = [
     {
         id: 'tantrica-1h',
+        category: 'massage',
         name: 'Terapia Tântrica',
         icon: 'Sparkles',
         durations: [
@@ -17,6 +18,7 @@ export const TREATMENTS = [
     },
     {
         id: 'relaxante-especial',
+        category: 'massage',
         name: 'Massagem Relaxante Especial',
         icon: 'Wind',
         durations: [{ time: '1h', price: 'R$ 200' }],
@@ -29,6 +31,7 @@ export const TREATMENTS = [
     },
     {
         id: 'nuru',
+        category: 'massage',
         name: 'Massagem Nuru',
         icon: 'Droplets',
         durations: [{ time: '1h', price: 'R$ 400' }],
@@ -43,6 +46,7 @@ export const TREATMENTS = [
     },
     {
         id: 'delirium',
+        category: 'massage',
         name: 'Vivência Delirium',
         icon: 'Flame',
         durations: [{ time: '1h', price: 'R$ 500' }],
@@ -59,6 +63,7 @@ export const TREATMENTS = [
     },
     {
         id: 'tailandesa',
+        category: 'massage',
         name: 'Tailandesa',
         icon: 'Hand',
         durations: [{ time: 'Completa', price: 'R$ 300' }],
@@ -72,6 +77,7 @@ export const TREATMENTS = [
     },
     {
         id: 'ventosa',
+        category: 'massage',
         name: 'Ventosa com Relaxante',
         icon: 'CircleDot',
         durations: [
@@ -83,6 +89,91 @@ export const TREATMENTS = [
             '40min: R$ 150',
             '60min (com finalização): R$ 250'
         ],
+        note: ''
+    },
+    {
+        id: 'premium-black',
+        category: 'massage',
+        name: 'Vivência Premium Black',
+        icon: 'Gem', // Alterado para Gem para dar ar premium/exclusivo
+        durations: [{ time: '2h', price: 'R$ 1.850,00' }],
+        description: 'A experiência definitiva com 2 horas de duração.',
+        stages: [
+            'Garrafa de Vinho',
+            '30 minutos de SPA com a terapeuta',
+            '80 minutos de Vivência Premium'
+        ],
+        note: 'Obs: Duração Total Aprox. 2 Horas',
+        featured: true
+    },
+    {
+        id: 'depilacao-meia-perna',
+        category: 'waxing',
+        name: 'Depilação - Meia Perna',
+        icon: 'Feather',
+        durations: [{ time: 'Sessão', price: 'R$ 25' }],
+        description: 'Apara higiênica e cuidadosa dos pelos da meia perna.',
+        stages: ['Apara dos pelos da meia perna.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-perna-completa',
+        category: 'waxing',
+        name: 'Depilação - Perna Completa',
+        icon: 'Sunset',
+        durations: [{ time: 'Sessão', price: 'R$ 50' }],
+        description: 'Apara dos pelos de toda a perna.',
+        stages: ['Apara de coxas, joelhos e panturrilhas.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-bracos',
+        category: 'waxing',
+        name: 'Depilação - Braços',
+        icon: 'Target',
+        durations: [{ time: 'Sessão', price: 'R$ 25' }],
+        description: 'Apara dos pelos de ambos os braços.',
+        stages: ['Apara cuidadosa dos braços.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-costas',
+        category: 'waxing',
+        name: 'Depilação - Costas',
+        icon: 'Asterisk',
+        durations: [{ time: 'Sessão', price: 'R$ 25' }],
+        description: 'Remoção de pelos das costas e ombros.',
+        stages: ['Costas e ombros totalmente limpos.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-abdomen',
+        category: 'waxing',
+        name: 'Depilação - Abdômen',
+        icon: 'CircleDot',
+        durations: [{ time: 'Sessão', price: 'R$ 25' }],
+        description: 'Remoção de pelos da região abdominal e peito.',
+        stages: ['Limpeza abdominal e peitoral.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-intima',
+        category: 'waxing',
+        name: 'Depilação - Íntima',
+        icon: 'ShieldCheck',
+        durations: [{ time: 'Sessão', price: 'R$ 25' }],
+        description: 'Apara higiênica e cuidadosa da região íntima.',
+        stages: ['Apara cuidadosa da região íntima.'],
+        note: ''
+    },
+    {
+        id: 'depilacao-corpo-todo',
+        category: 'waxing',
+        name: 'Depilação - Corpo Todo',
+        icon: 'Stars',
+        durations: [{ time: 'Sessão', price: 'R$ 125' }],
+        description: 'Pacote completo para corpo todo.',
+        stages: ['Pacote completo com todas as 5 áreas acima.'],
         note: ''
     }
 ];

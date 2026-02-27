@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Calendar, Clock, check, Sparkles, Wind, Droplets, Flame, Hand, CircleDot, CheckCircle, ChevronLeft, User, Phone } from 'lucide-react';
+import { Calendar, Clock, check, Sparkles, Wind, Droplets, Flame, Hand, CircleDot, CheckCircle, ChevronLeft, User, Phone, Gem, Wine, Scissors, Feather, Asterisk, Target, Sunset, ShieldCheck, Stars } from 'lucide-react';
 import ProfessionalSelector from './ProfessionalSelector';
 import TimeSlotPicker from './TimeSlotPicker';
 import { useRouter } from 'next/navigation';
@@ -14,7 +14,16 @@ const iconMap = {
     Flame,
     Hand,
     CircleDot,
-    'check-circle': CheckCircle
+    'check-circle': CheckCircle,
+    Gem,
+    Wine,
+    Scissors,
+    Feather,
+    Asterisk,
+    Target,
+    Sunset,
+    ShieldCheck,
+    Stars
 };
 
 export default function ServiceBookingCard({ treatment }) {
@@ -128,41 +137,60 @@ export default function ServiceBookingCard({ treatment }) {
         }
     };
 
+    const isPremiumBlack = treatment.id === 'premium-black';
+
     return (
-        <div className={`glass-card p-8 rounded-[2rem] shadow-lg shadow-slate-200/50 flex flex-col h-full ${treatment.featured ? 'border-2 border-cyan-300' : ''}`}>
-            <div className="flex items-start justify-between gap-4 mb-6">
-                <div className="bg-[#e2f6fc] w-16 h-16 rounded-2xl flex items-center justify-center">
-                    <Icon className="w-8 h-8 text-cyan-700" />
+        <div className={`${isPremiumBlack ? 'bg-gradient-to-br from-slate-900 to-black text-white border-2 border-yellow-500/50 shadow-yellow-500/20' : 'glass-card text-slate-700 ' + (treatment.featured ? 'border-2 border-cyan-300' : '')} p-8 rounded-[2rem] shadow-lg flex flex-col h-full relative overflow-hidden group`}>
+            {isPremiumBlack && (
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-overlay"></div>
+            )}
+
+            <div className="relative z-10 flex flex-col h-full">
+                <div className="flex items-start justify-between gap-4 mb-6">
+                    <div className={`${isPremiumBlack ? 'bg-yellow-500/20 border border-yellow-500/30' : 'bg-[#e2f6fc]'} w-16 h-16 rounded-2xl flex items-center justify-center`}>
+                        <Icon className={`w-8 h-8 ${isPremiumBlack ? 'text-yellow-400' : 'text-cyan-700'}`} />
+                    </div>
+                    <div className="text-right">
+                        {treatment.durations.map((d, idx) => (
+                            <div key={idx}>
+                                <div className={`text-sm ${isPremiumBlack ? 'text-slate-300' : 'text-slate-400'}`}>{d.time}</div>
+                                <div className={`font-bold ${isPremiumBlack ? 'text-yellow-400 text-lg tracking-wide' : 'text-slate-700'}`}>{d.price}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="text-right">
-                    {treatment.durations.map((d, idx) => (
-                        <div key={idx}>
-                            <div className="text-sm text-slate-400">{d.time}</div>
-                            <div className="font-bold text-slate-700">{d.price}</div>
-                        </div>
-                    ))}
+
+                {isPremiumBlack && (
+                    <div className="inline-flex items-center gap-1.5 bg-yellow-500/10 text-yellow-400 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-3 w-max border border-yellow-500/20">
+                        <Flame className="w-3 h-3" /> Exclusivo
+                    </div>
+                )}
+
+                <div className="flex-grow flex flex-col">
+                    <h3 className={`text-2xl font-bold mb-3 mt-4 ${isPremiumBlack ? 'text-white' : 'text-slate-700'}`}>{treatment.name}</h3>
+                    <p className={`mb-5 text-sm ${isPremiumBlack ? 'text-slate-300' : 'text-slate-500'}`}>{treatment.description}</p>
+
+                    <div className={`${isPremiumBlack ? 'bg-slate-900/60 border-yellow-500/20' : 'bg-white/60 border-white/40'} rounded-2xl p-5 border flex-grow mb-6`}>
+                        <p className={`text-sm font-bold mb-2 ${isPremiumBlack ? 'text-yellow-400' : 'text-slate-700'}`}>Etapas</p>
+                        <ul className={`list-disc pl-5 text-sm space-y-2 ${isPremiumBlack ? 'text-slate-300' : 'text-slate-600'}`}>
+                            {treatment.stages.map((stage, i) => (
+                                <li key={i}>{stage}</li>
+                            ))}
+                        </ul>
+                        {treatment.note && <p className={`text-xs mt-4 ${isPremiumBlack ? 'text-yellow-500/70' : 'text-slate-500'}`}>{treatment.note}</p>}
+                    </div>
+                </div>
+
+                <div className="mt-auto">
+                    <button
+                        type="button"
+                        onClick={handleBooking} // Changed to trigger scroll & save
+                        className={`inline-block text-center px-6 py-4 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 w-full ${isPremiumBlack ? 'bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-slate-900 shadow-xl shadow-yellow-500/20' : 'bg-cyan-700 hover:bg-cyan-800 text-white shadow-lg shadow-cyan-200/50'}`}
+                    >
+                        Agendar Experiência
+                    </button>
                 </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-700 mb-3">{treatment.name}</h3>
-            <p className="text-slate-500 mb-5 text-sm">{treatment.description}</p>
-
-            <div className="bg-white/60 rounded-2xl p-5 border border-white/40">
-                <p className="text-sm font-bold text-slate-700 mb-2">Etapas</p>
-                <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
-                    {treatment.stages.map((stage, i) => (
-                        <li key={i}>{stage}</li>
-                    ))}
-                </ul>
-                {treatment.note && <p className="text-xs text-slate-500 mt-4">{treatment.note}</p>}
-            </div>
-
-            <button
-                type="button"
-                onClick={handleBooking} // Changed to trigger scroll & save
-                className="mt-auto inline-block text-center px-6 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 bg-cyan-700 hover:bg-cyan-800 text-white shadow-lg shadow-cyan-200/50 w-full"
-            >
-                Agendar
-            </button>
         </div>
     );
 }
