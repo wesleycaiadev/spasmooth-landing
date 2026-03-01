@@ -4,6 +4,7 @@ import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
+import LocationSection from '@/components/LocationSection';
 import Footer from '@/components/Footer';
 import Preloader from '@/components/Preloader';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
@@ -19,6 +20,7 @@ export default function Home() {
       <BookingSection />
       <Testimonials />
       <FAQ />
+      <LocationSection />
       <Footer />
       <WhatsAppFloat />
     </main>

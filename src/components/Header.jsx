@@ -32,6 +32,7 @@ export default function Header() {
                     <a href="#agendar" title="Agendar Sessão" className="hover:text-cyan-700 transition-colors">Agendar</a>
                     <a href="#depoimentos" title="Ler Depoimentos" className="hover:text-cyan-700 transition-colors">Depoimentos</a>
                     <a href="#faq" title="Dúvidas Frequentes" className="hover:text-cyan-700 transition-colors">Dúvidas</a>
+                    <a href="#localizacao" title="Nossa Localização" className="hover:text-cyan-700 transition-colors">Localização</a>
                     <a href="#agendar" title="Agendar Sessão Agora" className="px-8 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md bg-orange-400 hover:bg-orange-500 text-white shadow-orange-200">
                         Agendar Agora
                     </a>
@@ -49,6 +50,7 @@ export default function Header() {
                     <a href="#servicos" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Tratamentos</a>
                     <a href="#agendar" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Agendar</a>
                     <a href="#depoimentos" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Depoimentos</a>
+                    <a href="#localizacao" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Localização</a>
                     <a href="#agendar" role="menuitem" className="w-full mt-2 px-8 py-4 rounded-full font-bold bg-orange-400 text-white text-center shadow-md" onClick={closeMenu}>
                         Agendar Sessão
                     </a>
