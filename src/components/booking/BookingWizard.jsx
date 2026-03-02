@@ -205,6 +205,21 @@ export default function BookingWizard() {
             if (error) throw error;
 
             if (data) localStorage.setItem('current_lead_id', data);
+
+            // Disparar notificação do CallMeBot em background (com acentos e formatação correta)
+            fetch('/api/booking/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    leadId: data || '',
+                    name: booking.name,
+                    whatsapp: booking.whatsapp,
+                    service: fullServiceName,
+                    date: booking.date,
+                    time: booking.time
+                })
+            }).catch(e => console.error('Erro ao chamar notificação:', e));
+
             router.push('/obrigado');
 
         } catch (error) {
