@@ -22,14 +22,7 @@ export async function POST(request) {
         const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${whatsapp}\n*Servico:* ${cleanService}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao:*\n\n[ CONFIRMAR HORARIO ]\n${siteUrl}/api/booking/action?token=${leadId}&action=confirm\n\n[ RECUSAR / CANCELAR ]\n${siteUrl}/api/booking/action?token=${leadId}&action=decline`;
 
         const encodedMessage = encodeURIComponent(messageText);
-        let phoneParam = adminPhone;
-        // Ensure phone starts with + and url-encode it (or manually add %2B)
-        if (!phoneParam.startsWith('+')) {
-            phoneParam = '+' + phoneParam;
-        }
-        phoneParam = encodeURIComponent(phoneParam);
-
-        const url = `https://api.callmebot.com/whatsapp.php?phone=${phoneParam}&text=${encodedMessage}&apikey=${apiKey}`;
+        const url = `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodedMessage}&apikey=${apiKey}`;
 
         // Enviar a requisição para o CallMeBot
         const response = await fetch(url);
