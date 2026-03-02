@@ -19,7 +19,7 @@ export async function POST(request) {
         const cleanName = (name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const cleanService = (service || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-        const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${whatsapp}\n*Servico:* ${cleanService}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao:*\n\n[ CONFIRMAR HORARIO ]\n${siteUrl}/api/booking/action?token=${leadId}&action=confirm\n\n[ RECUSAR / CANCELAR ]\n${siteUrl}/api/booking/action?token=${leadId}&action=decline`;
+        const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${whatsapp}\n*Servico:* ${cleanService}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=decline`;
 
         const encodedMessage = encodeURIComponent(messageText);
         const url = `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodedMessage}&apikey=${apiKey}`;
