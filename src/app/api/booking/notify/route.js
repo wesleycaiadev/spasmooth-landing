@@ -7,7 +7,10 @@ export async function POST(request) {
 
         const adminPhone = process.env.CALLMEBOT_PHONE;
         const apiKey = process.env.CALLMEBOT_APIKEY;
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+        // Dynamically get the base URL from the incoming request
+        const reqUrl = new URL(request.url);
+        const siteUrl = `${reqUrl.protocol}//${reqUrl.host}`;
 
         if (!adminPhone || !apiKey) {
             console.warn("CallMeBot Admin Phone or API Key not found in environment.");
