@@ -27,7 +27,13 @@ export async function GET(request) {
         // Buscar os dados do lead para pegar o WhatsApp e o Nome
         const { data: lead, error: fetchError } = await supabase
             .from('leads')
-            .select('*')
+            .select(`
+                *,
+                professionals (
+                    name,
+                    location
+                )
+            `)
             .eq('id', token)
             .single();
 
@@ -48,11 +54,15 @@ export async function GET(request) {
         const phone = lead.whatsapp?.replace(/\D/g, '');
         const clientName = lead.nome?.split(' ')[0] || "Cliente";
 
+        const professionalName = lead.professionals?.name || 'nossa equipe';
+        const locationName = lead.professionals?.location || 'SpaSmooth';
+
         let whatsAppMessage = "";
         if (action === 'confirm') {
-            const dateStr = lead.appointment_date ? new Date(lead.appointment_date + 'T00:00:00').toLocaleDateString() : 'data a definir';
-            const timeStr = lead.appointment_time || 'horário a definir';
-            whatsAppMessage = encodeURIComponent(`Olá *${clientName}*, confirmando seu agendamento no SpaSmooth para o dia *${dateStr}* às *${timeStr}*. Estamos te esperando! ✨`);
+            const dateStr = lead.appointment_date ? new Date(lead.appointment_date + 'T00:00:00').toLocaleDateString('pt-BR') : 'data a definir';
+            const timeStr = lead.appointment_time ? lead.appointment_time.slice(0, 5) : 'horário a definir';
+            let serviceStr = lead.service_name ? ` para *${lead.service_name.split(' - ')[0]}*` : '';
+            whatsAppMessage = encodeURIComponent(`Olá *${clientName}*, confirmando seu agendamento${serviceStr} com *${professionalName}* (*${locationName}*) para o dia *${dateStr}* às *${timeStr}*. Estamos te esperando! ✨`);
         } else if (action === 'decline') {
             whatsAppMessage = encodeURIComponent(`Olá *${clientName}*, vimos que houve um imprevisto e seu horário foi cancelado. Deseja reagendar para outro momento no SpaSmooth? 🙌`);
         }

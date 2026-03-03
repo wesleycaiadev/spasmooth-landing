@@ -291,7 +291,9 @@ export default function BookingWizard() {
                     whatsapp: booking.whatsapp,
                     service: fullServiceName,
                     date: booking.date,
-                    time: booking.time
+                    time: booking.time,
+                    professionalName: booking.professional?.name,
+                    location: booking.location
                 })
             }).catch(e => console.error('Erro ao chamar notificação:', e));
 

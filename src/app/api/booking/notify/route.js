@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { leadId, name, whatsapp, service, date, time } = body;
+        const { leadId, name, whatsapp, service, date, time, professionalName, location } = body;
 
         const adminPhone = process.env.CALLMEBOT_PHONE;
         const apiKey = process.env.CALLMEBOT_APIKEY;
@@ -21,8 +21,10 @@ export async function POST(request) {
         // a solução mais robusta é remover todos os acentos e usar palavras equivalentes (Servico, Acao, Horario).
         const cleanName = (name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const cleanService = (service || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const cleanProfessional = (professionalName || 'Nao especificado').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const cleanLocation = (location || 'Nao especificada').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-        const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${whatsapp}\n*Servico:* ${cleanService}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=decline`;
+        const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${whatsapp}\n*Servico:* ${cleanService}\n*Profissional:* ${cleanProfessional}\n*Local:* ${cleanLocation}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${siteUrl}/api/booking/action?token=${leadId}&action=decline`;
 
         const encodedMessage = encodeURIComponent(messageText);
         const url = `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodedMessage}&apikey=${apiKey}`;
