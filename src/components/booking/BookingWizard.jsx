@@ -29,6 +29,7 @@ export default function BookingWizard() {
     const [loading, setLoading] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
     const [bookedIntervals, setBookedIntervals] = useState([]);
+    const [currentLockId, setCurrentLockId] = useState(null); // ID of the lock currently held by the user
 
     const [booking, setBooking] = useState({
         location: 'Aracaju',
@@ -141,7 +142,22 @@ export default function BookingWizard() {
 
                 if (leadsError) {
                     console.error('Error fetching slots:', leadsError);
-                } else {
+                }
+
+                // 4. Fetch Temporary Locks (from other users within the last 5 minutes)
+                const fiveMinsAgo = new Date(Date.now() - 5 * 60000).toISOString();
+                const { data: locksData, error: locksError } = await supabase
+                    .from('booking_locks')
+                    .select('id, appointment_time')
+                    .eq('appointment_date', booking.date)
+                    .eq('professional_id', booking.professional_id)
+                    .gte('created_at', fiveMinsAgo);
+
+                if (locksError) {
+                    console.error('Error fetching locks:', locksError);
+                }
+
+                if (!leadsError) {
                     // Calculate intervals with BUFFER
                     const intervals = leadsData.map(lead => {
                         const [hours, minutes] = lead.appointment_time.split(':').map(Number);
@@ -152,6 +168,21 @@ export default function BookingWizard() {
                             end: startTotal + duration + BUFFER_MINUTES
                         };
                     });
+
+                    // Add Locks as temporary 60min blocked slots, ignoring our own lock
+                    if (locksData) {
+                        locksData.forEach(lock => {
+                            if (lock.id !== currentLockId) {
+                                const [lh, lm] = lock.appointment_time.split(':').map(Number);
+                                const lStart = lh * 60 + lm;
+                                intervals.push({
+                                    start: lStart,
+                                    end: lStart + 60 // Assume locks block at least 60 mins contextually
+                                });
+                            }
+                        });
+                    }
+
                     setBookedIntervals(intervals);
                 }
 
@@ -163,8 +194,42 @@ export default function BookingWizard() {
         };
 
         fetchData();
-    }, [booking.date, booking.professional_id]);
+    }, [booking.date, booking.professional_id, currentLockId]);
 
+    // Cleanup lock when unmounting or changing step to avoid ghost locks
+    useEffect(() => {
+        return () => {
+            if (currentLockId) {
+                supabase.from('booking_locks').delete().eq('id', currentLockId).then(() => { });
+            }
+        };
+    }, [currentLockId]);
+
+    const handleSelectTime = async (time) => {
+        setBooking(prev => ({ ...prev, time }));
+
+        // Se já tinha um lock antes, deletá-lo pra não segurar slots extras
+        if (currentLockId) {
+            await supabase.from('booking_locks').delete().eq('id', currentLockId);
+            setCurrentLockId(null);
+        }
+
+        // Criar o novo lock
+        if (time && booking.date && booking.professional_id) {
+            const { data, error } = await supabase
+                .from('booking_locks')
+                .insert([{
+                    professional_id: booking.professional_id,
+                    appointment_date: booking.date,
+                    appointment_time: time
+                }])
+                .select();
+
+            if (!error && data && data.length > 0) {
+                setCurrentLockId(data[0].id);
+            }
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -229,6 +294,12 @@ export default function BookingWizard() {
                     time: booking.time
                 })
             }).catch(e => console.error('Erro ao chamar notificação:', e));
+
+            // Remover o lock após agendamento concluído
+            if (currentLockId) {
+                await supabase.from('booking_locks').delete().eq('id', currentLockId);
+                setCurrentLockId(null);
+            }
 
             router.push('/obrigado');
 
@@ -383,7 +454,7 @@ export default function BookingWizard() {
                                                                     duration={currentDuration}
                                                                     schedule={dailySchedule}
                                                                     selectedTime={booking.time}
-                                                                    onSelect={(time) => setBooking({ ...booking, time })}
+                                                                    onSelect={handleSelectTime}
                                                                     isLoading={slotsLoading}
                                                                 />
                                                             </div>
@@ -493,7 +564,7 @@ export default function BookingWizard() {
                                                                     duration={currentDuration}
                                                                     schedule={dailySchedule}
                                                                     selectedTime={booking.time}
-                                                                    onSelect={(time) => setBooking({ ...booking, time })}
+                                                                    onSelect={handleSelectTime}
                                                                     isLoading={slotsLoading}
                                                                 />
                                                             </div>

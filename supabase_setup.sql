@@ -10,3 +10,18 @@ ADD COLUMN IF NOT EXISTS location_end_date date;
 UPDATE public.professionals
 SET location = 'Aracaju'
 WHERE location IS NULL;
+
+-- 3. Criar Tabela de Bloqueios/Locks Temporários de Horários
+CREATE TABLE IF NOT EXISTS public.booking_locks (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    professional_id text NOT NULL,
+    appointment_date date NOT NULL,
+    appointment_time text NOT NULL,
+    created_at timestamp with time zone DEFAULT now()
+);
+
+-- Ativar segurança da linha para booking_locks e permitir todo acesso anônimo (para o fluxo de agendamento no site cliente)
+ALTER TABLE public.booking_locks ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Permitir leitura anonima" ON public.booking_locks FOR SELECT USING (true);
+CREATE POLICY "Permitir insercao anonima" ON public.booking_locks FOR INSERT WITH CHECK (true);
+CREATE POLICY "Permitir exclusao anonima" ON public.booking_locks FOR DELETE USING (true);

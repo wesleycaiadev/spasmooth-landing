@@ -57,6 +57,29 @@ export default function KanbanPage() {
         fetchProfessionals();
     }, []);
 
+    // Calcula telefones recorrentes (mais de 1 agendamento)
+    const getRecurringPhones = () => {
+        const phoneCounts = {};
+        leads.forEach(lead => {
+            const phone = lead.whatsapp?.replace(/\D/g, '');
+            if (phone) {
+                phoneCounts[phone] = (phoneCounts[phone] || 0) + 1;
+            }
+        });
+
+        const recurring = new Set();
+        Object.keys(phoneCounts).forEach(phone => {
+            if (phoneCounts[phone] > 1) recurring.add(phone);
+        });
+        return recurring;
+    };
+    const recurringPhones = getRecurringPhones();
+
+    const isRecurring = (whatsapp) => {
+        const phone = whatsapp?.replace(/\D/g, '');
+        return phone && recurringPhones.has(phone);
+    };
+
     const updateStatus = async (id, newStatus) => {
         const { error } = await supabase
             .from('leads')
@@ -259,7 +282,14 @@ export default function KanbanPage() {
                                         <div className="pl-2">
                                             <div className="flex justify-between items-start mb-3">
                                                 <div>
-                                                    <h4 className="font-bold text-slate-800 text-lg leading-tight">{lead.nome}</h4>
+                                                    <h4 className="font-bold text-slate-800 text-lg leading-tight flex items-center gap-2">
+                                                        {lead.nome}
+                                                        {isRecurring(lead.whatsapp) && (
+                                                            <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm border border-amber-200" title="Cliente Recorrente">
+                                                                💎 Repete
+                                                            </span>
+                                                        )}
+                                                    </h4>
                                                     {lead.professionals?.name && (
                                                         <div className="flex items-center gap-1 mt-1 text-xs font-semibold text-slate-500">
                                                             <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
@@ -361,7 +391,14 @@ export default function KanbanPage() {
                                 {leads.map(lead => (
                                     <tr key={lead.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors group cursor-pointer" onClick={() => handleCardClick(lead)}>
                                         <td className="p-4 pl-6">
-                                            <p className="font-bold text-slate-800">{lead.nome}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-slate-800">{lead.nome}</p>
+                                                {isRecurring(lead.whatsapp) && (
+                                                    <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold shadow-sm border border-amber-200" title="Cliente Recorrente">
+                                                        💎 Repete
+                                                    </span>
+                                                )}
+                                            </div>
                                             <p className="text-xs text-slate-400">{new Date(lead.created_at).toLocaleDateString()}</p>
                                         </td>
                                         <td className="p-4">
