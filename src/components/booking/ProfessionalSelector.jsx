@@ -4,15 +4,20 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { CheckCircle } from 'lucide-react';
 
-export default function ProfessionalSelector({ onSelect, selectedId }) {
+export default function ProfessionalSelector({ onSelect, selectedId, location }) {
     const [pros, setPros] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
         async function loadPros() {
+            setLoading(true);
             try {
-                const { data, error } = await supabase.from('professionals').select('*').eq('active', true);
+                const query = supabase.from('professionals').select('*').eq('active', true);
+                if (location) {
+                    query.eq('location', location);
+                }
+                const { data, error } = await query;
                 if (error) throw error;
                 if (data) setPros(data);
             } catch (err) {
@@ -23,7 +28,7 @@ export default function ProfessionalSelector({ onSelect, selectedId }) {
             }
         }
         loadPros();
-    }, []);
+    }, [location]);
 
     if (loading) return <div className="text-center py-10 text-[#b48e43] animate-pulse">Carregando especialistas...</div>;
     if (error) return <div className="text-center py-10 text-red-400 text-sm">Erro ao carregar: {error}</div>;
@@ -33,7 +38,7 @@ export default function ProfessionalSelector({ onSelect, selectedId }) {
             {pros.map(pro => (
                 <div
                     key={pro.id}
-                    onClick={() => onSelect(pro.id)}
+                    onClick={() => onSelect(pro)}
                     className={`cursor-pointer rounded-xl border-2 overflow-hidden transition-all ${selectedId === pro.id ? 'border-cyan-500 shadow-lg ring-2 ring-cyan-500/20' : 'border-transparent hover:border-cyan-200'}`}
                 >
                     <div className="aspect-square relative flex items-center justify-center bg-slate-100">
@@ -57,6 +62,11 @@ export default function ProfessionalSelector({ onSelect, selectedId }) {
                     <div className="p-2 text-center bg-white">
                         <p className="font-bold text-sm text-[#4a4a4a]">{pro.name}</p>
                         <p className="text-[10px] text-[#999] truncate">{pro.specialties?.join(', ')}</p>
+                        {(pro.location_start_date || pro.location_end_date) && (
+                            <p className="text-[9px] text-cyan-600 font-medium mt-1 bg-cyan-50 rounded-full inline-block px-2 py-0.5 border border-cyan-100/50">
+                                {pro.location_start_date ? new Date(pro.location_start_date + 'T12:00:00').toLocaleDateString('pt-BR').slice(0, 5) : '...'} - {pro.location_end_date ? new Date(pro.location_end_date + 'T12:00:00').toLocaleDateString('pt-BR').slice(0, 5) : '...'}
+                            </p>
+                        )}
                     </div>
                 </div>
             ))}

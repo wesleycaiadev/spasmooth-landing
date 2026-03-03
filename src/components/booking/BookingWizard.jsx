@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import ProfessionalSelector from './ProfessionalSelector';
 import TimeSlotPicker from './TimeSlotPicker'; // Import the new component
 import { Calendar, Clock, Sparkles } from 'lucide-react';
+import { useLocation } from '@/components/LocationProvider';
 
 import { TREATMENTS } from '@/lib/data';
 
@@ -22,12 +23,16 @@ const SERVICES = TREATMENTS.map(treatment => ({
 
 export default function BookingWizard() {
     const router = useRouter();
+    const { location: contextLocation, changeLocation, isLoadingLocation } = useLocation();
+
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
     const [bookedIntervals, setBookedIntervals] = useState([]);
 
     const [booking, setBooking] = useState({
+        location: 'Aracaju',
+        professional: null,
         professional_id: null,
         service: null,
         service_option: null,
@@ -36,6 +41,11 @@ export default function BookingWizard() {
         name: '',
         whatsapp: ''
     });
+
+    // Update internal location state when context location changes (usually on first load / geolocation detect)
+    useEffect(() => {
+        setBooking(prev => ({ ...prev, location: contextLocation || 'Aracaju' }));
+    }, [contextLocation]);
 
     // Validar se há serviço pré-selecionado vindo dos cards
     useEffect(() => {
@@ -230,6 +240,18 @@ export default function BookingWizard() {
         }
     };
 
+    const todayIso = new Date().toISOString().split('T')[0];
+    let minDate = todayIso;
+    let maxDate = undefined;
+    if (booking.professional) {
+        if (booking.professional.location_start_date && booking.professional.location_start_date > todayIso) {
+            minDate = booking.professional.location_start_date;
+        }
+        if (booking.professional.location_end_date) {
+            maxDate = booking.professional.location_end_date;
+        }
+    }
+
     return (
         <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-cyan-600/10 border border-slate-200/50 overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4">
             {/* Header Steps */}
@@ -252,10 +274,41 @@ export default function BookingWizard() {
             <div className="p-4 md:p-8 max-h-[600px] overflow-y-auto custom-scrollbar">
                 {step === 1 && (
                     <div className="animate-fadeIn">
+                        <div className="flex bg-slate-100 p-1 rounded-xl mb-6 mx-auto max-w-sm relative z-10 flex-wrap">
+                            <button
+                                onClick={() => {
+                                    setBooking({ ...booking, location: 'Aracaju', professional_id: null, professional: null });
+                                    changeLocation('Aracaju');
+                                }}
+                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Aracaju' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
+                            >
+                                Aracaju
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setBooking({ ...booking, location: 'Maceió', professional_id: null, professional: null });
+                                    changeLocation('Maceió');
+                                }}
+                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Maceió' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
+                            >
+                                Maceió
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setBooking({ ...booking, location: 'Recife', professional_id: null, professional: null });
+                                    changeLocation('Recife');
+                                }}
+                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Recife' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
+                            >
+                                Recife
+                            </button>
+                        </div>
+
                         <ProfessionalSelector
+                            location={booking.location}
                             selectedId={booking.professional_id}
-                            onSelect={(id) => {
-                                setBooking({ ...booking, professional_id: id });
+                            onSelect={(pro) => {
+                                setBooking({ ...booking, professional_id: pro.id, professional: pro });
                                 setStep(2);
                             }}
                         />
@@ -314,7 +367,8 @@ export default function BookingWizard() {
                                                                         type="date"
                                                                         aria-label="Data do agendamento"
                                                                         required
-                                                                        min={new Date().toISOString().split('T')[0]}
+                                                                        min={minDate}
+                                                                        max={maxDate}
                                                                         value={booking.date}
                                                                         onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
                                                                         className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
@@ -423,7 +477,8 @@ export default function BookingWizard() {
                                                                         type="date"
                                                                         aria-label="Data do agendamento"
                                                                         required
-                                                                        min={new Date().toISOString().split('T')[0]}
+                                                                        min={minDate}
+                                                                        max={maxDate}
                                                                         value={booking.date}
                                                                         onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
                                                                         className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"

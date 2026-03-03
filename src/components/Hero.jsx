@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 import { Star } from 'lucide-react';
+import { useLocation } from '@/components/LocationProvider';
 
 export default function Hero() {
+    const { location, isLoadingLocation } = useLocation();
+
     return (
         <section className="hero relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#fafafa]">
             {/* Background Image with Gold Overlay */}
@@ -34,7 +37,7 @@ export default function Hero() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif text-[#4a4a4a] leading-tight">
-                        Spa e Massoterapia de Excelência <span className="text-cyan-700 italic">em Aracaju</span>.
+                        Spa e Massoterapia de Excelência <span className="text-cyan-700 italic">em {isLoadingLocation ? '...' : location}</span>.
                     </h1>
 
                     <p className="text-lg md:text-2xl text-[#7a7a7a] leading-relaxed max-w-2xl mx-auto">

@@ -1,6 +1,7 @@
 import { Nunito } from "next/font/google";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import "./globals.css";
+import { LocationProvider } from "@/components/LocationProvider";
 
 const nunito = Nunito({ subsets: ["latin"], variable: '--font-nunito' });
 
@@ -75,8 +76,10 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
-        {children}
-        {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+        <LocationProvider>
+          {children}
+          {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+        </LocationProvider>
       </body>
     </html>
   );

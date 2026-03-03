@@ -9,7 +9,7 @@ export default function ProfessionalsPage() {
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [newPro, setNewPro] = useState({ name: '', specialties: '', photo_url: '' });
+    const [newPro, setNewPro] = useState({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
 
     const fetchPros = async () => {
         setLoading(true);
@@ -34,7 +34,10 @@ export default function ProfessionalsPage() {
         const proData = {
             name: newPro.name,
             specialties: specialtiesArray,
-            photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name
+            photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name,
+            location: newPro.location,
+            location_start_date: newPro.location_start_date || null,
+            location_end_date: newPro.location_end_date || null
         };
 
         let error;
@@ -55,7 +58,7 @@ export default function ProfessionalsPage() {
         }
 
         if (!error) {
-            setNewPro({ name: '', specialties: '', photo_url: '' });
+            setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
             setIsAdding(false);
             setEditingId(null);
             fetchPros();
@@ -69,7 +72,10 @@ export default function ProfessionalsPage() {
         setNewPro({
             name: pro.name,
             specialties: pro.specialties ? pro.specialties.join(', ') : '',
-            photo_url: pro.photo_url
+            photo_url: pro.photo_url,
+            location: pro.location || 'Aracaju',
+            location_start_date: pro.location_start_date || '',
+            location_end_date: pro.location_end_date || ''
         });
         setEditingId(pro.id);
         setIsAdding(true);
@@ -98,7 +104,7 @@ export default function ProfessionalsPage() {
     const closeForm = () => {
         setIsAdding(false);
         setEditingId(null);
-        setNewPro({ name: '', specialties: '', photo_url: '' });
+        setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
     };
 
     return (
@@ -111,7 +117,7 @@ export default function ProfessionalsPage() {
                 <button
                     onClick={() => {
                         setEditingId(null);
-                        setNewPro({ name: '', specialties: '', photo_url: '' });
+                        setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
                         setIsAdding(!isAdding);
                     }}
                     className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center gap-3 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -148,7 +154,37 @@ export default function ProfessionalsPage() {
                                 onChange={e => setNewPro({ ...newPro, specialties: e.target.value })}
                             />
                         </div>
-                        <div className="col-span-2 space-y-2">
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Localidade</label>
+                            <select
+                                className="border border-slate-200 bg-white/50 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-slate-600 font-medium"
+                                value={newPro.location}
+                                onChange={e => setNewPro({ ...newPro, location: e.target.value })}
+                            >
+                                <option value="Aracaju">Aracaju</option>
+                                <option value="Maceió">Maceió</option>
+                                <option value="Recife">Recife</option>
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Período - Início (Opcional)</label>
+                            <input
+                                type="date"
+                                className="border border-slate-200 bg-white/50 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-slate-500"
+                                value={newPro.location_start_date}
+                                onChange={e => setNewPro({ ...newPro, location_start_date: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Período - Fim (Opcional)</label>
+                            <input
+                                type="date"
+                                className="border border-slate-200 bg-white/50 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-slate-500"
+                                value={newPro.location_end_date}
+                                onChange={e => setNewPro({ ...newPro, location_end_date: e.target.value })}
+                            />
+                        </div>
+                        <div className="col-span-2 md:col-span-1 space-y-2">
                             <label className="text-xs font-bold text-slate-500 uppercase ml-1">Foto (URL)</label>
                             <input
                                 className="border border-slate-200 bg-white/50 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
@@ -183,6 +219,17 @@ export default function ProfessionalsPage() {
                             </div>
 
                             <h4 className="font-serif font-bold text-slate-800 text-xl mb-3">{pro.name}</h4>
+
+                            <div className="flex flex-col items-center gap-1 mb-4">
+                                <span className="bg-cyan-100/50 text-cyan-800 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                    {pro.location || 'Aracaju'}
+                                </span>
+                                {(pro.location_start_date || pro.location_end_date) && (
+                                    <span className="text-[10px] text-slate-500 font-medium">
+                                        {pro.location_start_date ? new Date(pro.location_start_date + 'T12:00:00').toLocaleDateString('pt-BR') : '...'} até {pro.location_end_date ? new Date(pro.location_end_date + 'T12:00:00').toLocaleDateString('pt-BR') : '...'}
+                                    </span>
+                                )}
+                            </div>
 
                             <div className="flex flex-wrap justify-center gap-2 mb-6 min-h-[60px]">
                                 {pro.specialties?.map((spec, i) => (
