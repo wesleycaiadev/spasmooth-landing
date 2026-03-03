@@ -18,9 +18,9 @@ export default function Home() {
       <Hero />
       <Services />
       <BookingSection />
+      <LocationSection />
       <Testimonials />
       <FAQ />
-      <LocationSection />
       <Footer />
       <WhatsAppFloat />
     </main>
