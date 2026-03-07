@@ -214,7 +214,7 @@ export default function ProfessionalsPage() {
                                 <div className="absolute inset-0 bg-cyan-200 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-all"></div>
                                 <img
                                     src={pro.photo_url}
-                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-top shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
+                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-[center_20%] shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                 />
                             </div>
 

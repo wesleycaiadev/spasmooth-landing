@@ -58,8 +58,8 @@ export default function ProfessionalsSection() {
                             <div className="relative h-96 w-full overflow-hidden">
                                 {/* Substitua esta tag por next/image quando as imagens estiverem prontas */}
                                 <div
-                                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                                    style={{ backgroundImage: `url(${pro.avatar})`, backgroundColor: '#e2e8f0' }}
+                                    className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105"
+                                    style={{ backgroundImage: `url(${pro.avatar})`, backgroundColor: '#e2e8f0', backgroundPosition: 'center 20%' }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
 
