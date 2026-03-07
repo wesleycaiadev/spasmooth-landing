@@ -9,14 +9,14 @@ export const metadata = {
   title: "SpaSmooth | Massoterapia em Aracaju, Maceió e Recife",
   description: "SpaSmooth - Massoterapia profissional em Aracaju, Maceió e Recife. Oferecemos massagem relaxante, terapêutica, drenagem linfática e reflexologia para seu bem-estar.",
   keywords: "massoterapia, massagem, spa, aracaju, maceio, recife, relaxamento, bem-estar, massagem relaxante",
-  metadataBase: new URL('https://spasmooth.vercel.app'),
+  metadataBase: new URL('https://spasmooth.com.br'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: "SpaSmooth | Massoterapia e Spa em Aracaju, Maceió e Recife",
     description: "Referência em massoterapia e bem-estar em Aracaju, Maceió e Recife. Agende sua sessão e renove suas energias em um ambiente preparado para relaxar.",
-    url: 'https://spasmooth.vercel.app',
+    url: 'https://spasmooth.com.br',
     siteName: 'SpaSmooth',
     images: [
       {
@@ -54,7 +54,7 @@ const schemaData = {
   "@context": "https://schema.org",
   "@type": "HealthAndBeautyBusiness",
   "name": "SpaSmooth",
-  "image": "https://spasmooth.vercel.app/assets/logo.png",
+  "image": "https://spasmooth.com.br/assets/logo.png",
   "description": "A melhor experiência de spa e massoterapia de excelência com unidades em Aracaju, Maceió e Recife, oferecendo bem-estar físico e mental.",
   "address": {
     "@type": "PostalAddress",
