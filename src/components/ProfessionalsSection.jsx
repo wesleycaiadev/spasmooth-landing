@@ -1,16 +1,45 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { PROFESSIONALS } from '@/lib/data';
 import BookingWizard from './booking/BookingWizard';
 import { useLocation } from '@/components/LocationProvider';
 
 export default function ProfessionalsSection() {
     const { location, changeLocation } = useLocation();
+    const [pros, setPros] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedPro, setSelectedPro] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    useEffect(() => {
+        async function fetchProfessionals() {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('professionals')
+                .select('*')
+                .eq('active', true)
+                .eq('location', location)
+                .order('created_at', { ascending: false });
+
+            if (!error && data) {
+                // Ensure specialties and gallery are parsed correctly if needed, or if empty fallback
+                setPros(data.map(p => ({
+                    ...p,
+                    specialties: p.specialties || [],
+                    gallery: p.gallery || (p.photo_url ? [p.photo_url] : []),
+                    avatar: p.photo_url || 'https://ui-avatars.com/api/?name=' + p.name,
+                    bio: p.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
+                    role: p.role || 'Terapeuta',
+                })));
+            }
+            setLoading(false);
+        }
+
+        fetchProfessionals();
+    }, [location]);
 
     const openAlbum = (pro) => {
         setSelectedPro(pro);
@@ -71,40 +100,49 @@ export default function ProfessionalsSection() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-                    {PROFESSIONALS.map((pro) => (
-                        <div
-                            key={pro.id}
-                            className="group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100 hover:shadow-2xl hover:border-rose-200 transition-all duration-500 transform hover:-translate-y-2 opacity-0 animate-slideUp"
-                            style={{ animationFillMode: 'forwards' }}
-                            onClick={() => openAlbum(pro)}
-                        >
-                            <div className="relative h-96 w-full overflow-hidden">
-                                {/* Substitua esta tag por next/image quando as imagens estiverem prontas */}
-                                <div
-                                    className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105"
-                                    style={{ backgroundImage: `url(${pro.avatar})`, backgroundColor: '#e2e8f0', backgroundPosition: 'center 20%' }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
+                    {loading ? (
+                        <div className="col-span-full py-16 text-center text-rose-300 animate-pulse font-medium">
+                            Buscando especialistas em {location}...
+                        </div>
+                    ) : pros.length === 0 ? (
+                        <div className="col-span-full py-16 text-center text-slate-500 font-medium">
+                            Nenhuma terapeuta disponível em {location} no momento.
+                        </div>
+                    ) : (
+                        pros.map((pro) => (
+                            <div
+                                key={pro.id}
+                                className="group cursor-pointer bg-white rounded-3xl overflow-hidden shadow-lg border border-slate-100 hover:shadow-2xl hover:border-rose-200 transition-all duration-500 transform hover:-translate-y-2 opacity-0 animate-slideUp"
+                                style={{ animationFillMode: 'forwards' }}
+                                onClick={() => openAlbum(pro)}
+                            >
+                                <div className="relative h-96 w-full overflow-hidden">
+                                    <div
+                                        className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105"
+                                        style={{ backgroundImage: `url(${pro.avatar})`, backgroundColor: '#e2e8f0', backgroundPosition: 'center 20%' }}
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
 
-                                <div className="absolute bottom-0 left-0 w-full p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                    <h3 className="text-2xl font-serif font-bold mb-1">{pro.name}</h3>
-                                    <p className="text-rose-300 font-medium text-sm tracking-wider uppercase mb-3">{pro.role}</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {pro.specialties.slice(0, 2).map((spec, i) => (
-                                            <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full border border-white/20">
-                                                {spec}
-                                            </span>
-                                        ))}
-                                        {pro.specialties.length > 2 && (
-                                            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full border border-white/20">
-                                                +{pro.specialties.length - 2}
-                                            </span>
-                                        )}
+                                    <div className="absolute bottom-0 left-0 w-full p-6 text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                        <h3 className="text-2xl font-serif font-bold mb-1">{pro.name}</h3>
+                                        <p className="text-rose-300 font-medium text-sm tracking-wider uppercase mb-3">{pro.role}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {pro.specialties.slice(0, 2).map((spec, i) => (
+                                                <span key={i} className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full border border-white/20">
+                                                    {spec}
+                                                </span>
+                                            ))}
+                                            {pro.specialties.length > 2 && (
+                                                <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 bg-white/20 backdrop-blur-sm rounded-full border border-white/20">
+                                                    +{pro.specialties.length - 2}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
             </div>
 
