@@ -6,16 +6,16 @@ import { LocationProvider } from "@/components/LocationProvider";
 const nunito = Nunito({ subsets: ["latin"], variable: '--font-nunito' });
 
 export const metadata = {
-  title: "SpaSmooth | Massoterapia em Aracaju - Relaxe e Regenere",
-  description: "SpaSmooth - Massoterapia profissional em Aracaju. Oferecemos massagem relaxante, terapêutica, drenagem linfática e reflexologia para seu bem-estar.",
-  keywords: "massoterapia, massagem, spa, aracaju, relaxamento, bem-estar, massagem relaxante, massagem terapêutica, drenagem linfática",
+  title: "SpaSmooth | Massoterapia em Aracaju, Maceió e Recife",
+  description: "SpaSmooth - Massoterapia profissional em Aracaju, Maceió e Recife. Oferecemos massagem relaxante, terapêutica, drenagem linfática e reflexologia para seu bem-estar.",
+  keywords: "massoterapia, massagem, spa, aracaju, maceio, recife, relaxamento, bem-estar, massagem relaxante",
   metadataBase: new URL('https://spasmooth.vercel.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "SpaSmooth | Massoterapia e Spa em Aracaju",
-    description: "Referência em massoterapia e bem-estar em Aracaju. Agende sua sessão e renove suas energias em um ambiente preparado para relaxar e regenerar a saúde.",
+    title: "SpaSmooth | Massoterapia e Spa em Aracaju, Maceió e Recife",
+    description: "Referência em massoterapia e bem-estar em Aracaju, Maceió e Recife. Agende sua sessão e renove suas energias em um ambiente preparado para relaxar.",
     url: 'https://spasmooth.vercel.app',
     siteName: 'SpaSmooth',
     images: [
@@ -23,7 +23,7 @@ export const metadata = {
         url: 'https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80',
         width: 1200,
         height: 630,
-        alt: 'Interior relaxante do SpaSmooth Aracaju',
+        alt: 'Interior relaxante do SpaSmooth',
       }
     ],
     locale: 'pt_BR',
@@ -55,11 +55,10 @@ const schemaData = {
   "@type": "HealthAndBeautyBusiness",
   "name": "SpaSmooth",
   "image": "https://spasmooth.vercel.app/assets/logo.png",
-  "description": "A melhor experiência de spa e massoterapia de excelência localizada em Aracaju, oferecendo bem-estar físico e mental.",
+  "description": "A melhor experiência de spa e massoterapia de excelência com unidades em Aracaju, Maceió e Recife, oferecendo bem-estar físico e mental.",
   "address": {
     "@type": "PostalAddress",
-    "addressLocality": "Aracaju",
-    "addressRegion": "SE",
+    "addressLocality": "Aracaju, Maceió e Recife",
     "addressCountry": "BR"
   },
   "priceRange": "$$"

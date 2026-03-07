@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { UserButton, useUser, ClerkProvider } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Settings, Briefcase, Calendar } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, Briefcase, Calendar, Award } from 'lucide-react';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
     { icon: Users, label: 'Gestão de Leads', href: '/admin/kanban' },
     { icon: Calendar, label: 'Agenda', href: '/admin/calendar' }, // Added Calendar
     { icon: Briefcase, label: 'Profissionais', href: '/admin/professionals' },
+    { icon: Award, label: 'Fidelidade', href: '/admin/rewards' },
     { icon: Settings, label: 'Configurações', href: '/admin/settings' },
 ];
 
@@ -61,8 +62,19 @@ function AdminContent({ children }) {
     }
 
     return (
-        <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-sky-50">
+        <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-sky-50 pb-20 md:pb-0">
             <AdminNotifications />
+
+            {/* Mobile Bottom Navigation Bar */}
+            <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 z-50 md:hidden flex justify-around items-center px-1 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
+                {sidebarItems.map((item) => (
+                    <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 p-2 text-slate-500 hover:text-cyan-600 transition-colors w-16">
+                        <item.icon size={22} />
+                        <span className="text-[8px] font-bold uppercase tracking-wider truncate w-full text-center">{item.label}</span>
+                    </Link>
+                ))}
+            </nav>
+
             {/* Sidebar (Glassmorphism) */}
             <aside className="w-72 bg-white/80 backdrop-blur-lg border-r border-white/50 fixed h-full z-20 hidden md:block shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
                 <div className="p-8 border-b border-slate-100/50 flex items-center justify-between">
@@ -83,7 +95,7 @@ function AdminContent({ children }) {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-72 p-8 md:p-12 relative">
+            <main className="flex-1 md:ml-72 p-4 md:p-8 lg:p-12 relative overflow-x-hidden">
                 {/* Decorative Background Blob */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-200/20 rounded-full blur-[100px] pointer-events-none -z-10"></div>
 

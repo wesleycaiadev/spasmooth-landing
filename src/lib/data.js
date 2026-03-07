@@ -177,3 +177,42 @@ export const TREATMENTS = [
         note: ''
     }
 ];
+
+export const PROFESSIONALS = [
+    {
+        id: 'clara',
+        name: 'Clara',
+        role: 'Terapeuta Especialista',
+        bio: 'Atendimentos focados no relaxamento profundo e liberação de tensões, proporcionando uma experiência única e sensorial.',
+        specialties: ['Terapia Tântrica', 'Massagem Relaxante Especial', 'Vivência Delirium'],
+        avatar: '/images/professionals/clara/avatar.jpg',
+        gallery: [
+            '/images/professionals/clara/1.jpg',
+            '/images/professionals/clara/2.jpg'
+        ]
+    },
+    {
+        id: 'maria',
+        name: 'Maria',
+        role: 'Terapeuta Sensorial',
+        bio: 'Especialista em toques sutis e intensos, criando uma conexão autêntica que revitaliza o corpo e a mente.',
+        specialties: ['Terapia Tântrica', 'Massagem Nuru', 'Tailandesa'],
+        avatar: '/images/professionals/maria/avatar.jpg',
+        gallery: [
+            '/images/professionals/maria/1.jpg'
+        ]
+    },
+    {
+        id: 'anne',
+        name: 'Anne',
+        role: 'Terapeuta Holística',
+        bio: 'Combinando técnicas de relaxamento e terapia íntima para alcançar o ápice do seu bem-estar físico e energético.',
+        specialties: ['Massagem Relaxante Especial', 'Ventosa com Relaxante', 'Vivência Premium Black'],
+        avatar: '/images/professionals/anne/avatar.jpg',
+        gallery: [
+            '/images/professionals/anne/1.jpg',
+            '/images/professionals/anne/2.jpg',
+            '/images/professionals/anne/3.jpg'
+        ]
+    }
+];

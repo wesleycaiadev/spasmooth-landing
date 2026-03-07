@@ -1,7 +1,7 @@
-import BookingSection from '@/components/BookingSection';
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
+import ProfessionalsSection from '@/components/ProfessionalsSection';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
 import LocationSection from '@/components/LocationSection';
@@ -17,7 +17,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Services />
-      <BookingSection />
+      <ProfessionalsSection />
       <LocationSection />
       <Testimonials />
       <FAQ />
