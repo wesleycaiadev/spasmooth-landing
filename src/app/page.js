@@ -1,6 +1,7 @@
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
+import BookingSection from '@/components/BookingSection';
 import ProfessionalsSection from '@/components/ProfessionalsSection';
 import Testimonials from '@/components/Testimonials';
 import FAQ from '@/components/FAQ';
@@ -18,6 +19,7 @@ export default function Home() {
       <Hero />
       <Services />
       <ProfessionalsSection />
+      <BookingSection />
       <LocationSection />
       <Testimonials />
       <FAQ />
