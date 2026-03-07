@@ -128,12 +128,12 @@ export default function ServiceBookingCard({ treatment }) {
         sessionStorage.setItem('selected_service', JSON.stringify(serviceData));
 
         // Scroll to the booking wizard section
-        const wizardSection = document.getElementById('agendar');
+        const wizardSection = document.getElementById('profissionais');
         if (wizardSection) {
             wizardSection.scrollIntoView({ behavior: 'smooth' });
         } else {
             // Fallback if ID not found immediately (e.g. different page)
-            window.location.href = '/#agendar';
+            window.location.href = '/#profissionais';
         }
     };
 

@@ -5,8 +5,10 @@ import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { PROFESSIONALS } from '@/lib/data';
 import BookingWizard from './booking/BookingWizard';
+import { useLocation } from '@/components/LocationProvider';
 
 export default function ProfessionalsSection() {
+    const { location, changeLocation } = useLocation();
     const [selectedPro, setSelectedPro] = useState(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -45,6 +47,27 @@ export default function ProfessionalsSection() {
                     <p className="text-slate-600 text-lg">
                         Profissionais exclusivas e dedicadas a proporcionar as melhores vivências. Clique para conhecer o perfil e agendar.
                     </p>
+                </div>
+
+                <div className="flex bg-slate-50/80 p-1.5 rounded-xl mb-12 shadow-inner max-w-md mx-auto relative z-10 border border-slate-100">
+                    <button
+                        onClick={() => changeLocation('Aracaju')}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${location === 'Aracaju' ? 'bg-white text-rose-700 shadow-md transform scale-105' : 'text-slate-500 hover:text-rose-600 hover:bg-white/50'}`}
+                    >
+                        Aracaju
+                    </button>
+                    <button
+                        onClick={() => changeLocation('Maceió')}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${location === 'Maceió' ? 'bg-white text-rose-700 shadow-md transform scale-105' : 'text-slate-500 hover:text-rose-600 hover:bg-white/50'}`}
+                    >
+                        Maceió
+                    </button>
+                    <button
+                        onClick={() => changeLocation('Recife')}
+                        className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${location === 'Recife' ? 'bg-white text-rose-700 shadow-md transform scale-105' : 'text-slate-500 hover:text-rose-600 hover:bg-white/50'}`}
+                    >
+                        Recife
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
