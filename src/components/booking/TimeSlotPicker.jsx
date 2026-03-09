@@ -21,11 +21,11 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
 
         const slots = [];
         const startHour = Math.floor(startMinutesSchedule / 60);
-        // We stop creating slots when the slot start time + duration would exceed closing time
-        // Or simple approach: iterate hours until closing.
+        // Permitimos gerar o bloco até o exato horário final (ex: 20:00)
+        // Isso habilita a opção "20:00" na tela.
         const endHour = Math.floor(endMinutesSchedule / 60);
 
-        for (let i = startHour; i < endHour; i++) {
+        for (let i = startHour; i <= endHour; i++) {
             const hour = i.toString().padStart(2, '0');
             const timeStr = `${hour}:00`;
 
@@ -41,6 +41,14 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
 
     const slots = generateSlots();
 
+    // Setup datetime base para checar antecedência (Fuso: América/Sao_Paulo / Brasília)
+    const MINIMUM_ADVANCE_HOURS = 2; // Tempo mínimo de antecedência em horas
+
+    // Pegar agora no fuso de SP para comparação justa
+    const nowSp = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+    const isToday = selectedDate === nowSp.toLocaleDateString("en-CA"); // "YYYY-MM-DD" no fuso local
+    const currentMinutesSp = nowSp.getHours() * 60 + nowSp.getMinutes();
+
     const isSlotAvailable = (time) => {
         const [h, m] = time.split(':').map(Number);
         const startMinutes = h * 60 + m;
@@ -49,13 +57,17 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
         const buffer = 0;
         const endMinutes = startMinutes + duration + buffer;
 
-        // Check availability against dynamic business hours
-        // Service must finish before closing time
-        // Note: we usually don't need buffer *after* the last appointment regarding closing time,
-        // but let's stick to safe logic: if it ends at 20:15 (buffer included), it's slightly past 20:00.
-        // If strict: endMinutes - buffer <= endMinutesSchedule?
-        // Let's say: Actual service end (start + duration) must be <= Schedule End.
-        if ((startMinutes + duration) > endMinutesSchedule) return false;
+        // Se o horário de início for ESTRITAMENTE maior que o horário de término, bloqueia.
+        // Se quisermos que ela POSSA começar às 20:00 e terminar as 21:00,
+        // apenas avaliamos se o startMinutes está dentro do horário permitido para começar.
+        if (startMinutes > endMinutesSchedule) return false;
+
+        // SE FOR HOJE, checar antecedência mínima (bloquear agendamento "em cima da hora")
+        if (isToday) {
+            if (startMinutes < (currentMinutesSp + MINIMUM_ADVANCE_HOURS * 60)) {
+                return false;
+            }
+        }
 
         // Check collision with ANY booked interval
         const hasCollision = bookedIntervals.some(interval => {
