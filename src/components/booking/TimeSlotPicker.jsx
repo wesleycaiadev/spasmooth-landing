@@ -42,7 +42,7 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
     const slots = generateSlots();
 
     // Setup datetime base para checar antecedência (Fuso: América/Sao_Paulo / Brasília)
-    const MINIMUM_ADVANCE_HOURS = 2; // Tempo mínimo de antecedência em horas
+    const MINIMUM_ADVANCE_MINUTES = 30; // Tempo mínimo de antecedência em minutos
 
     // Pegar agora no fuso de SP para comparação justa
     const nowSp = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
@@ -64,7 +64,7 @@ export default function TimeSlotPicker({ selectedDate, selectedTime, onSelect, b
 
         // SE FOR HOJE, checar antecedência mínima (bloquear agendamento "em cima da hora")
         if (isToday) {
-            if (startMinutes < (currentMinutesSp + MINIMUM_ADVANCE_HOURS * 60)) {
+            if (startMinutes < (currentMinutesSp + MINIMUM_ADVANCE_MINUTES)) {
                 return false;
             }
         }

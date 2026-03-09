@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { supabase } from '@/lib/supabase';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import BookingWizard from './booking/BookingWizard';
 import { useLocation } from '@/components/LocationProvider';
