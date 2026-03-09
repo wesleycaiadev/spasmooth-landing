@@ -313,9 +313,17 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         }
     };
 
-    const todayIso = new Date().toISOString().split('T')[0];
+    // Format the current date securely with Brazilian Timezone
+    const nowBr = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+
+    // YYYY-MM-DD
+    const todayIso = nowBr.toLocaleDateString("en-CA");
+
     let minDate = todayIso;
-    let maxDate = undefined;
+    // Let's allow booking up to 60 days in advance
+    const maxDateObj = new Date(nowBr.setDate(nowBr.getDate() + 60));
+    let maxDate = maxDateObj.toLocaleDateString("en-CA");
+
     if (booking.professional) {
         if (booking.professional.location_start_date && booking.professional.location_start_date > todayIso) {
             minDate = booking.professional.location_start_date;
