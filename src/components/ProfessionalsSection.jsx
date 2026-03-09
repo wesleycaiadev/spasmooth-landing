@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
 import { X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import BookingWizard from './booking/BookingWizard';
 import { useLocation } from '@/components/LocationProvider';
+import { PROFESSIONALS as oldProsFallback } from '@/lib/data';
 
 export default function ProfessionalsSection() {
     const { location, changeLocation } = useLocation();
@@ -26,14 +26,27 @@ export default function ProfessionalsSection() {
 
             if (!error && data) {
                 // Ensure specialties and gallery are parsed correctly if needed, or if empty fallback
-                setPros(data.map(p => ({
-                    ...p,
-                    specialties: p.specialties || [],
-                    gallery: p.gallery || (p.photo_url ? [p.photo_url] : []),
-                    avatar: p.photo_url || 'https://ui-avatars.com/api/?name=' + p.name,
-                    bio: p.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
-                    role: p.role || 'Terapeuta',
-                })));
+                setPros(data.map(p => {
+                    const fallbackData = oldProsFallback.find(old => old.id === p.id);
+                    let finalGallery = p.gallery || [];
+
+                    if (finalGallery.length === 0) {
+                        if (fallbackData && fallbackData.gallery && fallbackData.gallery.length > 0) {
+                            finalGallery = fallbackData.gallery;
+                        } else if (p.photo_url) {
+                            finalGallery = [p.photo_url];
+                        }
+                    }
+
+                    return {
+                        ...p,
+                        specialties: p.specialties || fallbackData?.specialties || [],
+                        gallery: finalGallery,
+                        avatar: p.photo_url || fallbackData?.avatar || 'https://ui-avatars.com/api/?name=' + p.name,
+                        bio: p.bio || fallbackData?.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
+                        role: p.role || fallbackData?.role || 'Terapeuta',
+                    };
+                }));
             }
             setLoading(false);
         }
