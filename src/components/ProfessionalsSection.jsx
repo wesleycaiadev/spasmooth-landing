@@ -28,7 +28,7 @@ export default function ProfessionalsSection() {
             if (!error && data) {
                 // Ensure specialties and gallery are parsed correctly if needed, or if empty fallback
                 setPros(data.map(p => {
-                    const fallbackData = oldProsFallback.find(old => old.id === p.id);
+                    const fallbackData = oldProsFallback.find(old => old.name.toLowerCase() === p.name.toLowerCase());
                     let finalGallery = p.gallery || [];
 
                     if (finalGallery.length === 0) {
