@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = 'https://spasmooth.vercel.app';
+  const baseUrl = 'https://spasmooth.com.br';
 
   return [
     {

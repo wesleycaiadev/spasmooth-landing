@@ -21,20 +21,20 @@ const SERVICES = TREATMENTS.map(treatment => ({
     }))
 }));
 
-export default function BookingWizard() {
+export default function BookingWizard({ initialProfessional = null, hideHeader = false }) {
     const router = useRouter();
     const { location: contextLocation, changeLocation, isLoadingLocation } = useLocation();
 
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(initialProfessional ? 2 : 1);
     const [loading, setLoading] = useState(false);
     const [slotsLoading, setSlotsLoading] = useState(false);
     const [bookedIntervals, setBookedIntervals] = useState([]);
     const [currentLockId, setCurrentLockId] = useState(null); // ID of the lock currently held by the user
 
     const [booking, setBooking] = useState({
-        location: 'Aracaju',
-        professional: null,
-        professional_id: null,
+        location: initialProfessional?.location || 'Aracaju',
+        professional: initialProfessional,
+        professional_id: initialProfessional?.id || null,
         service: null,
         service_option: null,
         date: '',
@@ -313,9 +313,17 @@ export default function BookingWizard() {
         }
     };
 
-    const todayIso = new Date().toISOString().split('T')[0];
+    // Format the current date securely with Brazilian Timezone
+    const nowBr = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+
+    // YYYY-MM-DD
+    const todayIso = nowBr.toLocaleDateString("en-CA");
+
     let minDate = todayIso;
-    let maxDate = undefined;
+    // Let's allow booking up to 60 days in advance
+    const maxDateObj = new Date(nowBr.setDate(nowBr.getDate() + 60));
+    let maxDate = maxDateObj.toLocaleDateString("en-CA");
+
     if (booking.professional) {
         if (booking.professional.location_start_date && booking.professional.location_start_date > todayIso) {
             minDate = booking.professional.location_start_date;
@@ -326,25 +334,27 @@ export default function BookingWizard() {
     }
 
     return (
-        <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-cyan-600/10 border border-slate-200/50 overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4">
+        <div className={`bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4 ${hideHeader ? 'shadow-none border-none' : 'shadow-2xl shadow-cyan-600/10 border border-slate-200/50'}`}>
             {/* Header Steps */}
-            <div className="bg-[#FFFDF9] p-4 md:p-6 flex justify-between items-end border-b border-[#f0e6d2]">
-                <div>
-                    <span className="text-[10px] font-bold text-cyan-700 uppercase tracking-widest block mb-1">
-                        PASSO {step} DE 3
-                    </span>
-                    <h2 className="text-xl font-serif text-[#4a4a4a] leading-tight">
-                        {step === 1 ? 'Solicite seu horário' : step === 2 ? 'Experiência' : 'Finalização'}
-                    </h2>
+            {!hideHeader && (
+                <div className="bg-[#FFFDF9] p-4 md:p-6 flex justify-between items-end border-b border-[#f0e6d2]">
+                    <div>
+                        <span className="text-[10px] font-bold text-cyan-700 uppercase tracking-widest block mb-1">
+                            PASSO {step} DE 3
+                        </span>
+                        <h2 className="text-xl font-serif text-[#4a4a4a] leading-tight">
+                            {step === 1 ? 'Solicite seu horário' : step === 2 ? 'Experiência' : 'Finalização'}
+                        </h2>
+                    </div>
+                    <div className="flex gap-1.5 pb-1">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step >= i ? 'w-6 bg-cyan-600' : 'w-2 bg-[#e0e0e0]'}`} />
+                        ))}
+                    </div>
                 </div>
-                <div className="flex gap-1.5 pb-1">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step >= i ? 'w-6 bg-cyan-600' : 'w-2 bg-[#e0e0e0]'}`} />
-                    ))}
-                </div>
-            </div>
+            )}
 
-            <div className="p-4 md:p-8 max-h-[600px] overflow-y-auto custom-scrollbar">
+            <div className={`p-4 md:p-8 overflow-y-auto custom-scrollbar ${hideHeader ? 'max-h-none' : 'max-h-[600px]'}`}>
                 {step === 1 && (
                     <div className="animate-fadeIn">
                         <div className="flex bg-slate-100 p-1 rounded-xl mb-6 mx-auto max-w-sm relative z-10 flex-wrap">

@@ -20,9 +20,9 @@ export default function LocationSection() {
             iframeTitle: "Mapa do SpaSmooth em Maceió"
         },
         Recife: {
-            address: "Recife - PE (Em Breve)",
-            mapsLink: "https://maps.google.com/?q=Recife,PE",
-            iframeSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126442.27402379368!2d-34.96205938166549!3d-8.04215843477124!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab196f88c446e5%3A0x3c9ef52922447fd4!2sRecife%2C%20PE!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr",
+            address: "Rua Ribeiro de Brito 950, Ed. Golden Shopping Home Service, Boa Viagem - Recife, PE - AP 2303",
+            mapsLink: "https://maps.google.com/?q=Rua+Ribeiro+de+Brito+950+Boa+Viagem+Recife",
+            iframeSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3949.799753066601!2d-34.90807082409543!3d-8.12185679190695!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x7ab1fa08da1284b%3A0xc3124ce8bdcf43ba!2sR.%20Ribeiro%20de%20Brito%2C%20950%20-%20Boa%20Viagem%2C%20Recife%20-%20PE%2C%2051021-310!5e0!3m2!1spt-BR!2sbr!4v1700000000000!5m2!1spt-BR!2sbr",
             iframeTitle: "Mapa do SpaSmooth em Recife"
         }
     };

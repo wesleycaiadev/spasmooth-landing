@@ -26,9 +26,9 @@ export default function Footer() {
                         <ul className="space-y-4">
                             <li className="flex items-start gap-3">
                                 <MapPin className="text-cyan-400 mt-1 shrink-0 w-5 h-5" aria-hidden="true" />
-                                <a href="https://maps.app.goo.gl/F8keaZv4bWuJSz3u8" target="_blank" rel="noopener noreferrer" title="Abrir localização no Google Maps" className="hover:text-cyan-400 transition-colors">
-                                    <span className="font-semibold">Aracaju - SE</span><br />
-                                    <span className="text-sm">Clique para ver no mapa</span>
+                                <a href="#localizacao" title="Ver nossas unidades" className="hover:text-cyan-400 transition-colors">
+                                    <span className="font-semibold">Aracaju | Maceió | Recife</span><br />
+                                    <span className="text-sm">Ver endereços e mapas</span>
                                 </a>
                             </li>
                             <li className="flex items-center gap-3">

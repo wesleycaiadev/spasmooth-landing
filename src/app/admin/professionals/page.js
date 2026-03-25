@@ -208,7 +208,7 @@ export default function ProfessionalsPage() {
                                         e.target.onerror = null; // prevents looping
                                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=random`;
                                     }}
-                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-top shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
+                                    className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-[center_20%] shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                 />
                             </div>
 

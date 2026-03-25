@@ -9,7 +9,8 @@ export const useLocation = () => useContext(LocationContext);
 // Coordenadas centrais aproximadas
 const LOCATIONS = {
     Aracaju: { lat: -10.9095, lon: -37.0748 },
-    Maceió: { lat: -9.6658, lon: -35.7350 }
+    Maceió: { lat: -9.6658, lon: -35.7350 },
+    Recife: { lat: -8.0476, lon: -34.8770 }
 };
 
 // Fórmula de Haversine para calcular distância em KM
@@ -33,7 +34,7 @@ export function LocationProvider({ children }) {
     useEffect(() => {
         // 1. Verificar se já existe uma escolha salva (isso sobrescreve o GPS para quem troca manualmente)
         const savedLocation = localStorage.getItem('spa_user_location');
-        if (savedLocation && (savedLocation === 'Aracaju' || savedLocation === 'Maceió')) {
+        if (savedLocation && (savedLocation === 'Aracaju' || savedLocation === 'Maceió' || savedLocation === 'Recife')) {
             setLocation(savedLocation);
             setIsLoadingLocation(false);
             return;
@@ -48,8 +49,19 @@ export function LocationProvider({ children }) {
 
                     const distAracaju = calculateDistance(userLat, userLon, LOCATIONS.Aracaju.lat, LOCATIONS.Aracaju.lon);
                     const distMaceio = calculateDistance(userLat, userLon, LOCATIONS.Maceió.lat, LOCATIONS.Maceió.lon);
+                    const distRecife = calculateDistance(userLat, userLon, LOCATIONS.Recife.lat, LOCATIONS.Recife.lon);
 
-                    const nearest = distAracaju <= distMaceio ? 'Aracaju' : 'Maceió';
+                    let nearest = 'Aracaju';
+                    let minDist = distAracaju;
+                    if (distMaceio < minDist) {
+                        nearest = 'Maceió';
+                        minDist = distMaceio;
+                    }
+                    if (distRecife < minDist) {
+                        nearest = 'Recife';
+                        minDist = distRecife;
+                    }
+
                     setLocation(nearest);
                     localStorage.setItem('spa_user_location', nearest);
                     setIsLoadingLocation(false);
@@ -71,7 +83,7 @@ export function LocationProvider({ children }) {
 
     // Permite o usuário ou a interface forçar uma mudança de cidade
     const changeLocation = (newLocation) => {
-        if (newLocation === 'Aracaju' || newLocation === 'Maceió') {
+        if (newLocation === 'Aracaju' || newLocation === 'Maceió' || newLocation === 'Recife') {
             setLocation(newLocation);
             localStorage.setItem('spa_user_location', newLocation);
         }
