@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import * as dashboardService from '@/services/admin/dashboard';
 import { Users, Calendar, TrendingUp, Activity, CheckCircle } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -26,36 +26,32 @@ export default function DashboardPage() {
             console.log('Querying Range:', startDate.toISOString(), 'to', endDate.toISOString());
 
             // Adjust query to filter by created_at range
-            const { data: leads, error } = await supabase
-                .from('leads')
-                .select('created_at, status_kanban')
-                .gte('created_at', startDate.toISOString())
-                .lte('created_at', endDate.toISOString());
+            try {
+                const leads = await dashboardService.getDashboardLeads(startDate.toISOString(), endDate.toISOString());
 
-            if (error) {
+                if (leads) {
+                    // 1. Stats Calculation
+                    const total = leads.length;
+                    const scheduled = leads.filter(l => l.status_kanban === 'agendado' || l.status_kanban === 'concluido').length;
+                    const conversion = total > 0 ? Math.round((scheduled / total) * 100) : 0;
+                    setStats({ total, scheduled, conversion });
+
+                    // 2. Chart Data Calculation (Leads per day in selected month)
+                    // Initialize array for all days in month
+                    const daysInMonth = endDate.getDate();
+                    const dailyCounts = new Array(daysInMonth).fill(0);
+
+                    leads.forEach(lead => {
+                        const day = new Date(lead.created_at).getDate();
+                        if (day >= 1 && day <= daysInMonth) {
+                            dailyCounts[day - 1]++;
+                        }
+                    });
+
+                    setChartData(dailyCounts);
+                }
+            } catch (error) {
                 console.error('Erro ao buscar leads:', error);
-            }
-
-            if (leads) {
-                // 1. Stats Calculation
-                const total = leads.length;
-                const scheduled = leads.filter(l => l.status_kanban === 'agendado' || l.status_kanban === 'concluido').length;
-                const conversion = total > 0 ? Math.round((scheduled / total) * 100) : 0;
-                setStats({ total, scheduled, conversion });
-
-                // 2. Chart Data Calculation (Leads per day in selected month)
-                // Initialize array for all days in month
-                const daysInMonth = endDate.getDate();
-                const dailyCounts = new Array(daysInMonth).fill(0);
-
-                leads.forEach(lead => {
-                    const day = new Date(lead.created_at).getDate();
-                    if (day >= 1 && day <= daysInMonth) {
-                        dailyCounts[day - 1]++;
-                    }
-                });
-
-                setChartData(dailyCounts);
             }
             setLoading(false);
         }

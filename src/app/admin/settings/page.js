@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import * as proService from '@/services/admin/professionals';
+import * as scheduleService from '@/services/admin/schedules';
 import { Save, Clock, Calendar, Check, AlertCircle } from 'lucide-react';
 
 const DAYS = [
@@ -29,17 +30,9 @@ export default function SettingsPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            // 1. Fetch Professionals
-            const { data: pros, error: prosError } = await supabase
-                .from('professionals')
-                .select('*')
-                .eq('active', true)
-                .order('name');
-
-            if (prosError) throw prosError;
+            const pros = await proService.getActiveProfessionals();
             setProfessionals(pros);
             if (pros?.length > 0 && !selectedPro) setSelectedPro(pros[0].id);
-
         } catch (error) {
             console.error('Erro ao carregar dados:', error);
             setMessage({ type: 'error', text: 'Erro ao carregar as configurações.' });
@@ -55,11 +48,7 @@ export default function SettingsPage() {
 
     const fetchScheduleForPro = async (proId) => {
         try {
-            const { data, error } = await supabase
-                .from('professional_schedule')
-                .select('*')
-                .eq('professional_id', proId);
-
+            const data = await scheduleService.getScheduleForProfessional(proId);
             if (data) {
                 // Transform to object key=day_of_week
                 const scheduleMap = {};
@@ -108,26 +97,9 @@ export default function SettingsPage() {
                 is_day_off: s.is_day_off
             }));
 
-            // Upsert doesn't work easily with standard insert unless we have a unique constraint on (professional_id, day_of_week).
-            // Let's check table definition. Usually PK is ID.
-            // We should delete existing for this pro and insert, or rely on conflict.
-            // But 'professional_schedule' has 'id' PK.
-            // Better: Delete all for this pro, insert all. (Simple and safe for small data)
-
-            await supabase
-                .from('professional_schedule')
-                .delete()
-                .eq('professional_id', selectedPro);
-
-            const { error } = await supabase
-                .from('professional_schedule')
-                .insert(upsertData);
-
-            if (error) throw error;
-
+            await scheduleService.upsertProfessionalSchedule(selectedPro, upsertData);
             setMessage({ type: 'success', text: 'Horários atualizados com sucesso!' });
 
-            // Re-fetch to ensure IDs are back if needed (though we rebuild map anyway)
             fetchScheduleForPro(selectedPro);
 
         } catch (error) {

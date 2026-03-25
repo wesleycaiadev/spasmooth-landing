@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import * as leadsService from '@/services/admin/leads';
+import * as proService from '@/services/admin/professionals';
 import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw, Send, Trash2, LayoutList, KanbanSquare } from 'lucide-react';
 
 import StatusDropdown from '@/components/StatusDropdown';
@@ -36,20 +37,22 @@ export default function KanbanPage() {
 
     const fetchLeads = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('leads')
-            .select('*, professionals(name)')
-            .order('created_at', { ascending: false });
-
-        if (!error) {
+        try {
+            const data = await leadsService.getLeads();
             setLeads(data);
+        } catch (err) {
+            console.error(err);
         }
         setLoading(false);
     };
 
     const fetchProfessionals = async () => {
-        const { data } = await supabase.from('professionals').select('id, name');
-        if (data) setProfessionals(data);
+        try {
+            const data = await proService.getActiveProfessionals();
+            setProfessionals(data);
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     useEffect(() => {
@@ -81,12 +84,8 @@ export default function KanbanPage() {
     };
 
     const updateStatus = async (id, newStatus) => {
-        const { error } = await supabase
-            .from('leads')
-            .update({ status_kanban: newStatus })
-            .eq('id', id);
-
-        if (!error) {
+        try {
+            await leadsService.updateLeadStatus(id, newStatus);
             const updatedLeads = leads.map(lead => lead.id === id ? { ...lead, status_kanban: newStatus } : lead);
             setLeads(updatedLeads);
 
@@ -95,6 +94,8 @@ export default function KanbanPage() {
             if (['agendado', 'concluido', 'cancelado'].includes(newStatus)) {
                 setWhatsappModal({ isOpen: true, lead: lead, type: newStatus, newStatus: newStatus });
             }
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -135,17 +136,12 @@ export default function KanbanPage() {
         e.stopPropagation();
         if (!confirm('Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.')) return;
 
-        const { error } = await supabase
-            .from('leads')
-            .delete()
-            .eq('id', id);
-
-        if (error) {
-            console.error('Erro ao excluir:', error);
-            alert('Erro ao excluir lead.');
-        } else {
+        try {
+            await leadsService.deleteLead(id);
             setLeads(leads.filter(lead => lead.id !== id));
             if (selectedLead?.id === id) setSelectedLead(null);
+        } catch (error) {
+            alert('Erro persistente ao excluir lead.');
         }
     };
 
@@ -156,14 +152,12 @@ export default function KanbanPage() {
 
     const saveNote = async () => {
         if (!selectedLead) return;
-        const { error } = await supabase
-            .from('leads')
-            .update({ admin_notes: note })
-            .eq('id', selectedLead.id);
-
-        if (!error) {
+        try {
+            await leadsService.updateLeadNote(selectedLead.id, note);
             setLeads(leads.map(l => l.id === selectedLead.id ? { ...l, admin_notes: note } : l));
             alert('Nota salva!');
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -191,23 +185,18 @@ export default function KanbanPage() {
         e.preventDefault();
         if (!newLead.nome || !newLead.whatsapp) return alert('Nome e WhatsApp são obrigatórios!');
 
-        const { data, error } = await supabase
-            .from('leads')
-            .insert([{
+        try {
+            await leadsService.createLead({
                 ...newLead,
                 status_kanban: 'novo',
-                professional_id: newLead.professional_id || null // Ensure null if empty string
-            }])
-            .select();
-
-        if (error) {
-            console.error(error);
-            alert('Erro ao criar lead: ' + error.message);
-        } else {
+                professional_id: newLead.professional_id || null
+            });
             alert('Lead criado com sucesso!');
             setIsCreating(false);
             setNewLead({ nome: '', whatsapp: '', email: '', service_name: '', professional_id: '', appointment_date: '', appointment_time: '', mensagem_interesse: '' });
             fetchLeads(); // Refresh list
+        } catch (error) {
+            alert('Erro de integridade ao criar lead.');
         }
     };
 

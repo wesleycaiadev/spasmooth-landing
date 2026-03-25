@@ -8,7 +8,8 @@ import startOfWeek from 'date-fns/startOfWeek';
 import getDay from 'date-fns/getDay';
 import ptBR from 'date-fns/locale/pt-BR';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { supabase } from '@/lib/supabase';
+import * as proService from '@/services/admin/professionals';
+import * as leadsService from '@/services/admin/leads';
 import { Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const locales = {
@@ -114,12 +115,7 @@ export default function AdminCalendar() {
 
     const fetchProfessionals = async () => {
         try {
-            const { data, error } = await supabase
-                .from('professionals')
-                .select('id, name')
-                .eq('active', true);
-
-            if (error) throw error;
+            const data = await proService.getActiveProfessionals();
             if (data) setProsList([{ id: 'all', name: 'Todos' }, ...data]);
         } catch (error) {
             console.error("Erro ao buscar profissionais:", error);
@@ -129,18 +125,7 @@ export default function AdminCalendar() {
     const fetchEvents = async () => {
         setLoading(true);
         try {
-            let query = supabase
-                .from('leads')
-                .select('*')
-                .neq('status_kanban', 'cancelado');
-
-            if (selectedPro !== 'all') {
-                query = query.eq('professional_id', selectedPro);
-            }
-
-            const { data, error } = await query;
-
-            if (error) throw error;
+            const data = await leadsService.getCalendarEvents(selectedPro);
 
             const calendarEvents = data.map(lead => {
                 if (!lead.appointment_date || !lead.appointment_time) return null;

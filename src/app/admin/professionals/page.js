@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import * as proService from '@/services/admin/professionals';
 import { UserPlus, Trash2, CheckCircle, XCircle, Pencil } from 'lucide-react';
 
 export default function ProfessionalsPage() {
@@ -13,12 +13,12 @@ export default function ProfessionalsPage() {
 
     const fetchPros = async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('professionals')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (!error) setPros(data);
+        try {
+            const data = await proService.getProfessionals();
+            setPros(data);
+        } catch (err) {
+            console.error(err);
+        }
         setLoading(false);
     };
 
@@ -40,29 +40,18 @@ export default function ProfessionalsPage() {
             location_end_date: newPro.location_end_date || null
         };
 
-        let error;
-
-        if (editingId) {
-            // Update existing
-            const { error: updateError } = await supabase
-                .from('professionals')
-                .update(proData)
-                .eq('id', editingId);
-            error = updateError;
-        } else {
-            // Create new
-            const { error: insertError } = await supabase
-                .from('professionals')
-                .insert([proData]);
-            error = insertError;
-        }
-
-        if (!error) {
+        try {
+            if (editingId) {
+                await proService.updateProfessional(editingId, proData);
+            } else {
+                await proService.createProfessional(proData);
+            }
+            
             setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
             setIsAdding(false);
             setEditingId(null);
             fetchPros();
-        } else {
+        } catch (error) {
             alert('Erro ao salvar profissional');
             console.error(error);
         }
@@ -82,22 +71,22 @@ export default function ProfessionalsPage() {
     };
 
     const toggleActive = async (id, currentStatus) => {
-        const { error } = await supabase
-            .from('professionals')
-            .update({ active: !currentStatus })
-            .eq('id', id);
-
-        if (!error) {
+        try {
+            await proService.toggleProfessionalActive(id, currentStatus);
             setPros(pros.map(p => p.id === id ? { ...p, active: !currentStatus } : p));
+        } catch (error) {
+            console.error(error);
         }
     };
 
     const deletePro = async (id) => {
         if (!confirm('Tem certeza que deseja remover este profissional?')) return;
 
-        const { error } = await supabase.from('professionals').delete().eq('id', id);
-        if (!error) {
+        try {
+            await proService.deleteProfessional(id);
             setPros(pros.filter(p => p.id !== id));
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -213,7 +202,12 @@ export default function ProfessionalsPage() {
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 bg-cyan-200 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-all"></div>
                                 <img
-                                    src={pro.photo_url}
+                                    src={pro.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}`}
+                                    alt={pro.name}
+                                    onError={(e) => {
+                                        e.target.onerror = null; // prevents looping
+                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=random`;
+                                    }}
                                     className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-top shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                 />
                             </div>
