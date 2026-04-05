@@ -1,80 +1,167 @@
-# 🌿 SpaSmooth
+<h1 align="center">🌿 SpaSmooth</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-14+-black?logo=next.js" />
-  <img src="https://img.shields.io/badge/Supabase-Database-green?logo=supabase" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?logo=typescript" />
-  <img src="https://img.shields.io/badge/Tailwind-CSS-cyan?logo=tailwind-css" />
+  Plataforma Full-Stack de agendamento e gestão para clínicas SPA —
+  arquitetura Zero Trust, RPC atômica anti-double-booking e painel administrativo protegido.
 </p>
 
-## Sobre o Projeto
-O SpaSmooth é uma aplicação Full-Stack desenvolvida em **Next.js** no padrão SPA (Single Page Application), criada para o gerenciamento de agendamentos, captação de clientes e administração de uma clínica/SPA. 
-Além de uma Landing Page com alta conversão e forte engajamento em UI/UX, o projeto conta com um painel administrativo protegido, focado em performance e segurança.
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-15+-black?style=for-the-badge&logo=next.js" />
+  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-green?style=for-the-badge&logo=supabase" />
+  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" />
+  <img src="https://img.shields.io/badge/Tailwind-CSS-cyan?style=for-the-badge&logo=tailwind-css" />
+  <img src="https://img.shields.io/badge/Clerk-Auth-6C47FF?style=for-the-badge&logo=clerk&logoColor=white" />
+  <img src="https://img.shields.io/badge/Zod-Validation-E02020?style=for-the-badge" />
+</p>
+
+<p align="center">
+  <strong>🔗 <a href="https://spasmooth.com.br">spasmooth.com.br</a></strong>
+</p>
 
 ---
 
-## 🚀 Arquitetura e Decisões Técnicas
+## Sobre o projeto
 
-Este projeto foi reescrito e otimizado seguindo padrões robustos de engenharia de software:
+O SpaSmooth começou como uma landing page e evoluiu para uma plataforma completa de agendamento online com painel administrativo. O sistema resolve dois problemas centrais:
 
-### 1. API e Persistência (Clean Architecture)
-A camada de persistência e orquestração de dados foi 100% isolada da interface (UI). Todo o fetching acontece exclusivamente através de **Server Actions** (`src/services/admin`), proporcionando:
-- **Ausência de Client-side Waterfalls**: Mitigação de _round-trips_ no browser.
-- **Blindagem**: As queries complexas ao banco agora ocorrem restritamente no ambiente Node.js do servidor, impedindo o vazamento de credenciais via bundle.
-
-### 2. Segurança Hardened (RLS + Supabase Auth)
-O acesso ao Supabase (PostgreSQL) conta com controle severo de **Row Level Security (RLS)**. As intervenções do painel administrativo trafegam por um conector autorizado via `SERVICE_ROLE_KEY` puramente no servidor. Isso cria uma barreira impenetrável que separa as políticas do usuário de frontend comum e as mutações corporativas de back-office.
-
-### 3. Tipagem Defensiva (TypeScript)
-Todo o intercâmbio de dados entre Supabase e React utiliza DTOs (Data Transfer Objects) rigorosamente tipados. O código não confia em inferências genéricas (`any`), mitigando quebras drásticas em *runtime* e impulsionando a confiabilidade do código.
+1. **Captação de clientes** — landing page com design imersivo, SEO técnico completo (Open Graph, schema.org, sitemap dinâmico) e funil de conversão direto para o wizard de agendamento.
+2. **Gestão operacional** — painel admin com kanban de leads, calendário semanal por profissional, dashboard de métricas e sistema de agendamentos com controle de status.
 
 ---
 
-## 🛠 Tecnologias Utilizadas
+## Funcionalidades
 
-- **Next.js (App Router)**: Framework modular provendo rotas aninhadas e SSR.
-- **React 18+**: Hooks interativos focados em manipulação limpa de estado.
-- **Supabase**: Banco PostgreSQL Serverless, Autenticação e Storage.
-- **TypeScript**: Estabilidade e segurança massiva em tempo de desenvolvimento.
-- **Tailwind CSS**: Estilização utility-first de alta manutenibilidade.
-- **Clerk**: Gerenciador de autentição do painel `/admin`.
-- **Lucide React & Date-Fns**: Manipulação refinada de tempo e ícones otimizados.
+- **Wizard de agendamento em 5 etapas** — escolha de unidade, profissional, serviço, data/horário e dados do cliente, com grade horária calculada no servidor em tempo real
+- **Anti-double-booking atômico** — função PL/pgSQL com `SELECT ... FOR UPDATE` garante que dois clientes simultâneos nunca reservem o mesmo horário
+- **Painel admin protegido** — autenticação via Clerk com whitelist de emails, kanban de leads, calendário semanal e ações de confirmar/cancelar agendamentos
+- **Dashboard de métricas** — conversão de leads, receita por período e filtros por unidade (Aracaju, Maceió, Recife)
+- **Headers de segurança OWASP** — CSP, HSTS, X-Frame-Options, Referrer-Policy e Permissions-Policy configurados em produção
 
 ---
 
-## 📦 Como Instalar e Rodar Localmente
+## Arquitetura
 
-### Pré-requisitos
-- [Node.js](https://nodejs.org/) (V18+)
-- [npm](https://www.npmjs.com/) ou `yarn`
-- Projeto provisionado no Supabase com suas respectivas chaves.
+### Zero Trust — frontend tratado como hostil
 
-### Passo a Passo
+O princípio central da arquitetura é que nenhuma operação de banco de dados ocorre no cliente. Todo acesso ao Supabase passa exclusivamente por Server Actions usando a `SUPABASE_SERVICE_ROLE_KEY` no servidor.
+Browser → Server Action → supabaseAdmin → PostgreSQL
+↑
+auth() + Zod validation
+(nunca chega ao banco sem passar aqui)
 
-1. **Faça o clone do repositório:**
-   ```bash
-   git clone https://github.com/wesleycaiadev/spasmooth-landing.git
-   cd spasmooth-landing
-   ```
+Componentes client-side recebem apenas os dados já processados como props — sem imports de Supabase, sem queries expostas no bundle.
 
-2. **Instale as dependências:**
-   ```bash
-   npm install
-   ```
+### RPC atômica — eliminação de race condition
 
-3. **Configure as Variáveis de Ambiente:**
-   Crie um arquivo `.env.local` na raiz contendo às variáveis do Clerk e do Supabase:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=url_aqui
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=anon_key_aqui
-   SUPABASE_SERVICE_ROLE_KEY=service_role_aqui
-   
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pub_key_clerk
-   CLERK_SECRET_KEY=secret_key_clerk
-   ```
+O maior risco técnico de um sistema de agendamento é o double-booking por requisições simultâneas. A solução implementada é uma função PL/pgSQL que executa verificação e inserção em uma única transação:
+```sql
+-- sql/002_check_and_create_booking.sql
+CREATE FUNCTION check_and_create_booking(...)
+RETURNS uuid AS $$
+BEGIN
+  -- Lock pessimista: bloqueia o range do profissional
+  SELECT id FROM bookings
+  WHERE professional_id = p_professional_id
+    AND tstzrange(starts_at, ends_at) && tstzrange(p_starts_at, p_ends_at)
+    AND status != 'cancelado'
+  FOR UPDATE;
 
-4. **Execute o projeto:**
-   ```bash
-   npm run dev
-   ```
-   > Acesse `http://localhost:3000` para a Landing Page ou `http://localhost:3000/admin` para o painel de gestão.
+  IF FOUND THEN
+    RAISE EXCEPTION 'SLOT_UNAVAILABLE';
+  END IF;
+
+  -- INSERT só ocorre se não houver conflito
+  INSERT INTO bookings (...) VALUES (...);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+O índice GiST em `tstzrange(starts_at, ends_at)` garante que a verificação de sobreposição seja eficiente mesmo com alto volume de agendamentos.
+
+### Validação em camadas
+
+Cada input passa por três barreiras antes de chegar ao banco:
+
+1. **HTML** — `maxLength` nos campos do formulário
+2. **Zod** — schema tipado com limites, regex e sanitização (`src/lib/validations/booking.ts`)
+3. **PostgreSQL** — constraints e a própria RPC rejeitam dados inválidos
+
+### Segurança administrativa
+
+Todas as Server Actions do painel admin verificam sessão e autorização antes de qualquer operação:
+```typescript
+const { userId } = await auth()
+const user = await currentUser()
+const email = user.emailAddresses[0].emailAddress
+
+if (!ADMIN_EMAILS.includes(email)) {
+  return { success: false, error: 'Acesso negado' }
+}
+```
+
+Não há verificação client-side de permissões — o `useUser` do Clerk é usado apenas para UI, nunca como controle de acesso real.
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Framework | Next.js 15 (App Router) |
+| Banco de dados | Supabase — PostgreSQL |
+| Autenticação | Clerk |
+| Validação | Zod |
+| Estilização | Tailwind CSS |
+| Deploy | Vercel |
+| Linguagem | TypeScript + JavaScript |
+
+---
+
+## Estrutura relevante
+src/
+├── lib/
+│   ├── validations/booking.ts   # Schemas Zod + tipos TypeScript
+│   └── supabaseAdmin.ts         # Cliente server-only (service role)
+├── services/
+│   ├── booking.ts               # Server Actions públicas
+│   └── admin/
+│       ├── bookings.ts          # Server Actions admin (auth obrigatória)
+│       └── dashboard.ts         # Métricas e agregações
+sql/
+├── 001_booking_tables.sql       # Schema + RLS + índice GiST
+└── 002_check_and_create_booking.sql  # RPC atômica anti-race-condition
+
+---
+
+## Rodando localmente
+```bash
+git clone https://github.com/wesleycaiadev/spasmooth-landing.git
+cd spasmooth-landing
+npm install
+```
+
+Crie `.env.local` na raiz:
+```env
+NEXT_PUBLIC_SUPABASE_URL=sua_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key
+SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
+
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=sua_pub_key
+CLERK_SECRET_KEY=sua_secret_key
+```
+
+Execute os SQLs em `sql/` no Supabase SQL Editor (na ordem numérica), depois:
+```bash
+npm run dev
+```
+
+- `localhost:3000` — landing page
+- `localhost:3000/admin` — painel administrativo (requer email autorizado)
+
+---
+
+## Autor
+
+**Wesley Caiã** — Desenvolvedor Front-End
+
+[wesleycaiadev.vercel.app](https://wesleycaiadev.vercel.app) · [wesleycaia.dev@gmail.com](mailto:wesleycaia.dev@gmail.com)
