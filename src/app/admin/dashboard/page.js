@@ -32,19 +32,25 @@ export default function DashboardPage() {
                 if (leads) {
                     // 1. Stats Calculation
                     const total = leads.length;
-                    const scheduled = leads.filter(l => l.status_kanban === 'agendado' || l.status_kanban === 'concluido').length;
-                    const conversion = total > 0 ? Math.round((scheduled / total) * 100) : 0;
+
+                    const scheduled = leads.filter(l => {
+                        if (!l.appointment_date) return false;
+                        const isThisMonth = l.appointment_date.slice(0, 7) === selectedMonth;
+                        const status = String(l.status_kanban || '').toLowerCase();
+                        return (status.includes('agendado') || status.includes('concluido')) && isThisMonth;
+                    }).length;
+
+                    const conversion = total > 0 ? Math.round((scheduled / total) * 100) : 100;
                     setStats({ total, scheduled, conversion });
 
                     // 2. Chart Data Calculation (Leads per day in selected month)
-                    // Initialize array for all days in month
                     const daysInMonth = endDate.getDate();
                     const dailyCounts = new Array(daysInMonth).fill(0);
 
                     leads.forEach(lead => {
-                        const day = new Date(lead.created_at).getDate();
-                        if (day >= 1 && day <= daysInMonth) {
-                            dailyCounts[day - 1]++;
+                        const createDate = new Date(lead.created_at);
+                        if (createDate >= startDate && createDate <= endDate) {
+                            dailyCounts[createDate.getDate() - 1]++;
                         }
                     });
 

@@ -28,11 +28,12 @@ export default function InterestPage() {
         setLoading(true);
 
         try {
-            const { error } = await supabase
-                .rpc('update_lead_interest', {
+            const { error } = supabase
+                ? await supabase.rpc('update_lead_interest', {
                     p_id: leadId,
                     p_interest: interest
-                });
+                })
+                : { error: new Error('Supabase não disponível') };
 
             if (error) throw error;
 

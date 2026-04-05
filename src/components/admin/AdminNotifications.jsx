@@ -19,6 +19,7 @@ export default function AdminNotifications() {
     const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
+        if (!supabase) return;
         console.log("🔔 Iniciando AdminNotifications...");
         // Request notification permission
         if (typeof window !== 'undefined' && Notification.permission !== 'granted') {

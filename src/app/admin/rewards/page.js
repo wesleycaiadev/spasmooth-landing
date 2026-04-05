@@ -17,6 +17,7 @@ export default function RewardsPage() {
 
     useEffect(() => {
         async function fetchLeads() {
+            if (!supabase) { setLoading(false); return; }
             setLoading(true);
             const { data, error } = await supabase
                 .from('leads')

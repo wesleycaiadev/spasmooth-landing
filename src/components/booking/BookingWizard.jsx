@@ -1,327 +1,187 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import ProfessionalSelector from './ProfessionalSelector';
-import TimeSlotPicker from './TimeSlotPicker'; // Import the new component
-import { Calendar, Clock, Sparkles } from 'lucide-react';
-import { useLocation } from '@/components/LocationProvider';
-
-import { TREATMENTS } from '@/lib/data';
-
-const SERVICES = TREATMENTS.map(treatment => ({
-    id: treatment.id,
-    category: treatment.category,
-    name: treatment.name,
-    description: treatment.description,
-    options: treatment.durations.map(d => ({
-        label: d.time,
-        price: d.price
-    }))
-}));
+import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import ProfessionalSelector from "./ProfessionalSelector";
+import TimeSlotPicker from "./TimeSlotPicker";
+import { Calendar, Clock, Sparkles, CheckCircle, AlertCircle, ChevronLeft, User, Phone, FileText } from "lucide-react";
+import { useLocation } from "@/components/LocationProvider";
+import {
+    getActiveProfessionals,
+    getActiveServices,
+    getAvailableSlots,
+    createBooking,
+} from "@/services/booking";
 
 export default function BookingWizard({ initialProfessional = null, hideHeader = false }) {
     const router = useRouter();
-    const { location: contextLocation, changeLocation, isLoadingLocation } = useLocation();
+    const { location: contextLocation, changeLocation } = useLocation();
 
     const [step, setStep] = useState(initialProfessional ? 2 : 1);
-    const [loading, setLoading] = useState(false);
+    const [isPending, startTransition] = useTransition();
+
+    const [professionals, setProfessionals] = useState([]);
+    const [services, setServices] = useState([]);
+    const [availableSlots, setAvailableSlots] = useState([]);
     const [slotsLoading, setSlotsLoading] = useState(false);
-    const [bookedIntervals, setBookedIntervals] = useState([]);
-    const [currentLockId, setCurrentLockId] = useState(null); // ID of the lock currently held by the user
+    const [prosLoading, setProsLoading] = useState(false);
+
+    const [feedback, setFeedback] = useState({ type: "", message: "" });
 
     const [booking, setBooking] = useState({
-        location: initialProfessional?.location || 'Aracaju',
+        location: initialProfessional?.location || contextLocation || "Aracaju",
         professional: initialProfessional,
         professional_id: initialProfessional?.id || null,
         service: null,
-        service_option: null,
-        date: '',
-        time: '',
-        name: '',
-        whatsapp: ''
+        service_id: null,
+        date: "",
+        time: "",
+        client_name: "",
+        client_phone: "",
+        notes: "",
     });
 
-    // Update internal location state when context location changes (usually on first load / geolocation detect)
     useEffect(() => {
-        setBooking(prev => ({ ...prev, location: contextLocation || 'Aracaju' }));
-    }, [contextLocation]);
+        if (contextLocation && !initialProfessional) {
+            setBooking((prev) => ({ ...prev, location: contextLocation }));
+        }
+    }, [contextLocation, initialProfessional]);
 
-    // Validar se há serviço pré-selecionado vindo dos cards
     useEffect(() => {
-        const savedService = sessionStorage.getItem('selected_service');
-        if (savedService) {
-            try {
-                const parsed = JSON.parse(savedService);
-                // Pre-fill booking with service info, but retain null professional
-                // This will make Step 2 automatically "open" that service once reached
-                setBooking(prev => ({
-                    ...prev,
-                    service: parsed.name,
-                    service_option: {
-                        label: parsed.defaultOption.time,
-                        price: parsed.defaultOption.price
-                    }
-                }));
-                // Clear validation
-                sessionStorage.removeItem('selected_service');
-            } catch (e) {
-                console.error('Error parsing saved service', e);
+        async function loadProfessionals() {
+            setProsLoading(true);
+            const result = await getActiveProfessionals(booking.location);
+            if (result.success && result.data) {
+                setProfessionals(result.data);
+            } else {
+                setProfessionals([]);
+            }
+            setProsLoading(false);
+        }
+        loadProfessionals();
+    }, [booking.location]);
+
+    useEffect(() => {
+        async function loadServices() {
+            const result = await getActiveServices();
+            if (result.success && result.data) {
+                setServices(result.data);
             }
         }
+        loadServices();
     }, []);
 
-    const handleNext = () => setStep(step + 1);
-    const handleBack = () => setStep(step - 1);
+    useEffect(() => {
+        async function loadSlots() {
+            if (!booking.date || !booking.professional_id || !booking.service_id) {
+                setAvailableSlots([]);
+                return;
+            }
 
-    const handleServiceSelect = (service, option) => {
+            setSlotsLoading(true);
+            const result = await getAvailableSlots({
+                professional_id: booking.professional_id,
+                date: booking.date,
+                service_id: booking.service_id,
+            });
+
+            if (result.success && result.data) {
+                setAvailableSlots(result.data);
+            } else {
+                setAvailableSlots([]);
+            }
+            setSlotsLoading(false);
+        }
+        loadSlots();
+    }, [booking.date, booking.professional_id, booking.service_id]);
+
+    const handleLocationChange = (loc) => {
         setBooking({
             ...booking,
-            service: service.name,
-            service_option: option
+            location: loc,
+            professional_id: null,
+            professional: null,
+            service: null,
+            service_id: null,
+            date: "",
+            time: "",
+        });
+        changeLocation(loc);
+        setStep(1);
+    };
+
+    const handleSelectProfessional = (pro) => {
+        setBooking({
+            ...booking,
+            professional_id: pro.id,
+            professional: pro,
+            service: null,
+            service_id: null,
+            date: "",
+            time: "",
+        });
+        setStep(2);
+    };
+
+    const handleSelectService = (svc) => {
+        setBooking({
+            ...booking,
+            service: svc,
+            service_id: svc.id,
+            date: "",
+            time: "",
+        });
+        setStep(3);
+    };
+
+    const handleSelectTime = (time) => {
+        setBooking((prev) => ({ ...prev, time }));
+        setStep(4);
+    };
+
+    const handleSubmit = () => {
+        if (!booking.client_name.trim() || !booking.client_phone.trim()) {
+            setFeedback({ type: "error", message: "Preencha seu nome e WhatsApp." });
+            return;
+        }
+
+        setFeedback({ type: "", message: "" });
+
+        startTransition(async () => {
+            const result = await createBooking({
+                unit: booking.location,
+                professional_id: booking.professional_id,
+                service_id: booking.service_id,
+                date: booking.date,
+                time: booking.time,
+                client_name: booking.client_name.trim(),
+                client_phone: booking.client_phone.trim(),
+                notes: booking.notes?.trim() ?? "",
+            });
+
+            if (result.success) {
+                setFeedback({
+                    type: "success",
+                    message: "Agendamento realizado com sucesso!",
+                });
+                setTimeout(() => router.push("/obrigado"), 1500);
+            } else {
+                setFeedback({
+                    type: "error",
+                    message: result.error || "Erro ao realizar agendamento.",
+                });
+            }
         });
     };
 
-    // Helper to get minutes from label or service string
-    const getDurationFromText = (text) => {
-        if (!text) return 60;
-        const lower = text.toLowerCase();
-        if (lower.includes('2 horas')) return 120;
-        if (lower.includes('1 hora') || lower.includes('60 min')) return 60;
-        if (lower.includes('40 min')) return 40;
-        if (lower.includes('sessão completa')) return 90; // Default for Thai
-        return 60; // Fallback
-    };
-
-    // Get current selected duration
-    const currentDuration = booking.service_option ? getDurationFromText(booking.service_option.label) : 60;
-    const BUFFER_MINUTES = 15; // Hygiene interval
-
-    // Schedule State
-    const [dailySchedule, setDailySchedule] = useState(null); // { start: '08:00', end: '20:00', is_off: false }
-
-    // Fetch booked slots AND schedule when date or professional changes
-    useEffect(() => {
-        const fetchData = async () => {
-            if (!booking.date || !booking.professional_id) return;
-
-            setSlotsLoading(true);
-            setDailySchedule(null); // Reset schedule while loading
-
-            try {
-                // 1. Determine Day of Week (0-6)
-                // Note: new Date('2024-02-08') might be UTC. Ensure we get correct local day or consistent day.
-                // Adding 'T12:00:00' helps avoid timezone shifts for simple date strings
-                const dateObj = new Date(booking.date + 'T12:00:00');
-                const dayOfWeek = dateObj.getDay(); // 0 = Sunday
-
-                // 2. Fetch Schedule Rules
-                const { data: scheduleData, error: scheduleError } = await supabase
-                    .from('professional_schedule')
-                    .select('start_time, end_time, is_day_off')
-                    .eq('professional_id', booking.professional_id)
-                    .eq('day_of_week', dayOfWeek)
-                    .single();
-
-                if (scheduleError && scheduleError.code !== 'PGRST116') { // Ignore 'row not found' if checking/defaulting
-                    console.error('Error fetching schedule:', scheduleError);
-                }
-
-                // Default if no rule found: 08:00 - 20:00
-                const schedule = scheduleData || { start_time: '08:00:00', end_time: '20:00:00', is_day_off: false };
-                setDailySchedule(schedule);
-
-                // 3. Fetch Booked Slots
-                const { data: leadsData, error: leadsError } = await supabase
-                    .from('leads')
-                    .select('appointment_time, service_name')
-                    .eq('appointment_date', booking.date)
-                    .eq('professional_id', booking.professional_id)
-                    .neq('status_kanban', 'cancelado');
-
-                if (leadsError) {
-                    console.error('Error fetching slots:', leadsError);
-                }
-
-                // 4. Fetch Temporary Locks (from other users within the last 5 minutes)
-                const fiveMinsAgo = new Date(Date.now() - 5 * 60000).toISOString();
-                const { data: locksData, error: locksError } = await supabase
-                    .from('booking_locks')
-                    .select('id, appointment_time')
-                    .eq('appointment_date', booking.date)
-                    .eq('professional_id', booking.professional_id)
-                    .gte('created_at', fiveMinsAgo);
-
-                if (locksError) {
-                    console.error('Error fetching locks:', locksError);
-                }
-
-                if (!leadsError) {
-                    // Calculate intervals with BUFFER
-                    const intervals = leadsData.map(lead => {
-                        const [hours, minutes] = lead.appointment_time.split(':').map(Number);
-                        const startTotal = hours * 60 + minutes;
-                        const duration = getDurationFromText(lead.service_name);
-                        return {
-                            start: startTotal,
-                            end: startTotal + duration + BUFFER_MINUTES
-                        };
-                    });
-
-                    // Add Locks as temporary 60min blocked slots, ignoring our own lock
-                    if (locksData) {
-                        locksData.forEach(lock => {
-                            if (lock.id !== currentLockId) {
-                                const [lh, lm] = lock.appointment_time.split(':').map(Number);
-                                const lStart = lh * 60 + lm;
-                                intervals.push({
-                                    start: lStart,
-                                    end: lStart + 60 // Assume locks block at least 60 mins contextually
-                                });
-                            }
-                        });
-                    }
-
-                    setBookedIntervals(intervals);
-                }
-
-            } catch (err) {
-                console.error("Error loading data:", err);
-            } finally {
-                setSlotsLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [booking.date, booking.professional_id, currentLockId]);
-
-    // Cleanup lock when unmounting or changing step to avoid ghost locks
-    useEffect(() => {
-        return () => {
-            if (currentLockId) {
-                supabase.from('booking_locks').delete().eq('id', currentLockId).then(() => { });
-            }
-        };
-    }, [currentLockId]);
-
-    const handleSelectTime = async (time) => {
-        setBooking(prev => ({ ...prev, time }));
-
-        // Se já tinha um lock antes, deletá-lo pra não segurar slots extras
-        if (currentLockId) {
-            await supabase.from('booking_locks').delete().eq('id', currentLockId);
-            setCurrentLockId(null);
-        }
-
-        // Criar o novo lock
-        if (time && booking.date && booking.professional_id) {
-            const { data, error } = await supabase
-                .from('booking_locks')
-                .insert([{
-                    professional_id: booking.professional_id,
-                    appointment_date: booking.date,
-                    appointment_time: time
-                }])
-                .select();
-
-            if (!error && data && data.length > 0) {
-                setCurrentLockId(data[0].id);
-            }
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-
-        const fullServiceName = `${booking.service} - ${booking.service_option.label} (${booking.service_option.price})`;
-        const [h, m] = booking.time.split(':').map(Number);
-        const newStart = h * 60 + m;
-        const newEnd = newStart + currentDuration + BUFFER_MINUTES;
-
-        try {
-            // ROBUST SECURITY CHECK
-            // Fetch all active appointments for the day to check for overlaps
-            const { data: existingBookings, error: fetchError } = await supabase
-                .from('leads')
-                .select('appointment_time, service_name')
-                .eq('appointment_date', booking.date)
-                .eq('professional_id', booking.professional_id)
-                .neq('status_kanban', 'cancelado');
-
-            if (fetchError) throw fetchError;
-
-            // Check for overlaps locally
-            const hasConflict = existingBookings.some(lead => {
-                const [eh, em] = lead.appointment_time.split(':').map(Number);
-                const existingStart = eh * 60 + em;
-                const existingDuration = getDurationFromText(lead.service_name);
-                const existingEnd = existingStart + existingDuration + BUFFER_MINUTES;
-
-                // Overlap logic: (StartA < EndB) and (EndA > StartB)
-                return (newStart < existingEnd) && (newEnd > existingStart);
-            });
-
-            if (hasConflict) {
-                throw new Error("Ops! Este horário já foi reservado ou está muito próximo de outro atendimento. Por favor, atualize a página e escolha outro horário.");
-            }
-
-            const { data, error } = await supabase.rpc('create_lead', {
-                p_nome: booking.name,
-                p_whatsapp: booking.whatsapp,
-                p_email: null,
-                p_professional_id: booking.professional_id,
-                p_date: booking.date,
-                p_time: booking.time,
-                p_service: fullServiceName
-            });
-
-            if (error) throw error;
-
-            if (data) localStorage.setItem('current_lead_id', data);
-
-            // Disparar notificação do CallMeBot em background (com acentos e formatação correta)
-            fetch('/api/booking/notify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    leadId: data || '',
-                    name: booking.name,
-                    whatsapp: booking.whatsapp,
-                    service: fullServiceName,
-                    date: booking.date,
-                    time: booking.time,
-                    professionalName: booking.professional?.name,
-                    location: booking.location
-                })
-            }).catch(e => console.error('Erro ao chamar notificação:', e));
-
-            // Remover o lock após agendamento concluído
-            if (currentLockId) {
-                await supabase.from('booking_locks').delete().eq('id', currentLockId);
-                setCurrentLockId(null);
-            }
-
-            router.push('/obrigado');
-
-        } catch (error) {
-            console.error(error);
-            alert(error.message || "Erro ao realizar agendamento.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Format the current date securely with Brazilian Timezone
-    const nowBr = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-
-    // YYYY-MM-DD
+    const nowBr = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+    );
     const todayIso = nowBr.toLocaleDateString("en-CA");
 
     let minDate = todayIso;
-    // Let's allow booking up to 60 days in advance
-    const maxDateObj = new Date(nowBr.setDate(nowBr.getDate() + 60));
+    const maxDateObj = new Date(nowBr);
+    maxDateObj.setDate(maxDateObj.getDate() + 60);
     let maxDate = maxDateObj.toLocaleDateString("en-CA");
 
     if (booking.professional) {
@@ -333,74 +193,79 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         }
     }
 
+    const massageServices = services.filter((s) => s.category === "massage");
+    const waxingServices = services.filter((s) => s.category === "waxing");
+
+    const stepLabels = ["Unidade", "Experiência", "Data & Horário", "Finalização"];
+    const totalSteps = 4;
+    const currentStepLabel = stepLabels[step - 1] || "";
+
     return (
-        <div className={`bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4 ${hideHeader ? 'shadow-none border-none' : 'shadow-2xl shadow-cyan-600/10 border border-slate-200/50'}`}>
-            {/* Header Steps */}
+        <div
+            className={`bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4 ${
+                hideHeader
+                    ? "shadow-none border-none"
+                    : "shadow-2xl shadow-cyan-600/10 border border-slate-200/50"
+            }`}
+        >
             {!hideHeader && (
                 <div className="bg-[#FFFDF9] p-4 md:p-6 flex justify-between items-end border-b border-[#f0e6d2]">
                     <div>
                         <span className="text-[10px] font-bold text-cyan-700 uppercase tracking-widest block mb-1">
-                            PASSO {step} DE 3
+                            PASSO {step} DE {totalSteps}
                         </span>
                         <h2 className="text-xl font-serif text-[#4a4a4a] leading-tight">
-                            {step === 1 ? 'Solicite seu horário' : step === 2 ? 'Experiência' : 'Finalização'}
+                            {currentStepLabel}
                         </h2>
                     </div>
                     <div className="flex gap-1.5 pb-1">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${step >= i ? 'w-6 bg-cyan-600' : 'w-2 bg-[#e0e0e0]'}`} />
+                        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((i) => (
+                            <div
+                                key={i}
+                                className={`h-1.5 rounded-full transition-all duration-300 ${
+                                    step >= i ? "w-6 bg-cyan-600" : "w-2 bg-[#e0e0e0]"
+                                }`}
+                            />
                         ))}
                     </div>
                 </div>
             )}
 
-            <div className={`p-4 md:p-8 overflow-y-auto custom-scrollbar ${hideHeader ? 'max-h-none' : 'max-h-[600px]'}`}>
+            <div className={`p-4 md:p-8 overflow-y-auto custom-scrollbar ${hideHeader ? "max-h-none" : "max-h-[600px]"}`}>
+                {/* ========== STEP 1: Unidade + Profissional ========== */}
                 {step === 1 && (
                     <div className="animate-fadeIn">
                         <div className="flex bg-slate-100 p-1 rounded-xl mb-6 mx-auto max-w-sm relative z-10 flex-wrap">
-                            <button
-                                onClick={() => {
-                                    setBooking({ ...booking, location: 'Aracaju', professional_id: null, professional: null });
-                                    changeLocation('Aracaju');
-                                }}
-                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Aracaju' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
-                            >
-                                Aracaju
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setBooking({ ...booking, location: 'Maceió', professional_id: null, professional: null });
-                                    changeLocation('Maceió');
-                                }}
-                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Maceió' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
-                            >
-                                Maceió
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setBooking({ ...booking, location: 'Recife', professional_id: null, professional: null });
-                                    changeLocation('Recife');
-                                }}
-                                className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${booking.location === 'Recife' ? 'bg-white text-cyan-700 shadow-sm' : 'text-slate-500 hover:text-cyan-600'}`}
-                            >
-                                Recife
-                            </button>
+                            {["Aracaju", "Maceió", "Recife"].map((loc) => (
+                                <button
+                                    key={loc}
+                                    type="button"
+                                    onClick={() => handleLocationChange(loc)}
+                                    className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${
+                                        booking.location === loc
+                                            ? "bg-white text-cyan-700 shadow-sm"
+                                            : "text-slate-500 hover:text-cyan-600"
+                                    }`}
+                                >
+                                    {loc}
+                                </button>
+                            ))}
                         </div>
 
                         <ProfessionalSelector
-                            location={booking.location}
+                            professionals={professionals}
                             selectedId={booking.professional_id}
-                            onSelect={(pro) => {
-                                setBooking({ ...booking, professional_id: pro.id, professional: pro });
-                                setStep(2);
-                            }}
+                            onSelect={handleSelectProfessional}
+                            isLoading={prosLoading}
                         />
+
                         <div className="text-center text-xs text-slate-400 mt-4">
                             Clique na profissional para continuar
                         </div>
                     </div>
                 )}
 
+                {/* ========== STEP 2: Serviço ========== */}
                 {step === 2 && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="space-y-4">
@@ -409,236 +274,319 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </label>
 
                             <div className="space-y-6">
-                                <div>
-                                    <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider">Massagens & Vivências</h3>
-                                    <div className="space-y-3">
-                                        {SERVICES.filter(s => s.category === 'massage').map(service => (
-                                            <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
-                                                <div className="p-4">
-                                                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
-                                                    <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
-
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {service.options.map((option, idx) => (
-                                                            <button
-                                                                key={idx}
-                                                                onClick={() => handleServiceSelect(service, option)}
-                                                                className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
-                                                                    ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
-                                                                    : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
-                                                                    }`}
-                                                            >
-                                                                {option.label} <span className="font-bold ml-1">{option.price}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                {/* Render Booking Details INSIDE the card if selected */}
-                                                {booking.service === service.name && (
-                                                    <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
-                                                        <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                            <Clock size={16} className="text-cyan-700" />
-                                                            Escolha Data e Horário
-                                                        </h4>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
-                                                                <div className="relative">
-                                                                    <input
-                                                                        type="date"
-                                                                        aria-label="Data do agendamento"
-                                                                        required
-                                                                        min={minDate}
-                                                                        max={maxDate}
-                                                                        value={booking.date}
-                                                                        onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
-                                                                <TimeSlotPicker
-                                                                    selectedDate={booking.date}
-                                                                    bookedIntervals={bookedIntervals}
-                                                                    duration={currentDuration}
-                                                                    schedule={dailySchedule}
-                                                                    selectedTime={booking.time}
-                                                                    onSelect={handleSelectTime}
-                                                                    isLoading={slotsLoading}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {booking.time && (
-                                                            <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
-                                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                                    <Sparkles size={16} className="text-cyan-700" />
-                                                                    Seus Dados para Confirmação
-                                                                </h4>
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                    <input
-                                                                        type="text"
-                                                                        aria-label="Seu nome completo"
-                                                                        placeholder="Nome Completo"
-                                                                        required
-                                                                        value={booking.name}
-                                                                        onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                                    />
-
-                                                                    <input
-                                                                        type="tel"
-                                                                        aria-label="Seu WhatsApp (com DDD)"
-                                                                        placeholder="WhatsApp (com DDD)"
-                                                                        required
-                                                                        value={booking.whatsapp}
-                                                                        onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                                    />
-                                                                </div>
-
-                                                                <div className="flex gap-3 pt-6 mt-4">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={handleSubmit}
-                                                                        disabled={loading || !booking.name || !booking.whatsapp}
-                                                                        className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                                                                    >
-                                                                        {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                {massageServices.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider">
+                                            Massagens & Vivências
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {massageServices.map((svc) => (
+                                                <ServiceCard
+                                                    key={svc.id}
+                                                    service={svc}
+                                                    isSelected={booking.service_id === svc.id}
+                                                    onSelect={() => handleSelectService(svc)}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
-                                <div>
-                                    <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">Depilação na Máquina</h3>
-                                    <div className="space-y-3">
-                                        {SERVICES.filter(s => s.category === 'waxing').map(service => (
-                                            <div key={service.id} className={`bg-[#fcfbf9] border rounded-xl transition-all duration-300 ${booking.service === service.name ? 'border-cyan-600 ring-1 ring-cyan-600/30' : 'border-[#f0e6d2] hover:border-cyan-600/50'}`}>
-                                                <div className="p-4">
-                                                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
-                                                    <p className="text-xs text-[#888] mb-3 leading-relaxed">{service.description}</p>
-
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {service.options.map((option, idx) => (
-                                                            <button
-                                                                key={idx}
-                                                                onClick={() => handleServiceSelect(service, option)}
-                                                                className={`text-xs px-3 py-2 rounded-lg border transition-all ${booking.service === service.name && booking.service_option?.label === option.label
-                                                                    ? 'bg-cyan-700 text-white border-cyan-700 shadow-md'
-                                                                    : 'bg-white text-[#666] border-[#e0e0e0] hover:border-cyan-600'
-                                                                    }`}
-                                                            >
-                                                                {option.label} <span className="font-bold ml-1">{option.price}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                {/* Render Booking Details INSIDE the card if selected */}
-                                                {booking.service === service.name && (
-                                                    <div className="animate-slideUp border-t border-[#f0e6d2] bg-white rounded-b-xl p-4 md:p-6">
-                                                        <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                            <Clock size={16} className="text-cyan-700" />
-                                                            Escolha Data e Horário
-                                                        </h4>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Selecione a Data</label>
-                                                                <div className="relative">
-                                                                    <input
-                                                                        type="date"
-                                                                        aria-label="Data do agendamento"
-                                                                        required
-                                                                        min={minDate}
-                                                                        max={maxDate}
-                                                                        value={booking.date}
-                                                                        onChange={(e) => setBooking({ ...booking, date: e.target.value, time: '' })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
-                                                                    />
-                                                                </div>
-                                                            </div>
-                                                            <div>
-                                                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">Horários Disponíveis</label>
-                                                                <TimeSlotPicker
-                                                                    selectedDate={booking.date}
-                                                                    bookedIntervals={bookedIntervals}
-                                                                    duration={currentDuration}
-                                                                    schedule={dailySchedule}
-                                                                    selectedTime={booking.time}
-                                                                    onSelect={handleSelectTime}
-                                                                    isLoading={slotsLoading}
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {booking.time && (
-                                                            <div className="animate-slideUp pt-6 border-t border-[#f0e6d2]">
-                                                                <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
-                                                                    <Sparkles size={16} className="text-cyan-700" />
-                                                                    Seus Dados para Confirmação
-                                                                </h4>
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                    <input
-                                                                        type="text"
-                                                                        aria-label="Seu nome completo"
-                                                                        placeholder="Nome Completo"
-                                                                        required
-                                                                        value={booking.name}
-                                                                        onChange={(e) => setBooking({ ...booking, name: e.target.value })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                                    />
-
-                                                                    <input
-                                                                        type="tel"
-                                                                        aria-label="Seu WhatsApp (com DDD)"
-                                                                        placeholder="WhatsApp (com DDD)"
-                                                                        required
-                                                                        value={booking.whatsapp}
-                                                                        onChange={(e) => setBooking({ ...booking, whatsapp: e.target.value })}
-                                                                        className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
-                                                                    />
-                                                                </div>
-
-                                                                <div className="flex gap-3 pt-6 mt-4">
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={handleSubmit}
-                                                                        disabled={loading || !booking.name || !booking.whatsapp}
-                                                                        className="w-full bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-                                                                    >
-                                                                        {loading ? 'Confirmando...' : 'Confirmar Agendamento'}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
+                                {waxingServices.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                            Depilação na Máquina
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {waxingServices.map((svc) => (
+                                                <ServiceCard
+                                                    key={svc.id}
+                                                    service={svc}
+                                                    isSelected={booking.service_id === svc.id}
+                                                    onSelect={() => handleSelectService(svc)}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
                         <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
-                            <button onClick={handleBack} className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors">
-                                Voltar
+                            <button
+                                type="button"
+                                onClick={() => setStep(1)}
+                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2"
+                            >
+                                <ChevronLeft size={16} /> Voltar
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========== STEP 3: Data & Horário ========== */}
+                {step === 3 && (
+                    <div className="animate-fadeIn space-y-6">
+                        <div className="bg-cyan-50/50 rounded-xl p-4 border border-cyan-100">
+                            <p className="text-sm text-cyan-800">
+                                <span className="font-bold">{booking.professional?.name}</span>
+                                {" · "}
+                                <span>{booking.service?.name}</span>
+                                {" · "}
+                                <span className="font-bold">
+                                    {booking.service?.duration_minutes}min — R${" "}
+                                    {Number(booking.service?.price).toLocaleString("pt-BR", {
+                                        minimumFractionDigits: 2,
+                                    })}
+                                </span>
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label
+                                    htmlFor="booking-date"
+                                    className="block text-xs font-bold text-[#999] uppercase mb-2"
+                                >
+                                    <Calendar size={14} className="inline mr-1" />
+                                    Selecione a Data
+                                </label>
+                                <input
+                                    id="booking-date"
+                                    type="date"
+                                    aria-label="Data do agendamento"
+                                    required
+                                    min={minDate}
+                                    max={maxDate}
+                                    value={booking.date}
+                                    onChange={(e) =>
+                                        setBooking({ ...booking, date: e.target.value, time: "" })
+                                    }
+                                    className="w-full px-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-[#999] uppercase mb-2">
+                                    <Clock size={14} className="inline mr-1" />
+                                    Horários Disponíveis
+                                </label>
+                                <TimeSlotPicker
+                                    slots={availableSlots}
+                                    selectedDate={booking.date}
+                                    selectedTime={booking.time}
+                                    onSelect={handleSelectTime}
+                                    isLoading={slotsLoading}
+                                    duration={booking.service?.duration_minutes ?? 60}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
+                            <button
+                                type="button"
+                                onClick={() => setStep(2)}
+                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2"
+                            >
+                                <ChevronLeft size={16} /> Voltar
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========== STEP 4: Dados Pessoais + Confirmação ========== */}
+                {step === 4 && (
+                    <div className="animate-fadeIn space-y-6">
+                        <div className="bg-cyan-50/50 rounded-xl p-4 border border-cyan-100">
+                            <p className="text-sm text-cyan-800">
+                                <span className="font-bold">{booking.professional?.name}</span>
+                                {" · "}
+                                <span>{booking.service?.name}</span>
+                                {" · "}
+                                <span>
+                                    {booking.date
+                                        ? new Date(booking.date + "T12:00:00").toLocaleDateString("pt-BR")
+                                        : ""}
+                                </span>
+                                {" às "}
+                                <span className="font-bold">{booking.time}</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 className="text-sm font-bold text-[#4a4a4a] mb-4 flex items-center gap-2">
+                                <User size={16} className="text-cyan-700" />
+                                Seus Dados para Confirmação
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label htmlFor="client-name" className="sr-only">
+                                        Nome Completo
+                                    </label>
+                                    <div className="relative">
+                                        <User
+                                            size={16}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                        />
+                                        <input
+                                            id="client-name"
+                                            type="text"
+                                            aria-label="Seu nome completo"
+                                            placeholder="Nome Completo"
+                                            required
+                                            maxLength={100}
+                                            value={booking.client_name}
+                                            onChange={(e) =>
+                                                setBooking({ ...booking, client_name: e.target.value })
+                                            }
+                                            className="w-full pl-10 pr-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="client-phone" className="sr-only">
+                                        WhatsApp
+                                    </label>
+                                    <div className="relative">
+                                        <Phone
+                                            size={16}
+                                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                        />
+                                        <input
+                                            id="client-phone"
+                                            type="tel"
+                                            aria-label="Seu WhatsApp (com DDD)"
+                                            placeholder="(DD) 99999-9999"
+                                            required
+                                            maxLength={20}
+                                            value={booking.client_phone}
+                                            onChange={(e) =>
+                                                setBooking({ ...booking, client_phone: e.target.value })
+                                            }
+                                            className="w-full pl-10 pr-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4">
+                                <label htmlFor="client-notes" className="sr-only">
+                                    Observações
+                                </label>
+                                <div className="relative">
+                                    <FileText
+                                        size={16}
+                                        className="absolute left-3 top-3 text-slate-400"
+                                    />
+                                    <textarea
+                                        id="client-notes"
+                                        aria-label="Observações opcionais"
+                                        placeholder="Observações (opcional)"
+                                        maxLength={500}
+                                        rows={3}
+                                        value={booking.notes}
+                                        onChange={(e) =>
+                                            setBooking({ ...booking, notes: e.target.value })
+                                        }
+                                        className="w-full pl-10 pr-4 py-3 bg-[#f9f9f9] border border-[#e0e0e0] rounded-xl outline-none focus:border-cyan-600 text-[#4a4a4a] text-sm resize-none"
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-400 text-right mt-1">
+                                    {booking.notes.length}/500
+                                </p>
+                            </div>
+                        </div>
+
+                        {feedback.message && (
+                            <div
+                                role="alert"
+                                className={`flex items-center gap-2 p-4 rounded-xl text-sm font-medium ${
+                                    feedback.type === "success"
+                                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                        : "bg-red-50 text-red-700 border border-red-200"
+                                }`}
+                            >
+                                {feedback.type === "success" ? (
+                                    <CheckCircle size={18} />
+                                ) : (
+                                    <AlertCircle size={18} />
+                                )}
+                                {feedback.message}
+                            </div>
+                        )}
+
+                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
+                            <button
+                                type="button"
+                                onClick={() => setStep(3)}
+                                disabled={isPending}
+                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2 disabled:opacity-50"
+                            >
+                                <ChevronLeft size={16} /> Voltar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={
+                                    isPending ||
+                                    !booking.client_name.trim() ||
+                                    !booking.client_phone.trim()
+                                }
+                                className="flex-1 bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                            >
+                                {isPending ? (
+                                    <>
+                                        <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Confirmando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle size={18} />
+                                        Confirmar Agendamento
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
                 )}
             </div>
         </div>
+    );
+}
+
+function ServiceCard({ service, isSelected, onSelect }) {
+    const priceFormatted = Number(service.price).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    });
+
+    return (
+        <button
+            type="button"
+            onClick={onSelect}
+            className={`w-full text-left bg-[#fcfbf9] border rounded-xl transition-all duration-300 p-4 ${
+                isSelected
+                    ? "border-cyan-600 ring-1 ring-cyan-600/30 bg-cyan-50/30"
+                    : "border-[#f0e6d2] hover:border-cyan-600/50"
+            }`}
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
+                    <p className="text-xs text-[#888] leading-relaxed line-clamp-2">
+                        {service.description}
+                    </p>
+                </div>
+                <div className="text-right shrink-0">
+                    <div className="text-xs text-slate-400">{service.duration_minutes}min</div>
+                    <div className="font-bold text-slate-700 text-sm">{priceFormatted}</div>
+                </div>
+            </div>
+            {isSelected && (
+                <div className="mt-2 flex items-center gap-1 text-cyan-700 text-xs font-bold">
+                    <CheckCircle size={14} /> Selecionado
+                </div>
+            )}
+        </button>
     );
 }

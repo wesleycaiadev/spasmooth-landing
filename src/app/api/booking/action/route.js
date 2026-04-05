@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabaseAdmin';
 
 export async function GET(request) {
+    const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token'); // leadId
     const action = searchParams.get('action'); // confirm or decline

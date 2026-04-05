@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { supabase } from '@/lib/supabase';
 import { Star } from 'lucide-react';
 import { useLocation } from '@/components/LocationProvider';
 

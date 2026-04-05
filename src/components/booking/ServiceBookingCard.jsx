@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
 import { Calendar, Clock, check, Sparkles, Wind, Droplets, Flame, Hand, CircleDot, CheckCircle, ChevronLeft, User, Phone, Gem, Wine, Scissors, Feather, Asterisk, Target, Sunset, ShieldCheck, Stars } from 'lucide-react';
 import ProfessionalSelector from './ProfessionalSelector';
 import TimeSlotPicker from './TimeSlotPicker';
