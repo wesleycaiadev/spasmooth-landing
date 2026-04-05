@@ -1,21 +1,48 @@
-# Arquitetura e Decisões Técnicas (SpaSmooth)
+# Decisões de Segurança — SpaSmooth
 
-## Visão Geral
-Este repositório contém o registro das decisões arquiteturais tomadas para escalar a base de código do **SpaSmooth**, elevando-a para um padrão sênior de engenharia de software. O foco foi garantir isolamento de responsabilidades, tipagem forte e resolver gargalos de segurança em interações de banco expostas no Next.js (Client boundaries).
+Registro das decisões arquiteturais tomadas para elevar o SpaSmooth
+a um padrão de segurança de produção.
 
-## Changelog Técnico
+## 1. Zero Trust — banimento do Supabase client-side
 
-### 1. Hardening do Supabase (Row Level Security)
-Identifiquei que chamadas diretas ao Client do Supabase operavam em componentes `use client`, correndo risco de expor credenciais super-privilegiadas e permitindo saltos de autorização através do bloqueio falho do RLS. 
-- **Solução:** Isolei completamente a infra de banco de dados na camada de serviços sob o Node.js. Implementei `supabaseAdmin.ts` rodando estritamente no Server com `SERVICE_ROLE_KEY`. Isso cria um bypass autoritativo pelo back-end autenticado e zera a necessidade das políticas públicas estarem abertas para o Client.
+Todas as chamadas diretas ao Supabase via `anon key` no browser foram
+removidas. O acesso ao banco ocorre exclusivamente via `supabaseAdmin`
+em Server Actions, usando `SUPABASE_SERVICE_ROLE_KEY` no servidor.
 
-### 2. Clean Architecture e Padronização
-Componentes de interface como o Kanban, Calendário e Dashboard acumulavam responsabilidades de Controller e Model (buscando, processando estados e mutando DB via query builder no próprio `useEffect`).
-- **Solução:** Adotei de fato *Server Actions*. Centralizando cada domínio de entidades em `src/services/admin/` (ex: `leads.ts`, `professionals.ts`), criei boundaries que desacoplam os componentes puramente reativos.
+Isso elimina a possibilidade de manipulação de queries pelo cliente
+e torna as políticas RLS uma segunda camada, não a única.
 
-### 3. TypeScript e DTOs
-Abandonei a dependência do tipo `any` retornada pela API e introduzi Types/Interfaces rigorosos por model (ex: `Professional[]`). Isso quebra a compilação antecipadamente se houver dessincronização entre o Frontend e os campos retornados pelo Banco.
+## 2. Eliminação de race condition (double-booking)
 
-### 4. Higiene e Performance
-- Remoção pesada de abstrações mortas, verbose logging de depuração (que muitas vezes mascaram uma arquitetura frágil) e comentários de baixa densidade semântica. 
-- Redução de Payload: No serviço de Dashboard, otimização das requisições limitando a malha de seletores de dados (`select('created_at, status_kanban')`) para aliviar throughput ao invés de buscar a tabela interia na web.
+O sistema anterior verificava conflitos de horário em JavaScript
+(SELECT no client → INSERT separado). Dois clientes simultâneos
+passavam na checagem e geravam reservas sobrepostas.
+
+Solução: função PL/pgSQL `check_and_create_booking` com
+`SELECT ... FOR UPDATE` — verificação e inserção em uma única
+transação atômica. Índice GiST em `tstzrange(starts_at, ends_at)`
+garante eficiência na verificação de sobreposição.
+
+## 3. Validação em camadas com Zod
+
+Nenhum input chega ao banco sem passar por schema Zod com limites
+explícitos (`min`, `max`, `trim`, regex). Tipos TypeScript inferidos
+via `z.infer<>` — sem `any` em nenhum ponto do fluxo de dados.
+
+## 4. Proteção contra IDOR
+
+`professional_id` e `service_id` vindos do frontend são revalidados
+no servidor — o banco confirma `active = true` antes de qualquer
+inserção. IDs manipulados pelo cliente não produzem efeito.
+
+## 5. Controle de acesso administrativo
+
+Verificação de admin exclusivamente server-side via `auth()` +
+`currentUser()` do Clerk com whitelist de emails. O `useUser`
+client-side é usado apenas para UI — nunca como controle de acesso.
+
+## 6. Headers de segurança HTTP
+
+Configurados em `next.config.mjs`: CSP calibrado para os domínios
+do projeto (Clerk, Supabase, Unsplash), HSTS, X-Frame-Options,
+X-Content-Type-Options, Referrer-Policy e Permissions-Policy
