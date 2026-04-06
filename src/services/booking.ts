@@ -300,6 +300,26 @@ export async function createBooking(
             return { success: false, error: "Erro ao processar agendamento." };
         }
 
+        // --- SISTEMA DE CLONAGEM PARA O KANBAN DE LEADS ---
+        // Aqui nós criamos o equivalente desse Booking lá na tabela de Leads para que 
+        // o CallMeBot funcione, e o sistema Drag and Drop de aprovação na aba do Admin apareça.
+        try {
+            await supabase.from('leads').insert({
+                id: bookingId, // O token mágico para garantir o webhook 1:1
+                nome: client_name,
+                whatsapp: client_phone,
+                service_name: serviceData.name,
+                professional_id: professional_id,
+                appointment_date: date,
+                appointment_time: time,
+                status_kanban: 'novo',
+                mensagem_interesse: notes ?? ""
+            });
+        } catch (cloneErr) {
+            console.error("[createBooking] Erro ao clonar para a table de Leads:", cloneErr);
+            // Ignoraremos o throw erro para não impedir o usuário, pois o booking em si já existe!
+        }
+
         try {
             const { data: proData } = await supabase
                 .from("professionals")
@@ -308,21 +328,26 @@ export async function createBooking(
                 .single();
 
             const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://spasmooth.com.br";
+            const adminPhone = process.env.CALLMEBOT_PHONE;
+            const apiKey = process.env.CALLMEBOT_APIKEY;
 
-            await fetch(`${baseUrl}/api/booking/notify`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    leadId: bookingId ?? "",
-                    name: client_name,
-                    whatsapp: client_phone,
-                    service: serviceData.name,
-                    date,
-                    time,
-                    professionalName: proData?.name ?? "Profissional",
-                    location: proData?.location ?? unit,
-                }),
-            });
+            if (adminPhone && apiKey) {
+                const cleanName = (client_name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanService = (serviceData?.name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanProfessional = (proData?.name || 'Nao especificado').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanLocation = (proData?.location || unit).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${client_phone}\n*Servico:* ${cleanService}\n*Profissional:* ${cleanProfessional}\n*Local:* ${cleanLocation}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=decline`;
+
+                const encodedMessage = encodeURIComponent(messageText);
+                const url = `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodedMessage}&apikey=${apiKey}`;
+
+                await fetch(url, { method: "GET" }).catch(err => {
+                    console.error("[CallMeBot error]", err);
+                });
+            } else {
+                console.warn("[createBooking] CallMeBot vars missing in environment");
+            }
         } catch (notifyErr) {
             console.error("[createBooking notify]", notifyErr);
         }

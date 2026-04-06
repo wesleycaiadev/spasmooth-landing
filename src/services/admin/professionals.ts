@@ -7,6 +7,7 @@ export type Professional = {
     name: string;
     specialties: string[];
     photo_url: string;
+    gallery_urls: string[] | null;
     location: string;
     location_start_date: string | null;
     location_end_date: string | null;
