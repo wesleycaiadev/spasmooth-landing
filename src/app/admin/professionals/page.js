@@ -85,9 +85,15 @@ export default function ProfessionalsPage() {
 
             const { data, error } = await supabase.storage
                 .from('avatars')
-                .upload(fileName, file, { upsert: true });
+                .upload(fileName, file, { 
+                    upsert: true,
+                    contentType: file.type || 'image/jpeg'
+                });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase Storage Error Details:", error);
+                throw error;
+            }
 
             const { data: publicUrlData } = supabase.storage
                 .from('avatars')

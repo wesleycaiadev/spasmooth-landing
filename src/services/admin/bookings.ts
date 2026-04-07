@@ -111,8 +111,9 @@ export async function listBookings(
         }
 
         return { success: true, data: data as BookingRow[] };
-    } catch {
-        return { success: false, error: "Erro interno do servidor." };
+    } catch (e: any) {
+        console.error("[listBookings exception]:", e);
+        return { success: false, error: "Erro interno: " + (e.message || "") };
     }
 }
 
