@@ -23,18 +23,14 @@ export default function ProfessionalsSection() {
             if (result.success && result.data) {
                 setPros(result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.toLowerCase() === p.name.toLowerCase());
-                    let finalGallery = p.gallery_urls || [];
+                    let finalGallery = p.gallery || [];
 
                     if (finalGallery.length === 0) {
                         if (fallbackData && fallbackData.gallery && fallbackData.gallery.length > 0) {
-                            finalGallery = [...fallbackData.gallery];
+                            finalGallery = fallbackData.gallery;
                         } else if (p.photo_url) {
                             finalGallery = [p.photo_url];
                         }
-                    } else if (p.photo_url) {
-                        // Garante que a Foto Capa seja SEMPRE a primeira do array/slider
-                        const filtered = finalGallery.filter(url => url !== p.photo_url);
-                        finalGallery = [p.photo_url, ...filtered];
                     }
 
                     return {

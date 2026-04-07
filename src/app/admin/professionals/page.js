@@ -2,16 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import * as proService from '@/services/admin/professionals';
-import { UserPlus, Trash2, CheckCircle, XCircle, Pencil, UploadCloud } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { UserPlus, Trash2, CheckCircle, XCircle, Pencil } from 'lucide-react';
 
 export default function ProfessionalsPage() {
     const [pros, setPros] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isAdding, setIsAdding] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
-    const [newPro, setNewPro] = useState({ name: '', specialties: '', photo_url: '', gallery_urls: [], location: 'Aracaju', location_start_date: '', location_end_date: '' });
+    const [newPro, setNewPro] = useState({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
 
     const fetchPros = async () => {
         setLoading(true);
@@ -36,8 +34,7 @@ export default function ProfessionalsPage() {
         const proData = {
             name: newPro.name,
             specialties: specialtiesArray,
-            photo_url: newPro.photo_url || (newPro.gallery_urls?.length ? newPro.gallery_urls[0] : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(newPro.name)),
-            gallery_urls: newPro.gallery_urls || [],
+            photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name,
             location: newPro.location,
             location_start_date: newPro.location_start_date || null,
             location_end_date: newPro.location_end_date || null
@@ -50,7 +47,7 @@ export default function ProfessionalsPage() {
                 await proService.createProfessional(proData);
             }
             
-            setNewPro({ name: '', specialties: '', photo_url: '', gallery_urls: [], location: 'Aracaju', location_start_date: '', location_end_date: '' });
+            setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
             setIsAdding(false);
             setEditingId(null);
             fetchPros();
@@ -65,69 +62,12 @@ export default function ProfessionalsPage() {
             name: pro.name,
             specialties: pro.specialties ? pro.specialties.join(', ') : '',
             photo_url: pro.photo_url,
-            gallery_urls: pro.gallery_urls || [],
             location: pro.location || 'Aracaju',
             location_start_date: pro.location_start_date || '',
             location_end_date: pro.location_end_date || ''
         });
         setEditingId(pro.id);
         setIsAdding(true);
-    };
-
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        setIsUploading(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
-
-            const { data, error } = await supabase.storage
-                .from('avatars')
-                .upload(fileName, file, { 
-                    upsert: true,
-                    contentType: file.type || 'image/jpeg'
-                });
-
-            if (error) {
-                console.error("Supabase Storage Error Details:", error);
-                throw error;
-            }
-
-            const { data: publicUrlData } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(fileName);
-
-            const newUrl = publicUrlData.publicUrl;
-            
-            const updatedGallery = [...(newPro.gallery_urls || []), newUrl];
-            setNewPro({ 
-                ...newPro, 
-                gallery_urls: updatedGallery,
-                photo_url: newPro.photo_url ? newPro.photo_url : newUrl // Set default cover if empty
-            });
-        } catch (error) {
-            console.error('Erro no upload da imagem:', error);
-            alert('Falha ao subir imagem. Tente novamente.');
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
-    const makeCoverPhoto = (url) => {
-        setNewPro({ ...newPro, photo_url: url });
-    };
-
-    const removePhoto = (urlToRemove) => {
-        const updatedGallery = (newPro.gallery_urls || []).filter(u => u !== urlToRemove);
-        const isCover = newPro.photo_url === urlToRemove;
-        
-        setNewPro({ 
-            ...newPro, 
-            gallery_urls: updatedGallery,
-            photo_url: isCover ? (updatedGallery.length > 0 ? updatedGallery[0] : '') : newPro.photo_url
-        });
     };
 
     const toggleActive = async (id, currentStatus) => {
@@ -153,7 +93,7 @@ export default function ProfessionalsPage() {
     const closeForm = () => {
         setIsAdding(false);
         setEditingId(null);
-        setNewPro({ name: '', specialties: '', photo_url: '', gallery_urls: [], location: 'Aracaju', location_start_date: '', location_end_date: '' });
+        setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
     };
 
     return (
@@ -161,12 +101,12 @@ export default function ProfessionalsPage() {
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-slate-800 tracking-tight">Equipe Profissional</h1>
-                    <p className="text-slate-500 mt-2 font-light">Gerencie os terapeutas e os álbuns de fotos de cada um.</p>
+                    <p className="text-slate-500 mt-2 font-light">Gerencie os terapeutas e suas especialidades.</p>
                 </div>
                 <button
                     onClick={() => {
                         setEditingId(null);
-                        setNewPro({ name: '', specialties: '', photo_url: '', gallery_urls: [], location: 'Aracaju', location_start_date: '', location_end_date: '' });
+                        setNewPro({ name: '', specialties: '', photo_url: '', location: 'Aracaju', location_start_date: '', location_end_date: '' });
                         setIsAdding(!isAdding);
                     }}
                     className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center gap-3 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -233,54 +173,14 @@ export default function ProfessionalsPage() {
                                 onChange={e => setNewPro({ ...newPro, location_end_date: e.target.value })}
                             />
                         </div>
-                        <div className="col-span-2 space-y-2 mt-4">
-                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Galeria de Fotos (Escolha a Capa)</label>
-                            
-                            <div className="flex flex-col gap-4">
-                                <label className={`relative border-2 border-dashed border-cyan-200 bg-cyan-50/50 rounded-xl px-4 py-8 flex flex-col items-center justify-center cursor-pointer hover:bg-cyan-50 hover:border-cyan-400 transition-all ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                    <UploadCloud size={32} className="text-cyan-500 mb-2" />
-                                    <div className="text-slate-600 font-bold">
-                                        {isUploading ? 'Enviando imagem...' : 'Clique aqui para adicionar mais fotos'}
-                                    </div>
-                                    <p className="text-xs text-slate-400 mt-1">Imagens JPG, PNG ou WebP. Tamanho máximo 5MB.</p>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                        onChange={handleFileUpload}
-                                        disabled={isUploading}
-                                    />
-                                </label>
-
-                                {(newPro.gallery_urls || []).length > 0 && (
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2 bg-white/50 p-4 rounded-xl border border-slate-100">
-                                        {newPro.gallery_urls.map((url, idx) => (
-                                            <div key={idx} className={`relative group rounded-xl overflow-hidden shadow-sm border-2 ${newPro.photo_url === url ? 'border-amber-400 shadow-amber-200/50' : 'border-transparent'}`}>
-                                                <img 
-                                                    src={url} 
-                                                    alt={`Upload ${idx}`} 
-                                                    className="w-full h-24 object-cover"
-                                                />
-                                                <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
-                                                    {newPro.photo_url !== url && (
-                                                        <button type="button" onClick={() => makeCoverPhoto(url)} className="text-[10px] uppercase font-bold bg-amber-500 text-white px-2 py-1 rounded shadow hover:bg-amber-600">
-                                                            Tornar Capa
-                                                        </button>
-                                                    )}
-                                                    <button type="button" onClick={() => removePhoto(url)} className="text-[10px] uppercase font-bold bg-red-500 text-white px-2 py-1 rounded shadow hover:bg-red-600">
-                                                        Remover
-                                                    </button>
-                                                </div>
-                                                {newPro.photo_url === url && (
-                                                    <div className="absolute top-1 right-1 bg-amber-400 text-amber-900 text-[10px] font-bold px-2 py-0.5 rounded-md shadow-sm">
-                                                        ⭐ CAPA
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                        <div className="col-span-2 md:col-span-1 space-y-2">
+                            <label className="text-xs font-bold text-slate-500 uppercase ml-1">Foto (URL)</label>
+                            <input
+                                className="border border-slate-200 bg-white/50 rounded-xl px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
+                                placeholder="Cole o link da imagem aqui"
+                                value={newPro.photo_url}
+                                onChange={e => setNewPro({ ...newPro, photo_url: e.target.value })}
+                            />
                         </div>
                         <div className="col-span-2 flex justify-end gap-3 mt-4">
                             <button type="button" onClick={closeForm} className="text-slate-500 hover:bg-slate-100 px-6 py-3 rounded-xl font-medium transition-colors">Cancelar</button>
