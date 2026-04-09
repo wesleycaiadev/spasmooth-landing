@@ -20,7 +20,7 @@ const prodOnlyHeaders = [
             "img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev",
             "connect-src 'self' https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com",
+            "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com",
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
