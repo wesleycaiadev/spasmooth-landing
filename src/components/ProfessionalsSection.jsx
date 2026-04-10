@@ -22,12 +22,16 @@ export default function ProfessionalsSection() {
 
             if (result.success && result.data) {
                 setPros(result.data.map(p => {
-                    const fallbackData = oldProsFallback.find(old => old.name.toLowerCase() === p.name.toLowerCase());
+                    const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
                     let finalGallery = p.gallery || [];
 
                     if (finalGallery.length === 0) {
                         if (fallbackData && fallbackData.gallery && fallbackData.gallery.length > 0) {
-                            finalGallery = fallbackData.gallery;
+                            finalGallery = [...fallbackData.gallery];
+                            // Adicionar o avatar também para a galeria se não constar para robustez
+                            if (p.photo_url && !finalGallery.includes(p.photo_url)) {
+                                finalGallery.unshift(p.photo_url);
+                            }
                         } else if (p.photo_url) {
                             finalGallery = [p.photo_url];
                         }
