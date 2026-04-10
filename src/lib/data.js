@@ -212,7 +212,21 @@ export const PROFESSIONALS = [
         gallery: [
             '/images/professionals/anne/1.jpg',
             '/images/professionals/anne/2.jpg',
-            '/images/professionals/anne/3.jpg'
+            '/images/professionals/anne/3.jpg',
+            '/images/professionals/anne/4.jpeg',
+            '/images/professionals/anne/5.jpeg'
+        ]
+    },
+    {
+        id: 'bella',
+        name: 'Bella',
+        role: 'Terapeuta Especialista',
+        bio: 'Proporcionando uma experiência relaxante e inesquecível com técnicas exclusivas de bem-estar e conexões profundas.',
+        specialties: ['Massagem Relaxante Especial', 'Terapia Tântrica'],
+        avatar: '/images/professionals/bella/avatar.jpeg',
+        gallery: [
+            '/images/professionals/bella/1.jpeg',
+            '/images/professionals/bella/2.jpeg'
         ]
     }
 ];
