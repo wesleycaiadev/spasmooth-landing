@@ -208,13 +208,11 @@ export const PROFESSIONALS = [
         role: 'Terapeuta Holística',
         bio: 'Combinando técnicas de relaxamento e terapia íntima para alcançar o ápice do seu bem-estar físico e energético.',
         specialties: ['Massagem Relaxante Especial', 'Ventosa com Relaxante', 'Vivência Premium Black'],
-        avatar: '/images/professionals/anne/avatar.jpg',
+        avatar: '/images/professionals/anne/1.jpeg',
         gallery: [
-            '/images/professionals/anne/1.jpg',
             '/images/professionals/anne/2.jpg',
             '/images/professionals/anne/3.jpg',
-            '/images/professionals/anne/4.jpeg',
-            '/images/professionals/anne/5.jpeg'
+            '/images/professionals/anne/4.jpg'
         ]
     },
     {
