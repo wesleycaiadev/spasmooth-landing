@@ -24,16 +24,21 @@ export default function ProfessionalsSection() {
                 setPros(result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
                     let finalGallery = p.gallery || [];
+                    let photoUrlDB = p.photo_url;
+
+                    // Desconsidera imagens legadas que estejam em cache no BD para forçar o fallback das novas imagens
+                    if (photoUrlDB && photoUrlDB.includes('/assets/pros/')) photoUrlDB = null;
+                    finalGallery = finalGallery.filter(url => !url.includes('/assets/pros/'));
 
                     if (finalGallery.length === 0) {
                         if (fallbackData && fallbackData.gallery && fallbackData.gallery.length > 0) {
                             finalGallery = [...fallbackData.gallery];
                             // Adicionar o avatar também para a galeria se não constar para robustez
-                            if (p.photo_url && !finalGallery.includes(p.photo_url)) {
-                                finalGallery.unshift(p.photo_url);
+                            if (photoUrlDB && !finalGallery.includes(photoUrlDB)) {
+                                finalGallery.unshift(photoUrlDB);
                             }
-                        } else if (p.photo_url) {
-                            finalGallery = [p.photo_url];
+                        } else if (photoUrlDB) {
+                            finalGallery = [photoUrlDB];
                         }
                     }
 
@@ -41,7 +46,7 @@ export default function ProfessionalsSection() {
                         ...p,
                         specialties: p.specialties || fallbackData?.specialties || [],
                         gallery: finalGallery,
-                        avatar: p.photo_url || fallbackData?.avatar || 'https://ui-avatars.com/api/?name=' + p.name,
+                        avatar: photoUrlDB || fallbackData?.avatar || 'https://ui-avatars.com/api/?name=' + p.name,
                         bio: p.bio || fallbackData?.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
                         role: p.role || fallbackData?.role || 'Terapeuta',
                     };
