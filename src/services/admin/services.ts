@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { createServiceSchema, updateServiceSchema } from '@/lib/validations/service';
 import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/service';
@@ -15,7 +16,7 @@ export type Service = {
     created_at: string;
 };
 
-export type ServiceInput = Omit<Service, 'id' | 'active' | 'created_at'>;
+type ActionResult = { success: true } | { success: false; error: string };
 
 export async function getServices(): Promise<Service[]> {
     const supabase = createAdminClient();
@@ -28,7 +29,7 @@ export async function getServices(): Promise<Service[]> {
 
     if (error) {
         console.error("Supabase Error [getServices]:", error.message);
-        throw new Error('Falha ao buscar serviços.');
+        return [];
     }
 
     return data as Service[];
@@ -46,91 +47,126 @@ export async function getActiveServices(): Promise<Service[]> {
 
     if (error) {
         console.error("Supabase Error [getActiveServices]:", error.message);
-        throw new Error('Falha ao buscar serviços ativos.');
+        return [];
     }
 
     return data as Service[];
 }
 
-export async function createService(input: CreateServiceInput): Promise<void> {
-    const parsed = createServiceSchema.safeParse(input);
+export async function createService(input: CreateServiceInput): Promise<ActionResult> {
+    try {
+        const parsed = createServiceSchema.safeParse(input);
 
-    if (!parsed.success) {
-        throw new Error(parsed.error.issues.map(i => i.message).join(', '));
-    }
+        if (!parsed.success) {
+            return { success: false, error: parsed.error.issues.map(i => i.message).join(', ') };
+        }
 
-    const supabase = createAdminClient();
+        const supabase = createAdminClient();
+        const { error } = await supabase.from('services').insert([parsed.data]);
 
-    const { error } = await supabase.from('services').insert([parsed.data]);
+        if (error) {
+            console.error("Supabase Error [createService]:", error.message);
+            return { success: false, error: 'Falha ao criar serviço.' };
+        }
 
-    if (error) {
-        console.error("Supabase Error [createService]:", error.message);
-        throw new Error('Falha ao criar serviço.');
-    }
-}
-
-export async function updateService(id: string, input: UpdateServiceInput): Promise<void> {
-    const parsed = updateServiceSchema.safeParse(input);
-
-    if (!parsed.success) {
-        throw new Error(parsed.error.issues.map(i => i.message).join(', '));
-    }
-
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-        .from('services')
-        .update(parsed.data)
-        .eq('id', id);
-
-    if (error) {
-        console.error("Supabase Error [updateService]:", error.message);
-        throw new Error('Falha ao atualizar serviço.');
+        revalidatePath('/');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [createService]:", err);
+        return { success: false, error: 'Erro inesperado ao criar serviço.' };
     }
 }
 
-export async function updateServicePrice(id: string, price: number): Promise<void> {
-    if (typeof price !== 'number' || price < 0) {
-        throw new Error('Preço inválido.');
-    }
+export async function updateService(id: string, input: UpdateServiceInput): Promise<ActionResult> {
+    try {
+        const parsed = updateServiceSchema.safeParse(input);
 
-    const supabase = createAdminClient();
+        if (!parsed.success) {
+            return { success: false, error: parsed.error.issues.map(i => i.message).join(', ') };
+        }
 
-    const { error } = await supabase
-        .from('services')
-        .update({ price })
-        .eq('id', id);
+        const supabase = createAdminClient();
+        const { error } = await supabase
+            .from('services')
+            .update(parsed.data)
+            .eq('id', id);
 
-    if (error) {
-        console.error("Supabase Error [updateServicePrice]:", error.message);
-        throw new Error('Falha ao atualizar preço do serviço.');
-    }
-}
+        if (error) {
+            console.error("Supabase Error [updateService]:", error.message);
+            return { success: false, error: 'Falha ao atualizar serviço.' };
+        }
 
-export async function toggleServiceActive(id: string, currentStatus: boolean): Promise<void> {
-    const supabase = createAdminClient();
-
-    const { error } = await supabase
-        .from('services')
-        .update({ active: !currentStatus })
-        .eq('id', id);
-
-    if (error) {
-        console.error("Supabase Error [toggleServiceActive]:", error.message);
-        throw new Error('Falha ao alterar o status do serviço.');
+        revalidatePath('/');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [updateService]:", err);
+        return { success: false, error: 'Erro inesperado ao atualizar serviço.' };
     }
 }
 
-export async function deleteService(id: string): Promise<void> {
-    const supabase = createAdminClient();
+export async function updateServicePrice(id: string, price: number): Promise<ActionResult> {
+    try {
+        if (typeof price !== 'number' || price < 0 || isNaN(price)) {
+            return { success: false, error: 'Preço inválido.' };
+        }
 
-    const { error } = await supabase
-        .from('services')
-        .delete()
-        .eq('id', id);
+        const supabase = createAdminClient();
+        const { error } = await supabase
+            .from('services')
+            .update({ price })
+            .eq('id', id);
 
-    if (error) {
-        console.error("Supabase Error [deleteService]:", error.message);
-        throw new Error('Falha ao remover o serviço.');
+        if (error) {
+            console.error("Supabase Error [updateServicePrice]:", error.message);
+            return { success: false, error: 'Falha ao atualizar preço.' };
+        }
+
+        revalidatePath('/');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [updateServicePrice]:", err);
+        return { success: false, error: 'Erro inesperado ao atualizar preço.' };
+    }
+}
+
+export async function toggleServiceActive(id: string, currentStatus: boolean): Promise<ActionResult> {
+    try {
+        const supabase = createAdminClient();
+        const { error } = await supabase
+            .from('services')
+            .update({ active: !currentStatus })
+            .eq('id', id);
+
+        if (error) {
+            console.error("Supabase Error [toggleServiceActive]:", error.message);
+            return { success: false, error: 'Falha ao alterar status.' };
+        }
+
+        revalidatePath('/');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [toggleServiceActive]:", err);
+        return { success: false, error: 'Erro inesperado ao alterar status.' };
+    }
+}
+
+export async function deleteService(id: string): Promise<ActionResult> {
+    try {
+        const supabase = createAdminClient();
+        const { error } = await supabase
+            .from('services')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error("Supabase Error [deleteService]:", error.message);
+            return { success: false, error: 'Falha ao remover serviço.' };
+        }
+
+        revalidatePath('/');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [deleteService]:", err);
+        return { success: false, error: 'Erro inesperado ao remover serviço.' };
     }
 }

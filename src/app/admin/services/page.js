@@ -89,19 +89,18 @@ export default function ServicesPage() {
             return;
         }
 
-        try {
-            if (editingId) {
-                await svcService.updateService(editingId, payload);
-                showToast('Serviço atualizado com sucesso.');
-            } else {
-                await svcService.createService(payload);
-                showToast('Serviço criado com sucesso.');
-            }
-            resetForm();
-            fetchServices();
-        } catch (error) {
-            showToast(error.message || 'Erro ao salvar serviço.', 'error');
+        const result = editingId
+            ? await svcService.updateService(editingId, payload)
+            : await svcService.createService(payload);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao salvar serviço.', 'error');
+            return;
         }
+
+        showToast(editingId ? 'Serviço atualizado com sucesso.' : 'Serviço criado com sucesso.');
+        resetForm();
+        fetchServices();
     };
 
     const handleEdit = (svc) => {
@@ -123,35 +122,43 @@ export default function ServicesPage() {
             showToast('Preço inválido.', 'error');
             return;
         }
-        try {
-            await svcService.updateServicePrice(id, price);
-            setServices(prev => prev.map(s => s.id === id ? { ...s, price } : s));
-            setEditingPriceId(null);
-            showToast('Preço atualizado.');
-        } catch (error) {
-            showToast(error.message || 'Erro ao atualizar preço.', 'error');
+
+        const result = await svcService.updateServicePrice(id, price);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao atualizar preço.', 'error');
+            return;
         }
+
+        setServices(prev => prev.map(s => s.id === id ? { ...s, price } : s));
+        setEditingPriceId(null);
+        showToast('Preço atualizado.');
     };
 
     const toggleActive = async (id, currentStatus) => {
-        try {
-            await svcService.toggleServiceActive(id, currentStatus);
-            setServices(prev => prev.map(s => s.id === id ? { ...s, active: !currentStatus } : s));
-            showToast(currentStatus ? 'Serviço desativado.' : 'Serviço ativado.');
-        } catch (error) {
-            showToast('Erro ao alterar status.', 'error');
+        const result = await svcService.toggleServiceActive(id, currentStatus);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao alterar status.', 'error');
+            return;
         }
+
+        setServices(prev => prev.map(s => s.id === id ? { ...s, active: !currentStatus } : s));
+        showToast(currentStatus ? 'Serviço desativado.' : 'Serviço ativado.');
     };
 
     const handleDelete = async (id) => {
         if (!confirm('Tem certeza que deseja remover este serviço? Esta ação não pode ser desfeita.')) return;
-        try {
-            await svcService.deleteService(id);
-            setServices(prev => prev.filter(s => s.id !== id));
-            showToast('Serviço removido.');
-        } catch (error) {
-            showToast('Erro ao remover serviço.', 'error');
+
+        const result = await svcService.deleteService(id);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao remover serviço.', 'error');
+            return;
         }
+
+        setServices(prev => prev.filter(s => s.id !== id));
+        showToast('Serviço removido.');
     };
 
     const massageCount = services.filter(s => s.category === 'massage').length;
