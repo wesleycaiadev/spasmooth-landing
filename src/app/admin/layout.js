@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { UserButton, useUser, ClerkProvider } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Settings, Briefcase, Calendar, Award, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, Briefcase, Calendar, Award, CalendarCheck, Package } from 'lucide-react';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
     { icon: Users, label: 'Gestão de Leads', href: '/admin/kanban' },
     { icon: Calendar, label: 'Agenda', href: '/admin/calendar' },
+    { icon: Package, label: 'Serviços', href: '/admin/services' },
     { icon: Briefcase, label: 'Profissionais', href: '/admin/professionals' },
     { icon: Award, label: 'Fidelidade', href: '/admin/rewards' },
     { icon: Settings, label: 'Configurações', href: '/admin/settings' },
