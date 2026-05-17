@@ -24,23 +24,21 @@ export default function ProfessionalsSection() {
                 setPros(result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
 
-                    // Resolver photo_url: priorizar banco, depois fallback estático
-                    let photoUrl = p.photo_url || null;
+                    // Resolver photo_url: Priorizar fallbackData para evitar quebra de URLs do banco desatualizadas
+                    let photoUrl = fallbackData?.avatar || p.photo_url || null;
 
-                    // Desconsidera imagens legadas que estejam em cache no BD
                     if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
 
-                    // Se não tem foto no banco, usar fallback estático
                     if (!photoUrl && fallbackData?.avatar) {
                         photoUrl = fallbackData.avatar;
                     }
 
                     // Resolver galeria
-                    let finalGallery = Array.isArray(p.gallery) ? [...p.gallery] : [];
-                    finalGallery = finalGallery.filter(url => url && !url.includes('/assets/pros/'));
-
-                    if (finalGallery.length === 0 && fallbackData?.gallery?.length > 0) {
+                    let finalGallery = [];
+                    if (fallbackData?.gallery?.length > 0) {
                         finalGallery = [...fallbackData.gallery];
+                    } else if (Array.isArray(p.gallery)) {
+                        finalGallery = [...p.gallery].filter(url => url && !url.includes('/assets/pros/'));
                     }
 
                     // Garantir que o avatar esteja na galeria
@@ -155,7 +153,7 @@ export default function ProfessionalsSection() {
                                 <div className="relative h-96 w-full overflow-hidden">
                                     <div
                                         className="absolute inset-0 bg-cover transition-transform duration-700 group-hover:scale-105"
-                                        style={{ backgroundImage: `url("${pro.avatar}")`, backgroundColor: '#e2e8f0', backgroundPosition: 'center 20%' }}
+                                        style={{ backgroundImage: `url("${pro.avatar}")`, backgroundColor: '#e2e8f0', backgroundPosition: 'top center' }}
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80" />
 

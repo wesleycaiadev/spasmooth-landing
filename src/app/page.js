@@ -10,6 +10,7 @@ import LocationSection from '@/components/LocationSection';
 import Footer from '@/components/Footer';
 import Preloader from '@/components/Preloader';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
+import FloatingSubleaseButton from '@/components/FloatingSubleaseButton';
 
 export default function Home() {
   return (
@@ -25,6 +26,7 @@ export default function Home() {
       <FAQ />
       <Footer />
       <WhatsAppFloat />
+      <FloatingSubleaseButton />
     </main>
   );
 }

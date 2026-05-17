@@ -185,10 +185,11 @@ export const PROFESSIONALS = [
         role: 'Terapeuta Especialista',
         bio: 'Atendimentos focados no relaxamento profundo e liberação de tensões, proporcionando uma experiência única e sensorial.',
         specialties: ['Terapia Tântrica', 'Massagem Relaxante Especial', 'Vivência Delirium'],
-        avatar: '/images/professionals/clara/avatar.jpg',
+        avatar: '/images/professionals/clara/avatar.jpeg',
         gallery: [
             '/images/professionals/clara/1.jpg',
-            '/images/professionals/clara/2.jpg'
+            '/images/professionals/clara/2.jpg',
+            '/images/professionals/clara/3.jpg'
         ]
     },
     {
@@ -197,9 +198,10 @@ export const PROFESSIONALS = [
         role: 'Terapeuta Sensorial',
         bio: 'Especialista em toques sutis e intensos, criando uma conexão autêntica que revitaliza o corpo e a mente.',
         specialties: ['Terapia Tântrica', 'Massagem Nuru', 'Tailandesa'],
-        avatar: '/images/professionals/maria/avatar.jpg',
+        avatar: '/images/professionals/maria/1.jpg',
         gallery: [
-            '/images/professionals/maria/1.jpg'
+            '/images/professionals/maria/1.jpg',
+            '/images/professionals/maria/MARIA.jpg'
         ]
     },
     {
@@ -210,9 +212,11 @@ export const PROFESSIONALS = [
         specialties: ['Massagem Relaxante Especial', 'Ventosa com Relaxante', 'Vivência Premium Black'],
         avatar: '/images/professionals/anne/1.jpeg',
         gallery: [
-            '/images/professionals/anne/2.jpg',
-            '/images/professionals/anne/3.jpg',
-            '/images/professionals/anne/4.jpg'
+            '/images/professionals/anne/1.jpeg',
+            '/images/professionals/anne/2.jpeg',
+            '/images/professionals/anne/3.jpeg',
+            '/images/professionals/anne/4.jpeg',
+            '/images/professionals/anne/5.jpeg'
         ]
     },
     {
@@ -225,6 +229,19 @@ export const PROFESSIONALS = [
         gallery: [
             '/images/professionals/bella/1.jpeg',
             '/images/professionals/bella/2.jpeg'
+        ]
+    },
+    {
+        id: 'lay',
+        name: 'Lay',
+        role: 'Terapeuta Especialista',
+        bio: 'Proporcionando experiências memoráveis focadas no bem-estar e no cuidado completo do seu corpo e mente.',
+        specialties: ['Vivência Tântrica', 'Massagem Relaxante Especial'],
+        avatar: '/images/professionals/lay/lay1.jpeg',
+        gallery: [
+            '/images/professionals/lay/lay1.jpeg',
+            '/images/professionals/lay/lay2.jpeg',
+            '/images/professionals/lay/lay3.jpeg'
         ]
     }
 ];

@@ -9,7 +9,7 @@ import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/s
 export type Service = {
     id: string;
     name: string;
-    category: 'massage' | 'waxing';
+    category: 'combo' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
     price: number;
     duration_minutes: number;
     description: string;

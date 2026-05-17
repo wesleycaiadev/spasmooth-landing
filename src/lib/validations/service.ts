@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-const SERVICE_CATEGORIES = ["massage", "waxing"] as const;
+const SERVICE_CATEGORIES = ["combo", "day_spa", "estetica", "tantrica", "depilacao"] as const;
 
 export const createServiceSchema = z.object({
     name: z
@@ -11,7 +11,7 @@ export const createServiceSchema = z.object({
         .max(100, { error: "Nome deve ter no máximo 100 caracteres." })
         .transform(v => v.trim()),
     category: z.enum(SERVICE_CATEGORIES, {
-        error: "Categoria inválida. Use 'massage' ou 'waxing'.",
+        error: "Categoria inválida. Use 'combo', 'day_spa', 'estetica', 'tantrica' ou 'depilacao'.",
     }),
     price: z
         .number({ error: "Preço deve ser um número." })

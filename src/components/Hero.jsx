@@ -36,7 +36,7 @@ export default function Hero() {
                     </div>
 
                     <h1 className="text-4xl md:text-5xl lg:text-7xl font-serif text-[#4a4a4a] leading-tight">
-                        Spa e Massoterapia de Excelência <span className="text-cyan-700 italic">em {isLoadingLocation ? '...' : location}</span>.
+                        Spa, Massoterapia e Bronzeamento <span className="text-cyan-700 italic">em {isLoadingLocation ? '...' : location}</span>.
                     </h1>
 
                     <p className="text-lg md:text-2xl text-[#7a7a7a] leading-relaxed max-w-2xl mx-auto">

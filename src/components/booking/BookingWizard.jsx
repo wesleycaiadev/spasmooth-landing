@@ -193,8 +193,11 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         }
     }
 
-    const massageServices = services.filter((s) => s.category === "massage");
-    const waxingServices = services.filter((s) => s.category === "waxing");
+    const combos = services.filter((s) => s.category === "combo");
+    const daySpa = services.filter((s) => s.category === "day_spa");
+    const estetica = services.filter((s) => s.category === "estetica");
+    const tantrica = services.filter((s) => s.category === "tantrica");
+    const depilacao = services.filter((s) => s.category === "depilacao");
 
     const stepLabels = ["Unidade", "Experiência", "Data & Horário", "Finalização"];
     const totalSteps = 4;
@@ -274,37 +277,66 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </label>
 
                             <div className="space-y-6">
-                                {massageServices.length > 0 && (
+                                {combos.length > 0 && (
                                     <div>
                                         <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider">
-                                            Massagens & Vivências
+                                            Combos de Massagem
                                         </h3>
                                         <div className="space-y-3">
-                                            {massageServices.map((svc) => (
-                                                <ServiceCard
-                                                    key={svc.id}
-                                                    service={svc}
-                                                    isSelected={booking.service_id === svc.id}
-                                                    onSelect={() => handleSelectService(svc)}
-                                                />
+                                            {combos.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                {waxingServices.length > 0 && (
+                                {daySpa.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                            Pacotes Day Spa
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {daySpa.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {estetica.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                            Estética e Cuidados Avulsos
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {estetica.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {tantrica.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                            Terapias Sensoriais e Tântricas
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {tantrica.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {depilacao.length > 0 && (
                                     <div>
                                         <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
                                             Depilação na Máquina
                                         </h3>
                                         <div className="space-y-3">
-                                            {waxingServices.map((svc) => (
-                                                <ServiceCard
-                                                    key={svc.id}
-                                                    service={svc}
-                                                    isSelected={booking.service_id === svc.id}
-                                                    onSelect={() => handleSelectService(svc)}
-                                                />
+                                            {depilacao.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
                                             ))}
                                         </div>
                                     </div>

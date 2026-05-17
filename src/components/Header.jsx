@@ -23,7 +23,7 @@ export default function Header() {
                     <h1 className="text-2xl font-light text-slate-500 tracking-wide">
                         Spa<span className="font-bold text-slate-700">SmooTh</span>
                     </h1>
-                    <span className="text-xs text-cyan-700 tracking-[0.2em] uppercase mt-1">Massoterapia</span>
+                    <span className="text-[10px] text-cyan-700 tracking-[0.1em] uppercase mt-1">Spa, Massoterapia & Bronzeamento</span>
                 </button>
 
                 {/* Desktop Nav */}
