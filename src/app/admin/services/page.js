@@ -8,11 +8,12 @@ import {
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
-    combos: { label: 'Combos & Promoções', icon: Package, color: 'emerald' },
-    daySpa: { label: 'Day Spa', icon: Flower2, color: 'blue' },
+    combo: { label: 'Combos & Promoções', icon: Package, color: 'emerald' },
+    day_spa: { label: 'Day Spa', icon: Flower2, color: 'blue' },
     estetica: { label: 'Estética', icon: HeartHandshake, color: 'pink' },
     depilacao: { label: 'Depilação', icon: Scissors, color: 'violet' },
-    tantrica: { label: 'Tântricas', icon: Flame, color: 'red' }
+    tantrica: { label: 'Tântricas', icon: Flame, color: 'red' },
+    outros: { label: 'Serviços Antigos', icon: AlertCircle, color: 'slate' }
 };
 
 function formatCurrency(value) {
@@ -31,7 +32,7 @@ function formatDuration(minutes) {
 export default function ServicesPage() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('combos');
+    const [activeTab, setActiveTab] = useState('combo');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editingPriceId, setEditingPriceId] = useState(null);
@@ -41,7 +42,7 @@ export default function ServicesPage() {
 
     const [formData, setFormData] = useState({
         name: '',
-        category: 'combos',
+        category: 'combo',
         price: '',
         duration_minutes: '',
         description: '',
@@ -69,10 +70,14 @@ export default function ServicesPage() {
         fetchServices();
     }, [fetchServices]);
 
-    const filteredServices = services.filter(s => s.category === activeTab);
+    const filteredServices = services.filter(s => 
+        activeTab === 'outros' 
+            ? !['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
+            : s.category === activeTab
+    );
 
     const resetForm = () => {
-        setFormData({ name: '', category: 'combos', price: '', duration_minutes: '', description: '' });
+        setFormData({ name: '', category: 'combo', price: '', duration_minutes: '', description: '' });
         setEditingId(null);
         setIsFormOpen(false);
     };
@@ -165,11 +170,12 @@ export default function ServicesPage() {
     };
 
     const counts = {
-        combos: services.filter(s => s.category === 'combos').length,
-        daySpa: services.filter(s => s.category === 'daySpa').length,
+        combo: services.filter(s => s.category === 'combo').length,
+        day_spa: services.filter(s => s.category === 'day_spa').length,
         estetica: services.filter(s => s.category === 'estetica').length,
         depilacao: services.filter(s => s.category === 'depilacao').length,
         tantrica: services.filter(s => s.category === 'tantrica').length,
+        outros: services.filter(s => !['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)).length,
     };
 
     return (
@@ -254,11 +260,14 @@ export default function ServicesPage() {
                                 value={formData.category}
                                 onChange={e => setFormData({ ...formData, category: e.target.value })}
                             >
-                                <option value="combos">Combos & Promoções</option>
-                                <option value="daySpa">Day Spa</option>
+                                <option value="combo">Combos & Promoções</option>
+                                <option value="day_spa">Day Spa</option>
                                 <option value="estetica">Estética</option>
                                 <option value="depilacao">Depilação</option>
                                 <option value="tantrica">Tântricas</option>
+                                {!['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(formData.category) && (
+                                    <option value={formData.category}>Categoria Antiga ({formData.category})</option>
+                                )}
                             </select>
                         </div>
 

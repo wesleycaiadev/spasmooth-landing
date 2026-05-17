@@ -41,17 +41,9 @@ export default function Footer() {
                     <div>
                         <h4 className="text-white font-bold mb-6">Horário de Atendimento</h4>
                         <ul className="space-y-3 text-sm">
-                            <li className="flex justify-between border-b border-slate-700 pb-2">
-                                <span>Seg - Sex</span>
-                                <span className="text-cyan-400">08h - 20h</span>
-                            </li>
-                            <li className="flex justify-between border-b border-slate-700 pb-2">
-                                <span>Sábado</span>
-                                <span className="text-cyan-400">09h - 16h</span>
-                            </li>
-                            <li className="flex justify-between text-slate-500">
-                                <span>Domingo</span>
-                                <span>Fechado</span>
+                            <li className="flex justify-between pb-2">
+                                <span>Todos os dias</span>
+                                <span className="text-cyan-400">07h - 21h</span>
                             </li>
                         </ul>
                     </div>

@@ -8,7 +8,7 @@ export default function LocationSection() {
 
     const locationDetails = {
         Aracaju: {
-            address: "Aracaju - SE",
+            address: "Av. Pref. Heráclito Rollemberg, Alziro zarur 155, bairro Farolândia, Aracaju - SE, CEP 49030-060",
             mapsLink: "https://maps.app.goo.gl/F8keaZv4bWuJSz3u8",
             iframeSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125218.42851978255!2d-37.16436662994436!3d-10.93187216447883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71ab3a34a81b37b%3A0x633454b5dfd41097!2sAracaju%2C%20SE!5e0!3m2!1spt-BR!2sbr!4v1714081033288!5m2!1spt-BR!2sbr",
             iframeTitle: "Mapa do SpaSmooth em Aracaju"
@@ -72,17 +72,9 @@ export default function LocationSection() {
                                 <div className="w-full">
                                     <h4 className="font-semibold text-slate-800 mb-2">Horário de Funcionamento</h4>
                                     <ul className="space-y-2 text-sm max-w-xs">
-                                        <li className="flex justify-between border-b border-slate-100 pb-2">
-                                            <span>Segunda a Sexta</span>
-                                            <span className="font-medium text-slate-800">08:00 - 20:00</span>
-                                        </li>
-                                        <li className="flex justify-between border-b border-slate-100 pb-2">
-                                            <span>Sábado</span>
-                                            <span className="font-medium text-slate-800">09:00 - 16:00</span>
-                                        </li>
-                                        <li className="flex justify-between pt-1">
-                                            <span>Domingo</span>
-                                            <span className="font-medium text-slate-400">Fechado</span>
+                                        <li className="flex justify-between pb-2">
+                                            <span>Todos os dias</span>
+                                            <span className="font-medium text-slate-800">07:00 - 21:00</span>
                                         </li>
                                     </ul>
                                 </div>
