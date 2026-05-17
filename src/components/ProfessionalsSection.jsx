@@ -23,30 +23,47 @@ export default function ProfessionalsSection() {
             if (result.success && result.data) {
                 setPros(result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
-                    let finalGallery = p.gallery || [];
-                    let photoUrlDB = p.photo_url;
 
-                    // Desconsidera imagens legadas que estejam em cache no BD para forçar o fallback das novas imagens
-                    if (photoUrlDB && photoUrlDB.includes('/assets/pros/')) photoUrlDB = null;
-                    finalGallery = finalGallery.filter(url => !url.includes('/assets/pros/'));
+                    // Resolver photo_url: priorizar banco, depois fallback estático
+                    let photoUrl = p.photo_url || null;
+
+                    // Desconsidera imagens legadas que estejam em cache no BD
+                    if (photoUrl && photoUrl.includes('/assets/pros/')) photoUrl = null;
+
+                    // Se não tem foto no banco, usar fallback estático
+                    if (!photoUrl && fallbackData?.avatar) {
+                        photoUrl = fallbackData.avatar;
+                    }
+
+                    // Resolver galeria
+                    let finalGallery = Array.isArray(p.gallery) ? [...p.gallery] : [];
+                    finalGallery = finalGallery.filter(url => url && !url.includes('/assets/pros/'));
+
+                    if (finalGallery.length === 0 && fallbackData?.gallery?.length > 0) {
+                        finalGallery = [...fallbackData.gallery];
+                    }
+
+                    // Garantir que o avatar esteja na galeria
+                    if (photoUrl && !finalGallery.includes(photoUrl)) {
+                        finalGallery.unshift(photoUrl);
+                    }
+
+                    // Último fallback: placeholder com iniciais
+                    const placeholderUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=f1f5f9&color=475569&size=400&bold=true`;
+
+                    if (!photoUrl) {
+                        photoUrl = placeholderUrl;
+                    }
 
                     if (finalGallery.length === 0) {
-                        if (fallbackData && fallbackData.gallery && fallbackData.gallery.length > 0) {
-                            finalGallery = [...fallbackData.gallery];
-                            // Adicionar o avatar também para a galeria se não constar para robustez
-                            if (photoUrlDB && !finalGallery.includes(photoUrlDB)) {
-                                finalGallery.unshift(photoUrlDB);
-                            }
-                        } else if (photoUrlDB) {
-                            finalGallery = [photoUrlDB];
-                        }
+                        finalGallery = [photoUrl];
                     }
 
                     return {
                         ...p,
                         specialties: p.specialties || fallbackData?.specialties || [],
                         gallery: finalGallery,
-                        avatar: photoUrlDB || fallbackData?.avatar || 'https://ui-avatars.com/api/?name=' + p.name,
+                        avatar: photoUrl,
                         bio: p.bio || fallbackData?.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
                         role: p.role || fallbackData?.role || 'Terapeuta',
                     };
@@ -63,7 +80,7 @@ export default function ProfessionalsSection() {
     const openAlbum = (pro) => {
         setSelectedPro(pro);
         setCurrentImageIndex(0);
-        document.body.style.overflow = 'hidden'; // Evita scroll do fundo
+        document.body.style.overflow = 'hidden';
     };
 
     const closeAlbum = () => {
@@ -172,6 +189,7 @@ export default function ProfessionalsSection() {
                         <button
                             onClick={closeAlbum}
                             className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all transform hover:scale-110"
+                            aria-label="Fechar álbum"
                         >
                             <X className="w-6 h-6" />
                         </button>
@@ -195,12 +213,16 @@ export default function ProfessionalsSection() {
                                     <p className="text-white/80 leading-relaxed text-sm backdrop-blur-sm bg-black/20 p-4 rounded-xl border border-white/10">{selectedPro.bio}</p>
                                 </div>
 
-                                <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 transition-all">
-                                    <ChevronLeft className="w-6 h-6" />
-                                </button>
-                                <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 transition-all">
-                                    <ChevronRight className="w-6 h-6" />
-                                </button>
+                                {selectedPro.gallery.length > 1 && (
+                                    <>
+                                        <button onClick={prevImage} className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 transition-all" aria-label="Foto anterior">
+                                            <ChevronLeft className="w-6 h-6" />
+                                        </button>
+                                        <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-black/40 hover:bg-black/60 rounded-full text-white backdrop-blur-md border border-white/20 transition-all" aria-label="Próxima foto">
+                                            <ChevronRight className="w-6 h-6" />
+                                        </button>
+                                    </>
+                                )}
 
                                 <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
                                     {selectedPro.gallery.map((_, idx) => (
@@ -210,17 +232,20 @@ export default function ProfessionalsSection() {
                             </div>
 
                             {/* Miniaturas */}
-                            <div className="grid grid-cols-3 gap-4">
-                                {selectedPro.gallery.map((img, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => setCurrentImageIndex(idx)}
-                                        className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${idx === currentImageIndex ? 'border-rose-500 scale-95 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
-                                    >
-                                        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${img})`, backgroundColor: '#1e293b' }} />
-                                    </button>
-                                ))}
-                            </div>
+                            {selectedPro.gallery.length > 1 && (
+                                <div className="grid grid-cols-3 gap-4">
+                                    {selectedPro.gallery.map((img, idx) => (
+                                        <button
+                                            key={idx}
+                                            onClick={() => setCurrentImageIndex(idx)}
+                                            className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${idx === currentImageIndex ? 'border-rose-500 scale-95 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                                            aria-label={`Ver foto ${idx + 1}`}
+                                        >
+                                            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${img})`, backgroundColor: '#1e293b' }} />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Lado Direito: Agendamento */}
@@ -232,8 +257,7 @@ export default function ProfessionalsSection() {
 
                             <div className="flex-1 bg-slate-50/50 rounded-2xl border border-slate-100 overflow-y-auto custom-scrollbar p-2">
                                 <BookingWizard
-                                    // Hack: pass professional id to wizard so it auto-sets and skips to step 2
-                                    initialProfessional={{ id: selectedPro.id, name: selectedPro.name }}
+                                    initialProfessional={{ id: selectedPro.id, name: selectedPro.name, location: selectedPro.location }}
                                     hideHeader={true}
                                 />
                             </div>

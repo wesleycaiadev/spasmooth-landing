@@ -29,15 +29,17 @@ function AdminContent({ children }) {
     const { user, isLoaded, isSignedIn } = useUser();
     const router = useRouter();
 
-    const ALLOWED_EMAILS = ['wesleycaia.dev@gmail.com', 'Layararenata123@gmail.com'];
+    const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
+        .split(',')
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean);
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
             router.push('/entrar');
         } else if (isLoaded && isSignedIn) {
             const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
-            const allowed = ALLOWED_EMAILS.map(e => e.toLowerCase());
-            if (!allowed.includes(userEmail)) {
+            if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
                 router.push('/');
             }
         }
@@ -52,7 +54,7 @@ function AdminContent({ children }) {
     }
 
     const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
-    const isAuthorized = isSignedIn && ALLOWED_EMAILS.map(e => e.toLowerCase()).includes(userEmail);
+    const isAuthorized = isSignedIn && (ALLOWED_EMAILS.length === 0 || ALLOWED_EMAILS.includes(userEmail));
 
     if (!isAuthorized) {
         return (

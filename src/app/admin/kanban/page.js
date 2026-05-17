@@ -38,8 +38,8 @@ export default function KanbanPage() {
     const fetchLeads = async () => {
         setLoading(true);
         try {
-            const data = await leadsService.getLeads();
-            setLeads(data);
+            const result = await leadsService.getLeads();
+            setLeads(result.success ? result.data : []);
         } catch (err) {
             console.error(err);
         }
@@ -48,8 +48,8 @@ export default function KanbanPage() {
 
     const fetchProfessionals = async () => {
         try {
-            const data = await proService.getActiveProfessionals();
-            setProfessionals(data);
+            const result = await proService.getActiveProfessionals();
+            setProfessionals(result.success ? result.data : []);
         } catch (err) {
             console.error(err);
         }

@@ -23,13 +23,12 @@ export default function DashboardPage() {
             // End date: Last day of the month at 23:59:59
             const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
-            console.log('Querying Range:', startDate.toISOString(), 'to', endDate.toISOString());
 
             // Adjust query to filter by created_at range
             try {
-                const leads = await dashboardService.getDashboardLeads(startDate.toISOString(), endDate.toISOString());
-
-                if (leads) {
+                const result = await dashboardService.getDashboardLeads(startDate.toISOString(), endDate.toISOString());
+                const leads = result.success ? result.data : [];
+                if (leads && leads.length > 0) {
                     // 1. Stats Calculation
                     const total = leads.length;
 

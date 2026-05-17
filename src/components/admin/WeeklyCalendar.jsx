@@ -38,8 +38,8 @@ export default function WeeklyCalendar({ professionals = [] }) {
         if (!selectedPro) return;
 
         startTransition(async () => {
-            const data = await getCalendarEvents(selectedPro);
-            setEvents(data ?? []);
+            const result = await getCalendarEvents(selectedPro);
+            setEvents(result.success ? result.data : []);
         });
     }, [selectedPro, weekStart]);
 

@@ -335,7 +335,8 @@ export default function AdminCalendar() {
     useEffect(() => {
         (async () => {
             try {
-                const data = await proService.getActiveProfessionals();
+                const result = await proService.getActiveProfessionals();
+                const data = result.success ? result.data : [];
                 if (data) setProsList([{ id: "all", name: "Todos" }, ...data]);
             } catch (e) {
                 console.error("Erro ao buscar profissionais:", e);
@@ -350,7 +351,8 @@ export default function AdminCalendar() {
     const fetchEvents = async () => {
         setLoading(true);
         try {
-            const data = await leadsService.getCalendarEvents(selectedPro);
+            const result = await leadsService.getCalendarEvents(selectedPro);
+            const data = result.success ? result.data : [];
             const mapped = data
                 .map((lead) => {
                     if (!lead.appointment_date || !lead.appointment_time) return null;

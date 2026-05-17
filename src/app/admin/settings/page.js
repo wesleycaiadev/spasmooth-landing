@@ -30,7 +30,8 @@ export default function SettingsPage() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const pros = await proService.getActiveProfessionals();
+            const result = await proService.getActiveProfessionals();
+            const pros = result.success ? result.data : [];
             setProfessionals(pros);
             if (pros?.length > 0 && !selectedPro) setSelectedPro(pros[0].id);
         } catch (error) {
@@ -48,7 +49,8 @@ export default function SettingsPage() {
 
     const fetchScheduleForPro = async (proId) => {
         try {
-            const data = await scheduleService.getScheduleForProfessional(proId);
+            const result = await scheduleService.getScheduleForProfessional(proId);
+            const data = result.success ? result.data : [];
             if (data) {
                 // Transform to object key=day_of_week
                 const scheduleMap = {};

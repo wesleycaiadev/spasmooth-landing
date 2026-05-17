@@ -1,18 +1,13 @@
 "use server";
 
-import { auth, currentUser } from "@clerk/nextjs/server";
 import { createAdminClient } from "@/lib/supabaseAdmin";
+import { verifyAdmin } from "@/lib/auth";
 import {
     updateBookingStatusSchema,
     listBookingsFilterSchema,
     type UpdateBookingStatusInput,
     type ListBookingsFilter,
 } from "@/lib/validations/booking";
-
-const ADMIN_EMAILS = [
-    "wesleycaia.dev@gmail.com",
-    "layararenata123@gmail.com",
-];
 
 type ServiceResponse<T = unknown> = {
     success: boolean;
@@ -36,34 +31,14 @@ export type BookingRow = {
     services: { name: string; duration_minutes: number; price: number } | null;
 };
 
-async function verifyAdmin(): Promise<ServiceResponse<{ userId: string }>> {
-    const { userId } = await auth();
-
-    if (!userId) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    const user = await currentUser();
-
-    if (!user) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    const email = user.emailAddresses[0]?.emailAddress?.toLowerCase();
-
-    if (!email || !ADMIN_EMAILS.includes(email)) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    return { success: true, data: { userId } };
-}
+// verifyAdmin importado de @/lib/auth
 
 export async function listBookings(
     filters?: ListBookingsFilter
 ): Promise<ServiceResponse<BookingRow[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: "Acesso negado." };
 
         let parsedFilters: ListBookingsFilter = {};
 
@@ -122,7 +97,7 @@ export async function updateBookingStatus(
 ): Promise<ServiceResponse<null>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: "Acesso negado." };
 
         const parsed = updateBookingStatusSchema.safeParse(input);
         if (!parsed.success) {
@@ -142,6 +117,13 @@ export async function updateBookingStatus(
             return { success: false, error: "Erro ao atualizar status." };
         }
 
+        // Sincronizar com tabela leads
+        const leadStatus = mapBookingStatusToLead(status);
+        await supabase
+            .from("leads")
+            .update({ status_kanban: leadStatus })
+            .eq("id", id);
+
         return { success: true };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
@@ -154,7 +136,7 @@ export async function getWeeklyCalendar(
 ): Promise<ServiceResponse<BookingRow[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: "Acesso negado." };
 
         if (!professionalId || !/^[0-9a-f-]{36}$/i.test(professionalId)) {
             return { success: false, error: "ID de profissional inválido." };
@@ -186,4 +168,15 @@ export async function getWeeklyCalendar(
     } catch {
         return { success: false, error: "Erro interno do servidor." };
     }
+}
+
+/** Mapeia status de bookings para status do kanban de leads */
+function mapBookingStatusToLead(bookingStatus: string): string {
+    const map: Record<string, string> = {
+        'pendente': 'novo',
+        'confirmado': 'agendado',
+        'concluido': 'concluido',
+        'cancelado': 'cancelado',
+    };
+    return map[bookingStatus] ?? 'novo';
 }

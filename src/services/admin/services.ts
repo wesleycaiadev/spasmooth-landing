@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabaseAdmin';
+import { verifyAdmin } from '@/lib/auth';
 import { createServiceSchema, updateServiceSchema } from '@/lib/validations/service';
 import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/service';
 
@@ -19,6 +20,9 @@ export type Service = {
 type ActionResult = { success: true } | { success: false; error: string };
 
 export async function getServices(): Promise<Service[]> {
+    const adminCheck = await verifyAdmin();
+    if (!adminCheck.success) return [];
+
     const supabase = createAdminClient();
 
     const { data, error } = await supabase
@@ -55,6 +59,9 @@ export async function getActiveServices(): Promise<Service[]> {
 
 export async function createService(input: CreateServiceInput): Promise<ActionResult> {
     try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
         const parsed = createServiceSchema.safeParse(input);
 
         if (!parsed.success) {
@@ -70,6 +77,7 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
         }
 
         revalidatePath('/');
+        revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
         console.error("Exception [createService]:", err);
@@ -79,6 +87,9 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
 
 export async function updateService(id: string, input: UpdateServiceInput): Promise<ActionResult> {
     try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
         const parsed = updateServiceSchema.safeParse(input);
 
         if (!parsed.success) {
@@ -97,6 +108,7 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
         }
 
         revalidatePath('/');
+        revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
         console.error("Exception [updateService]:", err);
@@ -106,6 +118,9 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
 
 export async function updateServicePrice(id: string, price: number): Promise<ActionResult> {
     try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
         if (typeof price !== 'number' || price < 0 || isNaN(price)) {
             return { success: false, error: 'Preço inválido.' };
         }
@@ -122,6 +137,7 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
         }
 
         revalidatePath('/');
+        revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
         console.error("Exception [updateServicePrice]:", err);
@@ -131,6 +147,9 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
 
 export async function toggleServiceActive(id: string, currentStatus: boolean): Promise<ActionResult> {
     try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
         const supabase = createAdminClient();
         const { error } = await supabase
             .from('services')
@@ -143,6 +162,7 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
         }
 
         revalidatePath('/');
+        revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
         console.error("Exception [toggleServiceActive]:", err);
@@ -152,6 +172,9 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
 
 export async function deleteService(id: string): Promise<ActionResult> {
     try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
         const supabase = createAdminClient();
         const { error } = await supabase
             .from('services')
@@ -164,6 +187,7 @@ export async function deleteService(id: string): Promise<ActionResult> {
         }
 
         revalidatePath('/');
+        revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
         console.error("Exception [deleteService]:", err);

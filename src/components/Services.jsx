@@ -14,7 +14,7 @@ function inferIcon(name) {
     if (lower.includes('delirium')) return 'Flame';
     if (lower.includes('tailandesa')) return 'Hand';
     if (lower.includes('ventosa')) return 'CircleDot';
-    if (lower.includes('premium black')) return 'Gem';
+    if (lower.includes('premium black') || lower.includes('premium')) return 'Gem';
     if (lower.includes('meia perna')) return 'Feather';
     if (lower.includes('perna completa')) return 'Sunset';
     if (lower.includes('braço') || lower.includes('bracos')) return 'Target';
@@ -39,12 +39,15 @@ function formatPrice(value) {
 
 /**
  * Adapta um serviço do banco para o formato esperado pelo ServiceBookingCard.
- * Tenta encontrar dados extras (stages, note, featured) no TREATMENTS estático.
+ * Enriquece com dados estáticos (stages, note, featured) quando disponíveis,
+ * mas funciona 100% mesmo sem match estático.
  */
 function adaptService(dbService) {
     const staticMatch = TREATMENTS.find(
         t => t.name.toLowerCase().trim() === dbService.name.toLowerCase().trim()
     );
+
+    const isPremium = dbService.name.toLowerCase().includes('premium');
 
     return {
         id: dbService.id,
@@ -55,10 +58,10 @@ function adaptService(dbService) {
             time: formatDurationLabel(dbService.duration_minutes),
             price: formatPrice(dbService.price),
         }],
-        description: staticMatch?.description ?? dbService.description ?? '',
+        description: dbService.description || staticMatch?.description || '',
         stages: staticMatch?.stages ?? [],
         note: staticMatch?.note ?? '',
-        featured: staticMatch?.featured ?? false,
+        featured: staticMatch?.featured ?? isPremium,
     };
 }
 
@@ -95,23 +98,27 @@ export default async function Services() {
                     <div className="w-24 h-1 bg-cyan-200 mx-auto rounded-full"></div>
                 </div>
 
-                <div className="mb-16">
-                    <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Massagens & Vivências</h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-massagens">
-                        {massages.map((treatment) => (
-                            <ServiceBookingCard key={treatment.id} treatment={treatment} />
-                        ))}
+                {massages.length > 0 && (
+                    <div className="mb-16">
+                        <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Massagens & Vivências</h3>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-massagens">
+                            {massages.map((treatment) => (
+                                <ServiceBookingCard key={treatment.id} treatment={treatment} />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                <div>
-                    <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Depilação na Máquina</h3>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-depilacao">
-                        {waxings.map((treatment) => (
-                            <ServiceBookingCard key={treatment.id} treatment={treatment} />
-                        ))}
+                {waxings.length > 0 && (
+                    <div>
+                        <h3 className="text-2xl font-serif text-slate-700 mb-8 border-b border-cyan-100 pb-2 flex items-center gap-2"><span className="text-cyan-600">✦</span> Depilação na Máquina</h3>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="servicos-depilacao">
+                            {waxings.map((treatment) => (
+                                <ServiceBookingCard key={treatment.id} treatment={treatment} />
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="mt-16 text-center text-xs text-slate-400">
                     Informações e valores podem ser ajustados conforme disponibilidade e confirmação via WhatsApp.

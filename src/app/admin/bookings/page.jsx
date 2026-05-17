@@ -3,6 +3,8 @@ import { getProfessionals } from "@/services/admin/professionals";
 import BookingsTable from "@/components/admin/BookingsTable";
 import WeeklyCalendar from "@/components/admin/WeeklyCalendar";
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminBookingsPage() {
     const [bookingsResult, prosResult] = await Promise.all([
         listBookings(),
@@ -10,7 +12,7 @@ export default async function AdminBookingsPage() {
     ]);
 
     const bookings = bookingsResult.success ? bookingsResult.data ?? [] : [];
-    const professionals = prosResult ?? [];
+    const professionals = prosResult.success ? prosResult.data ?? [] : [];
 
     return (
         <div className="space-y-8">

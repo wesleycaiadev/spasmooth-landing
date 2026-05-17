@@ -14,8 +14,8 @@ export default function ProfessionalsPage() {
     const fetchPros = async () => {
         setLoading(true);
         try {
-            const data = await proService.getProfessionals();
-            setPros(data);
+            const result = await proService.getProfessionals();
+            setPros(result.success ? result.data : []);
         } catch (err) {
             console.error(err);
         }
