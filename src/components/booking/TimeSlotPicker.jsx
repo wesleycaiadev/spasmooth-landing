@@ -44,7 +44,7 @@ export default function TimeSlotPicker({
 
     return (
         <div className="space-y-4">
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
                 {slots.map((time) => {
                     const isSelected = selectedTime === time;
 
@@ -54,11 +54,11 @@ export default function TimeSlotPicker({
                             type="button"
                             onClick={() => onSelect(time)}
                             className={`
-                                relative py-2 px-1 text-sm font-bold rounded-lg border transition-all duration-200
+                                relative py-3 px-4 min-w-[80px] text-sm font-bold rounded-xl border transition-all duration-200 text-center
                                 ${
                                     isSelected
                                         ? "bg-cyan-700 text-white border-cyan-700 shadow-md transform scale-105"
-                                        : "bg-white text-slate-600 border-slate-200 hover:border-cyan-500 hover:text-cyan-700 hover:shadow-sm"
+                                        : "bg-white text-slate-700 border-slate-200 hover:border-cyan-500 hover:text-cyan-700 hover:bg-cyan-50/50"
                                 }
                             `}
                         >

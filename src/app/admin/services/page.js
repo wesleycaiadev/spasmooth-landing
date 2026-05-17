@@ -4,12 +4,15 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import * as svcService from '@/services/admin/services';
 import {
     Package, Plus, Trash2, Pencil, Check, X, Eye, EyeOff,
-    Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2
+    Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2, Flame, Flower2, HeartHandshake
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
-    massage: { label: 'Massagens', icon: Sparkles, color: 'cyan' },
-    waxing: { label: 'Depilação', icon: Scissors, color: 'violet' },
+    combos: { label: 'Combos & Promoções', icon: Package, color: 'emerald' },
+    daySpa: { label: 'Day Spa', icon: Flower2, color: 'blue' },
+    estetica: { label: 'Estética', icon: HeartHandshake, color: 'pink' },
+    depilacao: { label: 'Depilação', icon: Scissors, color: 'violet' },
+    tantrica: { label: 'Tântricas', icon: Flame, color: 'red' }
 };
 
 function formatCurrency(value) {
@@ -28,7 +31,7 @@ function formatDuration(minutes) {
 export default function ServicesPage() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('massage');
+    const [activeTab, setActiveTab] = useState('combos');
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [editingPriceId, setEditingPriceId] = useState(null);
@@ -38,7 +41,7 @@ export default function ServicesPage() {
 
     const [formData, setFormData] = useState({
         name: '',
-        category: 'massage',
+        category: 'combos',
         price: '',
         duration_minutes: '',
         description: '',
@@ -69,7 +72,7 @@ export default function ServicesPage() {
     const filteredServices = services.filter(s => s.category === activeTab);
 
     const resetForm = () => {
-        setFormData({ name: '', category: 'massage', price: '', duration_minutes: '', description: '' });
+        setFormData({ name: '', category: 'combos', price: '', duration_minutes: '', description: '' });
         setEditingId(null);
         setIsFormOpen(false);
     };
@@ -161,8 +164,13 @@ export default function ServicesPage() {
         showToast('Serviço removido.');
     };
 
-    const massageCount = services.filter(s => s.category === 'massage').length;
-    const waxingCount = services.filter(s => s.category === 'waxing').length;
+    const counts = {
+        combos: services.filter(s => s.category === 'combos').length,
+        daySpa: services.filter(s => s.category === 'daySpa').length,
+        estetica: services.filter(s => s.category === 'estetica').length,
+        depilacao: services.filter(s => s.category === 'depilacao').length,
+        tantrica: services.filter(s => s.category === 'tantrica').length,
+    };
 
     return (
         <div className="max-w-6xl mx-auto animate-fadeIn pb-12">
@@ -246,8 +254,11 @@ export default function ServicesPage() {
                                 value={formData.category}
                                 onChange={e => setFormData({ ...formData, category: e.target.value })}
                             >
-                                <option value="massage">Massagem</option>
-                                <option value="waxing">Depilação</option>
+                                <option value="combos">Combos & Promoções</option>
+                                <option value="daySpa">Day Spa</option>
+                                <option value="estetica">Estética</option>
+                                <option value="depilacao">Depilação</option>
+                                <option value="tantrica">Tântricas</option>
                             </select>
                         </div>
 
@@ -322,7 +333,7 @@ export default function ServicesPage() {
             {/* Category Tabs */}
             <div className="flex gap-3 mb-8">
                 {Object.entries(CATEGORY_LABELS).map(([key, { label, icon: Icon, color }]) => {
-                    const count = key === 'massage' ? massageCount : waxingCount;
+                    const count = counts[key];
                     const isActive = activeTab === key;
 
                     return (
