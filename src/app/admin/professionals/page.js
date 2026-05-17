@@ -32,9 +32,9 @@ export default function ProfessionalsPage() {
 
         const specialtiesArray = newPro.specialties.split(',').map(s => s.trim());
         const proData = {
-            name: newPro.name,
+            name: newPro.name.trim(),
             specialties: specialtiesArray,
-            photo_url: newPro.photo_url || 'https://ui-avatars.com/api/?name=' + newPro.name,
+            photo_url: newPro.photo_url ? newPro.photo_url.trim() : null,
             location: newPro.location,
             location_start_date: newPro.location_start_date || null,
             location_end_date: newPro.location_end_date || null
@@ -61,7 +61,7 @@ export default function ProfessionalsPage() {
         setNewPro({
             name: pro.name,
             specialties: pro.specialties ? pro.specialties.join(', ') : '',
-            photo_url: pro.photo_url,
+            photo_url: pro.photo_url && !pro.photo_url.includes('ui-avatars.com') ? pro.photo_url : '',
             location: pro.location || 'Aracaju',
             location_start_date: pro.location_start_date || '',
             location_end_date: pro.location_end_date || ''
@@ -202,11 +202,11 @@ export default function ProfessionalsPage() {
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 bg-cyan-200 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-all"></div>
                                 <img
-                                    src={pro.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}`}
+                                    src={pro.photo_url && !pro.photo_url.includes('ui-avatars.com') ? pro.photo_url : `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f8fafc&color=334155&size=400&bold=true`}
                                     alt={pro.name}
                                     onError={(e) => {
                                         e.target.onerror = null; // prevents looping
-                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=random`;
+                                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f1f5f9&color=64748b&bold=true`;
                                     }}
                                     className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-[center_20%] shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                 />
