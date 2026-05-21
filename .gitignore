@@ -44,6 +44,22 @@ next-env.d.ts
 
 # Agent system files
 .agent/
+.gemini/
+.antigravity/
 
 # clerk configuration (can include secrets)
 /.clerk/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# System Files
+Thumbs.db
+desktop.ini
+
