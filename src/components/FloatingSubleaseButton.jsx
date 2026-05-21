@@ -28,7 +28,7 @@ export default function FloatingSubleaseButton() {
 
         const message = encodeURIComponent("Olá! Gostaria de saber mais sobre a Sublocação de Sala (R$ 80,00).");
         // Substitua pelo número real de WhatsApp se necessário
-        window.open(`https://wa.me/557999812489?text=${message}`, '_blank');
+        window.open(`https://wa.me/557991189140?text=${message}`, '_blank');
         if (isMobile) setIsExpanded(false);
     };
 
