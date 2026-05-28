@@ -18,6 +18,7 @@ type Professional = {
     id: string;
     name: string;
     photo_url: string | null;
+    gallery_urls: string[];
     specialties: string[];
     location: string;
     location_start_date: string | null;

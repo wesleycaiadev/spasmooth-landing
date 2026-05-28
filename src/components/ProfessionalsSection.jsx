@@ -24,8 +24,11 @@ export default function ProfessionalsSection() {
                 setPros(result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
 
-                    // Resolver photo_url: Priorizar fallbackData para evitar quebra de URLs do banco desatualizadas
-                    let photoUrl = fallbackData?.avatar || p.photo_url || null;
+                    // Prioridade 1: gallery_urls do banco (upload direto pelo admin)
+                    const dbGallery = (p.gallery_urls || []).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
+
+                    // Resolver photo_url
+                    let photoUrl = dbGallery[0] || fallbackData?.avatar || p.photo_url || null;
 
                     if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
 
@@ -33,9 +36,11 @@ export default function ProfessionalsSection() {
                         photoUrl = fallbackData.avatar;
                     }
 
-                    // Resolver galeria
+                    // Resolver galeria: banco > fallback
                     let finalGallery = [];
-                    if (fallbackData?.gallery?.length > 0) {
+                    if (dbGallery.length > 0) {
+                        finalGallery = [...dbGallery];
+                    } else if (fallbackData?.gallery?.length > 0) {
                         finalGallery = [...fallbackData.gallery];
                     } else if (Array.isArray(p.gallery)) {
                         finalGallery = [...p.gallery].filter(url => url && !url.includes('/assets/pros/'));
