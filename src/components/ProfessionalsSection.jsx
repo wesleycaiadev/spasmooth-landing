@@ -71,20 +71,7 @@ export default function ProfessionalsSection() {
                         role: p.role || fallbackData?.role || 'Terapeuta',
                     };
                 });
-
-                // Incluir terapeutas do data.js que ainda não estão no banco de dados (ex: Day)
-                const dbNames = result.data.map(p => p.name.trim().toLowerCase());
-                const missingPros = oldProsFallback.filter(old => !dbNames.includes(old.name.trim().toLowerCase())).map(fallback => ({
-                    ...fallback,
-                    active: true,
-                    location: 'Aracaju', // Default
-                    gallery: fallback.gallery && fallback.gallery.length > 0 ? fallback.gallery : [fallback.avatar],
-                    specialties: fallback.specialties || [],
-                    bio: fallback.bio || 'Especialista dedicada.',
-                    role: fallback.role || 'Terapeuta',
-                }));
-
-                setPros([...mappedPros, ...missingPros]);
+                setPros(mappedPros);
             } else {
                 setPros([]);
             }
