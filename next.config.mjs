@@ -17,7 +17,7 @@ const prodOnlyHeaders = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com",
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev",
+            "img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com",
             "connect-src 'self' https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com",
             "font-src 'self' https://fonts.gstatic.com",
             "frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com",
