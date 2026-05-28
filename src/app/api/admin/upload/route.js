@@ -56,11 +56,10 @@ export async function POST(request) {
 
         // 5. Upload para Supabase Storage
         const supabase = createAdminClient();
-        const buffer = Buffer.from(await file.arrayBuffer());
 
         const { error: uploadError } = await supabase.storage
             .from(BUCKET)
-            .upload(fileName, buffer, {
+            .upload(fileName, file, {
                 contentType: file.type,
                 upsert: false,
             });
