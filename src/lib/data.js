@@ -243,5 +243,18 @@ export const PROFESSIONALS = [
             '/images/professionals/lay/lay2.jpeg',
             '/images/professionals/lay/lay3.jpeg'
         ]
+    },
+    {
+        id: 'day',
+        name: 'Day',
+        role: 'Terapeuta Especialista',
+        bio: 'Proporcionando experiências sensoriais focadas no relaxamento profundo e bem-estar.',
+        specialties: ['Terapia Tântrica', 'Massagem Relaxante Especial'],
+        avatar: '/images/professionals/day/day (1).jpeg',
+        gallery: [
+            '/images/professionals/day/day (1).jpeg',
+            '/images/professionals/day/day (2).jpeg',
+            '/images/professionals/day/day (3).jpeg'
+        ]
     }
 ];

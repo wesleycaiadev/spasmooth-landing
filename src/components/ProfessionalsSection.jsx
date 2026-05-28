@@ -21,7 +21,7 @@ export default function ProfessionalsSection() {
             const result = await getActiveProfessionals(location);
 
             if (result.success && result.data) {
-                setPros(result.data.map(p => {
+                const mappedPros = result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
 
                     // Prioridade 1: gallery_urls do banco (upload direto pelo admin)
@@ -70,7 +70,21 @@ export default function ProfessionalsSection() {
                         bio: p.bio || fallbackData?.bio || 'Especialista dedicada a proporcionar a melhor experiência de bem-estar.',
                         role: p.role || fallbackData?.role || 'Terapeuta',
                     };
+                });
+
+                // Incluir terapeutas do data.js que ainda não estão no banco de dados (ex: Day)
+                const dbNames = result.data.map(p => p.name.trim().toLowerCase());
+                const missingPros = oldProsFallback.filter(old => !dbNames.includes(old.name.trim().toLowerCase())).map(fallback => ({
+                    ...fallback,
+                    active: true,
+                    location: 'Aracaju', // Default
+                    gallery: fallback.gallery && fallback.gallery.length > 0 ? fallback.gallery : [fallback.avatar],
+                    specialties: fallback.specialties || [],
+                    bio: fallback.bio || 'Especialista dedicada.',
+                    role: fallback.role || 'Terapeuta',
                 }));
+
+                setPros([...mappedPros, ...missingPros]);
             } else {
                 setPros([]);
             }
