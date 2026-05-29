@@ -24,10 +24,8 @@ export default function ProfessionalsSection() {
                 const mappedPros = result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
 
-                    // Prioridade 1: gallery_urls do banco (upload direto pelo admin)
                     const dbGallery = (p.gallery_urls || []).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
 
-                    // Resolver photo_url
                     let photoUrl = dbGallery[0] || fallbackData?.avatar || p.photo_url || null;
 
                     if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
@@ -36,7 +34,6 @@ export default function ProfessionalsSection() {
                         photoUrl = fallbackData.avatar;
                     }
 
-                    // Resolver galeria: banco > fallback
                     let finalGallery = [];
                     if (dbGallery.length > 0) {
                         finalGallery = [...dbGallery];
@@ -46,12 +43,10 @@ export default function ProfessionalsSection() {
                         finalGallery = [...p.gallery].filter(url => url && !url.includes('/assets/pros/'));
                     }
 
-                    // Garantir que o avatar esteja na galeria
                     if (photoUrl && !finalGallery.includes(photoUrl)) {
                         finalGallery.unshift(photoUrl);
                     }
 
-                    // Último fallback: placeholder com iniciais
                     const placeholderUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=f1f5f9&color=475569&size=400&bold=true`;
 
                     if (!photoUrl) {
@@ -186,7 +181,6 @@ export default function ProfessionalsSection() {
                 </div>
             </div>
 
-            {/* Modal Álbum + Agendamento */}
             {selectedPro && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/90 backdrop-blur-sm overflow-y-auto">
                     <div className="absolute top-6 right-6 z-50">
@@ -201,12 +195,11 @@ export default function ProfessionalsSection() {
 
                     <div className="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 my-auto animate-fadeIn relative">
 
-                        {/* Lado Esquerdo: Álbum de Fotos */}
                         <div className="flex flex-col gap-4">
                             <div className="relative aspect-[4/5] w-full bg-slate-800 rounded-3xl overflow-hidden shadow-2xl">
                                 <div
                                     className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-                                    style={{ backgroundImage: `url(${selectedPro.gallery[currentImageIndex]})`, backgroundColor: '#1e293b' }}
+                                    style={{ backgroundImage: `url("${selectedPro.gallery[currentImageIndex]}")`, backgroundColor: '#1e293b' }}
                                 />
 
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
@@ -235,7 +228,6 @@ export default function ProfessionalsSection() {
                                 </div>
                             </div>
 
-                            {/* Miniaturas */}
                             {selectedPro.gallery.length > 1 && (
                                 <div className="grid grid-cols-3 gap-4">
                                     {selectedPro.gallery.map((img, idx) => (
@@ -245,14 +237,13 @@ export default function ProfessionalsSection() {
                                             className={`relative aspect-square rounded-2xl overflow-hidden border-2 transition-all ${idx === currentImageIndex ? 'border-rose-500 scale-95 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'}`}
                                             aria-label={`Ver foto ${idx + 1}`}
                                         >
-                                            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${img})`, backgroundColor: '#1e293b' }} />
+                                            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url("${img}")`, backgroundColor: '#1e293b' }} />
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
 
-                        {/* Lado Direito: Agendamento */}
                         <div className="bg-white rounded-3xl overflow-hidden p-6 md:p-8 flex flex-col shadow-2xl">
                             <div className="mb-6">
                                 <h3 className="text-2xl font-serif text-slate-800 mb-2">Agendar com a {selectedPro.name}</h3>

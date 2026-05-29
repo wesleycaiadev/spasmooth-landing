@@ -9,7 +9,7 @@ const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
 
 export const createBookingSchema = z.object({
     unit: z.enum(UNITS, {
-        errorMap: () => ({ message: "Unidade inválida." }),
+        message: "Unidade inválida.",
     }),
     professional_id: z
         .string()
@@ -47,7 +47,7 @@ export type CreateBookingInput = z.infer<typeof createBookingSchema>;
 export const updateBookingStatusSchema = z.object({
     id: z.string().uuid("ID de agendamento inválido."),
     status: z.enum(BOOKING_STATUSES, {
-        errorMap: () => ({ message: "Status inválido." }),
+        message: "Status inválido.",
     }),
 });
 

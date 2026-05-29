@@ -68,7 +68,6 @@ function AdminContent({ children }) {
         <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-sky-50 pb-20 md:pb-0">
             <AdminNotifications />
 
-            {/* Mobile Bottom Navigation Bar */}
             <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 z-50 md:hidden flex justify-around items-center px-1 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
                 {sidebarItems.map((item) => (
                     <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 p-2 text-slate-500 hover:text-cyan-600 transition-colors w-16">
@@ -78,7 +77,6 @@ function AdminContent({ children }) {
                 ))}
             </nav>
 
-            {/* Sidebar (Glassmorphism) */}
             <aside className="w-72 bg-white/80 backdrop-blur-lg border-r border-white/50 fixed h-full z-20 hidden md:block shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
                 <div className="p-8 border-b border-slate-100/50 flex items-center justify-between">
                     <span className="font-serif font-bold text-slate-800 text-2xl tracking-tight">SpaSmooth</span>
@@ -91,15 +89,12 @@ function AdminContent({ children }) {
                     ))}
                 </nav>
 
-                {/* Decorative Bottom */}
                 <div className="absolute bottom-0 left-0 right-0 p-8 opacity-50 pointer-events-none">
                     <div className="w-32 h-32 bg-cyan-200/30 rounded-full blur-3xl absolute -bottom-10 -left-10"></div>
                 </div>
             </aside>
 
-            {/* Main Content */}
             <main className="flex-1 md:ml-72 p-4 md:p-8 lg:p-12 relative overflow-x-hidden">
-                {/* Decorative Background Blob */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-200/20 rounded-full blur-[100px] pointer-events-none -z-10"></div>
 
                 {children}
@@ -110,7 +105,6 @@ function AdminContent({ children }) {
 
 function NavItem({ href, icon, label }) {
     const router = useRouter();
-    // Simple check for active state could be added here if we had current path
     return (
         <Link href={href} className="flex items-center gap-3 px-5 py-3.5 text-slate-500 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-transparent rounded-xl transition-all duration-300 group font-medium relative overflow-hidden">
             <span className="relative z-10 group-hover:scale-110 transition-transform duration-300">{icon}</span>

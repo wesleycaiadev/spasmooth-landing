@@ -13,7 +13,6 @@ const BUCKET = 'professional-photos';
 
 export async function POST(request) {
     try {
-        // 1. Verificar auth admin
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
@@ -26,7 +25,6 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
         }
 
-        // 2. Parse do FormData
         const formData = await request.formData();
         const file = formData.get('file');
 
@@ -34,7 +32,6 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 });
         }
 
-        // 3. Validações de segurança
         if (!ALLOWED_TYPES.includes(file.type)) {
             return NextResponse.json(
                 { error: 'Formato inválido. Use JPG, PNG ou WebP.' },
@@ -49,12 +46,10 @@ export async function POST(request) {
             );
         }
 
-        // 4. Gerar nome único para o arquivo
         const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
         const sanitizedExt = ['jpg', 'jpeg', 'png', 'webp'].includes(ext) ? ext : 'jpg';
         const fileName = `${crypto.randomUUID()}.${sanitizedExt}`;
 
-        // 5. Upload para Supabase Storage
         const supabase = createAdminClient();
 
         const arrayBuffer = await file.arrayBuffer();
@@ -75,7 +70,6 @@ export async function POST(request) {
             );
         }
 
-        // 6. Retornar URL pública
         const { data: urlData } = supabase.storage
             .from(BUCKET)
             .getPublicUrl(fileName);
@@ -93,7 +87,6 @@ export async function POST(request) {
 
 export async function DELETE(request) {
     try {
-        // 1. Verificar auth admin
         const { userId } = await auth();
         if (!userId) {
             return NextResponse.json({ error: 'Não autenticado.' }, { status: 401 });
@@ -106,19 +99,16 @@ export async function DELETE(request) {
             return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
         }
 
-        // 2. Obter o fileName a ser deletado
         const { fileName } = await request.json();
 
         if (!fileName || typeof fileName !== 'string') {
             return NextResponse.json({ error: 'Nome do arquivo inválido.' }, { status: 400 });
         }
 
-        // 3. Validar formato do fileName (prevenir path traversal)
         if (fileName.includes('/') || fileName.includes('..')) {
             return NextResponse.json({ error: 'Nome do arquivo inválido.' }, { status: 400 });
         }
 
-        // 4. Deletar do Supabase Storage
         const supabase = createAdminClient();
         const { error } = await supabase.storage
             .from(BUCKET)

@@ -7,8 +7,6 @@ import { Sparkles, Flame, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
 export default function FeaturedCarousel({ services = [] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isHovered, setIsHovered] = useState(false);
-    
-    // Auto-play a cada 5 segundos
     useEffect(() => {
         if (isHovered || services.length <= 1) return;
         
@@ -40,7 +38,6 @@ export default function FeaturedCarousel({ services = [] }) {
     const nextSlide = () => setCurrentIndex((prev) => (prev + 1) % services.length);
     const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + services.length) % services.length);
 
-    // O serviço atual
     const service = services[currentIndex];
     const isMagic = service.name.toLowerCase().includes('magic');
     const isTantrica = service.category === 'tantrica';
@@ -51,7 +48,6 @@ export default function FeaturedCarousel({ services = [] }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* Elementos decorativos de fundo */}
             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
             <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-cyan-900 rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none"></div>
             <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-yellow-900 rounded-full mix-blend-screen filter blur-[120px] opacity-20 pointer-events-none"></div>
@@ -63,7 +59,6 @@ export default function FeaturedCarousel({ services = [] }) {
             </div>
 
             <div className="relative max-w-4xl mx-auto z-10">
-                {/* Controles Laterais (Desktop) */}
                 {services.length > 1 && (
                     <>
                         <button 
@@ -81,7 +76,6 @@ export default function FeaturedCarousel({ services = [] }) {
                     </>
                 )}
 
-                {/* Card Principal */}
                 <div className="relative min-h-[550px] md:min-h-[450px] w-full">
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -146,7 +140,6 @@ export default function FeaturedCarousel({ services = [] }) {
                     </AnimatePresence>
                 </div>
 
-                {/* Bolinhas de Navegação */}
                 {services.length > 1 && (
                     <div className="flex justify-center gap-3 mt-8">
                         {services.map((_, idx) => (

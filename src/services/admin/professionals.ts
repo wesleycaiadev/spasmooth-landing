@@ -76,7 +76,6 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
             return { success: false, error: 'Nome é obrigatório.' };
         }
 
-        // Auto-sync: photo_url = primeira foto da galeria
         const dataToInsert = {
             ...proData,
             photo_url: proData.gallery_urls?.[0] || proData.photo_url || null,
@@ -102,7 +101,6 @@ export async function updateProfessional(id: string, proData: Partial<Profession
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
-        // Auto-sync: photo_url = primeira foto da galeria
         const dataToUpdate = { ...proData };
         if (dataToUpdate.gallery_urls && dataToUpdate.gallery_urls.length > 0) {
             dataToUpdate.photo_url = dataToUpdate.gallery_urls[0];

@@ -2,9 +2,11 @@
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 
-type AdminCheckResult =
-    | { success: true; userId: string }
-    | { success: false; error: string };
+export type AdminCheckResult = {
+    success: boolean;
+    userId?: string;
+    error?: string;
+};
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? "")
     .split(",")

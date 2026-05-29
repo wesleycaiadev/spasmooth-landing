@@ -95,7 +95,7 @@ export const TREATMENTS = [
         id: 'premium-black',
         category: 'massage',
         name: 'Vivência Premium Black',
-        icon: 'Gem', // Alterado para Gem para dar ar premium/exclusivo
+        icon: 'Gem',
         durations: [{ time: '2h', price: 'R$ 1.850,00' }],
         description: 'A experiência definitiva com 2 horas de duração.',
         stages: [
@@ -250,11 +250,11 @@ export const PROFESSIONALS = [
         role: 'Terapeuta Especialista',
         bio: 'Proporcionando experiências sensoriais focadas no relaxamento profundo e bem-estar.',
         specialties: ['Terapia Tântrica', 'Massagem Relaxante Especial'],
-        avatar: '/images/professionals/day/day (1).jpeg',
+        avatar: '/images/professionals/day/day-1.jpeg',
         gallery: [
-            '/images/professionals/day/day (1).jpeg',
-            '/images/professionals/day/day (2).jpeg',
-            '/images/professionals/day/day (3).jpeg'
+            '/images/professionals/day/day-1.jpeg',
+            '/images/professionals/day/day-2.jpeg',
+            '/images/professionals/day/day-3.jpeg'
         ]
     }
 ];

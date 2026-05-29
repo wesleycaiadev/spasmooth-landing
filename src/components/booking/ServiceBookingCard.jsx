@@ -13,7 +13,6 @@ const iconMap = {
 export default function ServiceBookingCard({ treatment, isPremium = false }) {
     const Icon = iconMap[treatment.category] || Sparkles;
     
-    // Tratamento híbrido para suportar dados antigos e novos
     const priceStr = treatment.price 
         ? `R$ ${Number(treatment.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
         : (treatment.durations && treatment.durations[0] ? treatment.durations[0].price : 'Sob Consulta');

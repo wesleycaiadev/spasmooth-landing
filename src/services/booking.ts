@@ -301,12 +301,10 @@ export async function createBooking(
             return { success: false, error: "Erro ao processar agendamento." };
         }
 
-        // --- SISTEMA DE CLONAGEM PARA O KANBAN DE LEADS ---
-        // Aqui nós criamos o equivalente desse Booking lá na tabela de Leads para que 
-        // o CallMeBot funcione, e o sistema Drag and Drop de aprovação na aba do Admin apareça.
+        // Clona o booking na tabela de leads para integração com Kanban + CallMeBot
         try {
             await supabase.from('leads').insert({
-                id: bookingId, // O token mágico para garantir o webhook 1:1
+                id: bookingId,
                 nome: client_name,
                 whatsapp: client_phone,
                 service_name: serviceData.name,
@@ -317,8 +315,7 @@ export async function createBooking(
                 mensagem_interesse: notes ?? ""
             });
         } catch (cloneErr) {
-            console.error("[createBooking] Erro ao clonar para a table de Leads:", cloneErr);
-            // Ignoraremos o throw erro para não impedir o usuário, pois o booking em si já existe!
+            console.error("[createBooking] Erro ao clonar para leads:", cloneErr);
         }
 
         try {

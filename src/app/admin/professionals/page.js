@@ -17,7 +17,6 @@ export default function ProfessionalsPage() {
         gallery_urls: [],
     });
 
-    // Estado para upload
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
 
@@ -81,11 +80,14 @@ export default function ProfessionalsPage() {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
                     canvas.toBlob((blob) => {
-                        const compressedFile = new File([blob], file.name, {
+                        if (!blob) {
+                            reject(new Error('Falha ao comprimir imagem.'));
+                            return;
+                        }
+                        resolve(new File([blob], file.name, {
                             type: 'image/jpeg',
                             lastModified: Date.now()
-                        });
-                        resolve(compressedFile);
+                        }));
                     }, 'image/jpeg', 0.8);
                 };
                 img.onerror = reject;
@@ -107,7 +109,6 @@ export default function ProfessionalsPage() {
         setUploading(true);
 
         try {
-            // Comprime antes do upload
             const compressedFiles = await Promise.all(toUpload.map(compressImage));
             const uploadPromises = compressedFiles.map(uploadFile);
             const urls = await Promise.all(uploadPromises);
@@ -261,7 +262,6 @@ export default function ProfessionalsPage() {
                         {editingId ? 'Editar Profissional' : 'Cadastrar Novo Terapeuta'}
                     </h3>
                     <form onSubmit={handleSave} className="space-y-6">
-                        {/* Campos de dados */}
                         <div className="grid md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nome Completo</label>
@@ -316,7 +316,6 @@ export default function ProfessionalsPage() {
                             </div>
                         </div>
 
-                        {/* ─── Galeria de Fotos (Drag & Drop) ──────────────── */}
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
                                 <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-2">
@@ -328,7 +327,6 @@ export default function ProfessionalsPage() {
                                 </span>
                             </div>
 
-                            {/* Preview das fotos já adicionadas */}
                             {newPro.gallery_urls.length > 0 && (
                                 <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
                                     {newPro.gallery_urls.map((url, index) => (
@@ -345,13 +343,11 @@ export default function ProfessionalsPage() {
                                                     e.target.src = `https://ui-avatars.com/api/?name=Erro&background=fee2e2&color=ef4444&size=200`;
                                                 }}
                                             />
-                                            {/* Badge de posição */}
                                             {index === 0 && (
                                                 <div className="absolute top-2 left-2 bg-cyan-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
                                                     Principal
                                                 </div>
                                             )}
-                                            {/* Botão remover */}
                                             <button
                                                 type="button"
                                                 onClick={() => removePhoto(index)}
@@ -360,7 +356,6 @@ export default function ProfessionalsPage() {
                                             >
                                                 <X size={12} />
                                             </button>
-                                            {/* Overlay hover */}
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all pointer-events-none" />
                                         </div>
                                     ))}
@@ -418,7 +413,6 @@ export default function ProfessionalsPage() {
                             )}
                         </div>
 
-                        {/* Botões de ação */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                             <button type="button" onClick={closeForm} className="text-slate-500 hover:bg-slate-100 px-6 py-3 rounded-xl font-medium transition-colors">Cancelar</button>
                             <button
@@ -436,13 +430,13 @@ export default function ProfessionalsPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {pros.map(pro => {
                     const galleryCount = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com')).length;
-                    const avatarUrl = pro.photo_url && !pro.photo_url.includes('ui-avatars.com')
-                        ? pro.photo_url
-                        : `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f8fafc&color=334155&size=400&bold=true`;
+                    const validGallery = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com'));
+                    const avatarUrl = validGallery[0]
+                        || (pro.photo_url && !pro.photo_url.includes('ui-avatars.com') ? pro.photo_url : null)
+                        || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f8fafc&color=334155&size=400&bold=true`;
 
                     return (
                         <div key={pro.id} className={`group bg-white/60 backdrop-blur-md rounded-3xl p-6 transition-all duration-300 relative overflow-hidden ${pro.active ? 'border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1' : 'border border-slate-100 opacity-60 grayscale'}`}>
-                            {/* Status Indicator */}
                             <div className={`absolute top-4 right-4 w-3 h-3 rounded-full ${pro.active ? 'bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'bg-slate-300'}`}></div>
 
                             <div className="flex flex-col items-center text-center">
@@ -457,7 +451,6 @@ export default function ProfessionalsPage() {
                                         }}
                                         className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-[center_20%] shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                     />
-                                    {/* Badge de quantidade de fotos */}
                                     {galleryCount > 0 && (
                                         <div className="absolute -bottom-1 right-2 bg-white/90 backdrop-blur-sm text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200 shadow-md z-20 flex items-center gap-1">
                                             <Camera size={10} />

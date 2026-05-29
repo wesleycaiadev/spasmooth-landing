@@ -47,17 +47,23 @@ export default function ProfessionalSelector({
                     }`}
                 >
                     <div className="aspect-square relative flex items-center justify-center bg-slate-100">
-                        {pro.photo_url ? (
-                            <Image
-                                src={pro.photo_url}
-                                alt={pro.name}
-                                fill
-                                sizes="(max-width: 768px) 50vw, 33vw"
-                                className="object-cover object-top"
-                            />
-                        ) : (
-                            <span className="text-slate-300 text-xs">Sem foto</span>
-                        )}
+                        {(() => {
+                            const validGallery = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com'));
+                            const resolvedUrl = validGallery[0] || pro.photo_url;
+                            const hasPhoto = resolvedUrl && !resolvedUrl.includes('ui-avatars.com');
+
+                            return hasPhoto ? (
+                                <Image
+                                    src={encodeURI(resolvedUrl)}
+                                    alt={pro.name}
+                                    fill
+                                    sizes="(max-width: 768px) 50vw, 33vw"
+                                    className="object-cover object-top"
+                                />
+                            ) : (
+                                <span className="text-slate-300 text-xs">Sem foto</span>
+                            );
+                        })()}
                         {selectedId === pro.id && (
                             <div className="absolute inset-0 bg-cyan-500/40 flex items-center justify-center">
                                 <CheckCircle className="text-white w-10 h-10 drop-shadow-lg" />
