@@ -48,8 +48,15 @@ export default function ProfessionalSelector({
                 >
                     <div className="aspect-square relative flex items-center justify-center bg-slate-100">
                         {(() => {
-                            const validGallery = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com'));
-                            const resolvedUrl = validGallery[0] || pro.photo_url;
+                            const normalizeUrl = (url) => {
+                                if (!url) return url;
+                                if (typeof url === 'string' && url.includes('day (')) {
+                                    return url.replace(/\s*\((\d+)\)/g, '-$1');
+                                }
+                                return url;
+                            };
+                            const validGallery = (pro.gallery_urls || []).map(normalizeUrl).filter(u => u && !u.includes('ui-avatars.com'));
+                            const resolvedUrl = normalizeUrl(validGallery[0] || pro.photo_url);
                             const hasPhoto = resolvedUrl && !resolvedUrl.includes('ui-avatars.com');
 
                             return hasPhoto ? (

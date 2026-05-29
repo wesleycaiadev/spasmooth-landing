@@ -55,8 +55,15 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
             if (result.success && result.data) {
                 const mappedPros = result.data.map(p => {
                     const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
-                    const dbGallery = (p.gallery_urls || []).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
-                    let photoUrl = dbGallery[0] || fallbackData?.avatar || p.photo_url || null;
+                    const normalizeUrl = (url) => {
+                        if (!url) return url;
+                        if (typeof url === 'string' && url.includes('day (')) {
+                            return url.replace(/\s*\((\d+)\)/g, '-$1');
+                        }
+                        return url;
+                    };
+                    const dbGallery = (p.gallery_urls || []).map(normalizeUrl).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
+                    let photoUrl = dbGallery[0] || fallbackData?.avatar || normalizeUrl(p.photo_url) || null;
                     if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
                     if (!photoUrl && fallbackData?.avatar) {
                         photoUrl = fallbackData.avatar;
