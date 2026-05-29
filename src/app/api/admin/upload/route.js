@@ -21,7 +21,7 @@ export async function POST(request) {
         const user = await currentUser();
         const email = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
 
-        if (!email || !ADMIN_EMAILS.includes(email)) {
+        if (!email || (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(email))) {
             return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
         }
 
@@ -95,7 +95,7 @@ export async function DELETE(request) {
         const user = await currentUser();
         const email = user?.emailAddresses?.[0]?.emailAddress?.toLowerCase();
 
-        if (!email || !ADMIN_EMAILS.includes(email)) {
+        if (!email || (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(email))) {
             return NextResponse.json({ error: 'Acesso negado.' }, { status: 403 });
         }
 

@@ -12,6 +12,7 @@ import {
     getAvailableSlots,
     createBooking,
 } from "@/services/booking";
+import { PROFESSIONALS as oldProsFallback } from "@/lib/data";
 
 export default function BookingWizard({ initialProfessional = null, hideHeader = false }) {
     const router = useRouter();
@@ -52,7 +53,21 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
             setProsLoading(true);
             const result = await getActiveProfessionals(booking.location);
             if (result.success && result.data) {
-                setProfessionals(result.data);
+                const mappedPros = result.data.map(p => {
+                    const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+                    const dbGallery = (p.gallery_urls || []).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
+                    let photoUrl = dbGallery[0] || fallbackData?.avatar || p.photo_url || null;
+                    if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
+                    if (!photoUrl && fallbackData?.avatar) {
+                        photoUrl = fallbackData.avatar;
+                    }
+                    return {
+                        ...p,
+                        photo_url: photoUrl,
+                        gallery_urls: dbGallery.length > 0 ? dbGallery : (fallbackData?.gallery || [])
+                    };
+                });
+                setProfessionals(mappedPros);
             } else {
                 setProfessionals([]);
             }

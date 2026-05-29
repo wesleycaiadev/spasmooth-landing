@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import * as proService from '@/services/admin/professionals';
+import { PROFESSIONALS as oldProsFallback } from '@/lib/data';
 import { UserPlus, Trash2, Pencil, Upload, X, ImagePlus, GripVertical, Camera } from 'lucide-react';
 
 const MAX_PHOTOS = 5;
@@ -24,7 +25,25 @@ export default function ProfessionalsPage() {
         setLoading(true);
         try {
             const result = await proService.getProfessionals();
-            setPros(result.success ? result.data : []);
+            if (result.success && result.data) {
+                const mappedPros = result.data.map(p => {
+                    const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
+                    const dbGallery = (p.gallery_urls || []).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
+                    let photoUrl = dbGallery[0] || fallbackData?.avatar || p.photo_url || null;
+                    if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
+                    if (!photoUrl && fallbackData?.avatar) {
+                        photoUrl = fallbackData.avatar;
+                    }
+                    return {
+                        ...p,
+                        photo_url: photoUrl,
+                        gallery_urls: dbGallery.length > 0 ? dbGallery : (fallbackData?.gallery || [])
+                    };
+                });
+                setPros(mappedPros);
+            } else {
+                setPros([]);
+            }
         } catch (err) {
             console.error(err);
         }
