@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import * as proService from '@/services/admin/professionals';
-import { PROFESSIONALS as oldProsFallback } from '@/lib/data';
-import { UserPlus, Trash2, Pencil, Upload, X, ImagePlus, GripVertical, Camera } from 'lucide-react';
+import { normalizeProfessionalForAdmin, buildAvatarPlaceholder } from '@/lib/professionals';
+import PhotoUploader from '@/components/admin/PhotoUploader';
+import { UserPlus, Trash2, Pencil, Camera } from 'lucide-react';
 
 const MAX_PHOTOS = 5;
 
@@ -18,36 +19,14 @@ export default function ProfessionalsPage() {
         gallery_urls: [],
     });
 
-    const [uploading, setUploading] = useState(false);
-    const [dragOver, setDragOver] = useState(false);
+    // ─── Fetch ────────────────────────────────────────────
 
     const fetchPros = async () => {
         setLoading(true);
         try {
             const result = await proService.getProfessionals();
             if (result.success && result.data) {
-                const mappedPros = result.data.map(p => {
-                    const fallbackData = oldProsFallback.find(old => old.name.trim().toLowerCase() === p.name.trim().toLowerCase());
-                    const normalizeUrl = (url) => {
-                        if (!url) return url;
-                        if (typeof url === 'string' && url.includes('day (')) {
-                            return url.replace(/\s*\((\d+)\)/g, '-$1');
-                        }
-                        return url;
-                    };
-                    const dbGallery = (p.gallery_urls || []).map(normalizeUrl).filter(url => url && !url.includes('ui-avatars.com') && !url.includes('/assets/pros/'));
-                    let photoUrl = dbGallery[0] || fallbackData?.avatar || normalizeUrl(p.photo_url) || null;
-                    if (photoUrl && (photoUrl.includes('/assets/pros/') || photoUrl.includes('ui-avatars.com'))) photoUrl = null;
-                    if (!photoUrl && fallbackData?.avatar) {
-                        photoUrl = fallbackData.avatar;
-                    }
-                    return {
-                        ...p,
-                        photo_url: photoUrl,
-                        gallery_urls: dbGallery.length > 0 ? dbGallery : (fallbackData?.gallery || [])
-                    };
-                });
-                setPros(mappedPros);
+                setPros(result.data.map(normalizeProfessionalForAdmin));
             } else {
                 setPros([]);
             }
@@ -61,124 +40,8 @@ export default function ProfessionalsPage() {
         fetchPros();
     }, []);
 
-    // ─── Upload de Arquivo ────────────────────────────────────
-    const uploadFile = async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
+    // ─── Salvar ───────────────────────────────────────────
 
-        const res = await fetch('/api/admin/upload', {
-            method: 'POST',
-            body: formData,
-        });
-
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Falha no upload');
-        return data.url;
-    };
-
-    const compressImage = (file) => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1080;
-                    const MAX_HEIGHT = 1080;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) {
-                            height *= MAX_WIDTH / width;
-                            width = MAX_WIDTH;
-                        }
-                    } else {
-                        if (height > MAX_HEIGHT) {
-                            width *= MAX_HEIGHT / height;
-                            height = MAX_HEIGHT;
-                        }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-                    canvas.toBlob((blob) => {
-                        if (!blob) {
-                            reject(new Error('Falha ao comprimir imagem.'));
-                            return;
-                        }
-                        resolve(new File([blob], file.name, {
-                            type: 'image/jpeg',
-                            lastModified: Date.now()
-                        }));
-                    }, 'image/jpeg', 0.8);
-                };
-                img.onerror = reject;
-            };
-            reader.onerror = reject;
-        });
-    };
-
-    const handleFilesSelected = useCallback(async (files) => {
-        const fileList = Array.from(files);
-        const remaining = MAX_PHOTOS - newPro.gallery_urls.length;
-
-        if (remaining <= 0) {
-            alert(`Máximo de ${MAX_PHOTOS} fotos atingido.`);
-            return;
-        }
-
-        const toUpload = fileList.slice(0, remaining);
-        setUploading(true);
-
-        try {
-            const compressedFiles = await Promise.all(toUpload.map(compressImage));
-            const uploadPromises = compressedFiles.map(uploadFile);
-            const urls = await Promise.all(uploadPromises);
-            setNewPro(prev => ({
-                ...prev,
-                gallery_urls: [...prev.gallery_urls, ...urls],
-            }));
-        } catch (err) {
-            alert(err.message || 'Erro ao fazer upload.');
-            console.error(err);
-        } finally {
-            setUploading(false);
-        }
-    }, [newPro.gallery_urls.length]);
-
-    const removePhoto = (index) => {
-        setNewPro(prev => ({
-            ...prev,
-            gallery_urls: prev.gallery_urls.filter((_, i) => i !== index),
-        }));
-    };
-
-    // ─── Drag & Drop ──────────────────────────────────────────
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragOver(true);
-    };
-
-    const handleDragLeave = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragOver(false);
-    };
-
-    const handleDrop = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setDragOver(false);
-        const files = e.dataTransfer.files;
-        if (files.length > 0) handleFilesSelected(files);
-    };
-
-    // ─── Salvar ───────────────────────────────────────────────
     const handleSave = async (e) => {
         e.preventDefault();
         if (!newPro.name) return;
@@ -209,6 +72,8 @@ export default function ProfessionalsPage() {
         }
     };
 
+    // ─── Editar ───────────────────────────────────────────
+
     const handleEdit = (pro) => {
         setNewPro({
             name: pro.name,
@@ -221,6 +86,8 @@ export default function ProfessionalsPage() {
         setEditingId(pro.id);
         setIsAdding(true);
     };
+
+    // ─── Toggle Active / Delete ───────────────────────────
 
     const toggleActive = async (id, currentStatus) => {
         try {
@@ -242,6 +109,8 @@ export default function ProfessionalsPage() {
         }
     };
 
+    // ─── Fechar Form ──────────────────────────────────────
+
     const closeForm = () => {
         setIsAdding(false);
         setEditingId(null);
@@ -252,8 +121,11 @@ export default function ProfessionalsPage() {
         });
     };
 
+    // ─── Render ───────────────────────────────────────────
+
     return (
         <div className="max-w-6xl mx-auto animate-fadeIn pb-12">
+            {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-slate-800 tracking-tight">Equipe Profissional</h1>
@@ -280,6 +152,7 @@ export default function ProfessionalsPage() {
                 </button>
             </div>
 
+            {/* Form */}
             {isAdding && (
                 <div className="bg-white/80 backdrop-blur-md p-8 rounded-3xl border border-white/50 shadow-xl mb-12 animate-slideDown relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-100/30 rounded-full blur-3xl -z-10"></div>
@@ -342,108 +215,17 @@ export default function ProfessionalsPage() {
                             </div>
                         </div>
 
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <label className="text-xs font-bold text-slate-500 uppercase ml-1 flex items-center gap-2">
-                                    <Camera size={14} />
-                                    Galeria de Fotos
-                                </label>
-                                <span className="text-xs text-slate-400 font-medium">
-                                    {newPro.gallery_urls.length}/{MAX_PHOTOS} fotos
-                                </span>
-                            </div>
-
-                            {newPro.gallery_urls.length > 0 && (
-                                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                                    {newPro.gallery_urls.map((url, index) => (
-                                        <div
-                                            key={index}
-                                            className="relative group aspect-square rounded-2xl overflow-hidden border-2 border-slate-200 hover:border-cyan-400 transition-all shadow-sm"
-                                        >
-                                            <img
-                                                src={url}
-                                                alt={`Foto ${index + 1}`}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    e.target.onerror = null;
-                                                    e.target.src = `https://ui-avatars.com/api/?name=Erro&background=fee2e2&color=ef4444&size=200`;
-                                                }}
-                                            />
-                                            {index === 0 && (
-                                                <div className="absolute top-2 left-2 bg-cyan-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shadow-lg">
-                                                    Principal
-                                                </div>
-                                            )}
-                                            <button
-                                                type="button"
-                                                onClick={() => removePhoto(index)}
-                                                className="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg transform hover:scale-110"
-                                                title="Remover foto"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all pointer-events-none" />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Área de Drag & Drop */}
-                            {newPro.gallery_urls.length < MAX_PHOTOS && (
-                                <div
-                                    onDragOver={handleDragOver}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={handleDrop}
-                                    className={`relative border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-300 cursor-pointer ${
-                                        dragOver
-                                            ? 'border-cyan-500 bg-cyan-50/50 scale-[1.01]'
-                                            : 'border-slate-200 bg-slate-50/30 hover:border-cyan-300 hover:bg-cyan-50/20'
-                                    } ${uploading ? 'pointer-events-none opacity-60' : ''}`}
-                                    onClick={() => {
-                                        if (!uploading) document.getElementById('photo-input')?.click();
-                                    }}
-                                >
-                                    {uploading ? (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-10 h-10 border-3 border-cyan-200 border-t-cyan-600 rounded-full animate-spin" />
-                                            <p className="text-sm text-cyan-600 font-bold">Enviando fotos...</p>
-                                        </div>
-                                    ) : (
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-14 h-14 bg-cyan-100/60 rounded-2xl flex items-center justify-center">
-                                                <ImagePlus size={24} className="text-cyan-600" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-600">
-                                                    Arraste fotos aqui ou <span className="text-cyan-600 underline">clique para selecionar</span>
-                                                </p>
-                                                <p className="text-xs text-slate-400 mt-1">
-                                                    JPG, PNG ou WebP · Máximo 5 MB por foto · Até {MAX_PHOTOS - newPro.gallery_urls.length} foto{MAX_PHOTOS - newPro.gallery_urls.length !== 1 ? 's' : ''}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <input
-                                        id="photo-input"
-                                        type="file"
-                                        accept="image/jpeg,image/png,image/webp"
-                                        multiple
-                                        className="hidden"
-                                        onChange={(e) => {
-                                            if (e.target.files?.length) handleFilesSelected(e.target.files);
-                                            e.target.value = '';
-                                        }}
-                                    />
-                                </div>
-                            )}
-                        </div>
+                        {/* PhotoUploader — substitui toda a lógica inline anterior */}
+                        <PhotoUploader
+                            photos={newPro.gallery_urls}
+                            onChange={(urls) => setNewPro(prev => ({ ...prev, gallery_urls: urls }))}
+                            maxPhotos={MAX_PHOTOS}
+                        />
 
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
                             <button type="button" onClick={closeForm} className="text-slate-500 hover:bg-slate-100 px-6 py-3 rounded-xl font-medium transition-colors">Cancelar</button>
                             <button
                                 type="submit"
-                                disabled={uploading}
                                 className="bg-cyan-600 text-white px-8 py-3 rounded-xl hover:bg-cyan-700 font-bold shadow-lg shadow-cyan-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {editingId ? 'Atualizar Dados' : 'Salvar Cadastro'}
@@ -453,13 +235,13 @@ export default function ProfessionalsPage() {
                 </div>
             )}
 
+            {/* Grid de Profissionais */}
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {pros.map(pro => {
-                    const galleryCount = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com')).length;
                     const validGallery = (pro.gallery_urls || []).filter(u => u && !u.includes('ui-avatars.com'));
                     const avatarUrl = validGallery[0]
                         || (pro.photo_url && !pro.photo_url.includes('ui-avatars.com') ? pro.photo_url : null)
-                        || `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f8fafc&color=334155&size=400&bold=true`;
+                        || buildAvatarPlaceholder(pro.name);
 
                     return (
                         <div key={pro.id} className={`group bg-white/60 backdrop-blur-md rounded-3xl p-6 transition-all duration-300 relative overflow-hidden ${pro.active ? 'border border-white/60 shadow-lg hover:shadow-xl hover:-translate-y-1' : 'border border-slate-100 opacity-60 grayscale'}`}>
@@ -473,14 +255,14 @@ export default function ProfessionalsPage() {
                                         alt={pro.name}
                                         onError={(e) => {
                                             e.target.onerror = null;
-                                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(pro.name)}&background=f1f5f9&color=64748b&bold=true`;
+                                            e.target.src = buildAvatarPlaceholder(pro.name);
                                         }}
                                         className="w-32 h-32 md:w-40 md:h-40 rounded-full object-cover object-[center_20%] shadow-2xl border-4 border-white relative z-10 transition-transform duration-500 group-hover:scale-105"
                                     />
-                                    {galleryCount > 0 && (
+                                    {validGallery.length > 0 && (
                                         <div className="absolute -bottom-1 right-2 bg-white/90 backdrop-blur-sm text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200 shadow-md z-20 flex items-center gap-1">
                                             <Camera size={10} />
-                                            {galleryCount}
+                                            {validGallery.length}
                                         </div>
                                     )}
                                 </div>
