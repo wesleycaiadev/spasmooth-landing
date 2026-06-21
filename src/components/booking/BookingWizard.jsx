@@ -227,28 +227,28 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
     return (
         <div
-            className={`bg-white/95 backdrop-blur-xl rounded-3xl overflow-hidden max-w-4xl w-[95%] md:w-full mx-auto animate-slideUp my-4 ${
+            className={`bg-white/95 backdrop-blur-xl rounded-2xl md:rounded-3xl overflow-hidden max-w-4xl w-full mx-auto animate-slideUp my-2 ${
                 hideHeader
                     ? "shadow-none border-none"
-                    : "shadow-2xl shadow-cyan-600/10 border border-slate-200/50"
+                    : "shadow-xl shadow-cyan-600/10 border border-slate-200/50"
             }`}
         >
             {!hideHeader && (
-                <div className="bg-[#FFFDF9] p-4 md:p-6 flex justify-between items-end border-b border-[#f0e6d2]">
+                <div className="bg-[#FFFDF9] p-3 md:p-5 flex justify-between items-end border-b border-[#f0e6d2]">
                     <div>
-                        <span className="text-[10px] font-bold text-cyan-700 uppercase tracking-widest block mb-1">
+                        <span className="text-[9px] font-bold text-cyan-700 uppercase tracking-widest block mb-0.5">
                             PASSO {step} DE {totalSteps}
                         </span>
-                        <h2 className="text-xl font-serif text-[#4a4a4a] leading-tight">
+                        <h2 className="text-base md:text-lg font-serif text-[#4a4a4a] leading-tight">
                             {currentStepLabel}
                         </h2>
                     </div>
-                    <div className="flex gap-1.5 pb-1">
+                    <div className="flex gap-1 pb-1">
                         {Array.from({ length: totalSteps }, (_, i) => i + 1).map((i) => (
                             <div
                                 key={i}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${
-                                    step >= i ? "w-6 bg-cyan-600" : "w-2 bg-[#e0e0e0]"
+                                className={`h-1 rounded-full transition-all duration-300 ${
+                                    step >= i ? "w-5 bg-cyan-600" : "w-1.5 bg-[#e0e0e0]"
                                 }`}
                             />
                         ))}
@@ -256,17 +256,17 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                 </div>
             )}
 
-            <div className={`p-4 md:p-8 overflow-y-auto custom-scrollbar ${hideHeader ? "max-h-none" : "max-h-[600px]"}`}>
+            <div className={`p-3 md:p-6 overflow-y-auto custom-scrollbar ${hideHeader ? "max-h-none" : "max-h-[500px] md:max-h-[600px]"}`}>
                 {/* ========== STEP 1: Unidade + Profissional ========== */}
                 {step === 1 && (
                     <div className="animate-fadeIn">
-                        <div className="flex bg-slate-100 p-1 rounded-xl mb-6 mx-auto max-w-sm relative z-10 flex-wrap">
+                        <div className="flex bg-slate-100 p-1 rounded-xl mb-4 mx-auto max-w-xs md:max-w-sm relative z-10 flex-wrap">
                             {["Aracaju", "Maceió", "Recife"].map((loc) => (
                                 <button
                                     key={loc}
                                     type="button"
                                     onClick={() => handleLocationChange(loc)}
-                                    className={`flex-1 min-w-[30%] py-2 rounded-lg text-sm font-bold transition-all ${
+                                    className={`flex-1 min-w-[30%] py-2 rounded-lg text-xs font-bold transition-all duration-200 active:scale-95 ${
                                         booking.location === loc
                                             ? "bg-white text-cyan-700 shadow-sm"
                                             : "text-slate-500 hover:text-cyan-600"
@@ -301,7 +301,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             <div className="space-y-6">
                                 {combos.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider">
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider">
                                             Combos de Massagem
                                         </h3>
                                         <div className="space-y-3">
@@ -314,7 +314,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
                                 {daySpa.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
                                             Pacotes Day Spa
                                         </h3>
                                         <div className="space-y-3">
@@ -327,7 +327,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
                                 {estetica.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
                                             Estética e Cuidados Avulsos
                                         </h3>
                                         <div className="space-y-3">
@@ -340,7 +340,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
                                 {tantrica.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
                                             Terapias Sensoriais e Tântricas
                                         </h3>
                                         <div className="space-y-3">
@@ -353,8 +353,8 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
                                 {depilacao.length > 0 && (
                                     <div>
-                                        <h3 className="font-bold text-slate-700 mb-3 border-b border-cyan-100 pb-2 text-sm uppercase tracking-wider mt-6">
-                                            Depilação na Máquina
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
+                                            Depilação Suave
                                         </h3>
                                         <div className="space-y-3">
                                             {depilacao.map((svc) => (
@@ -366,13 +366,13 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
+                        <div className="flex gap-2 pt-3 border-t border-[#f0e6d2]">
                             <button
                                 type="button"
                                 onClick={() => setStep(1)}
-                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2"
+                                className="px-4 py-2.5 rounded-xl border border-[#e0e0e0] text-[#666] text-sm font-bold hover:bg-[#f5f5f5] transition-all duration-200 active:scale-95 flex items-center gap-1.5"
                             >
-                                <ChevronLeft size={16} /> Voltar
+                                <ChevronLeft size={14} /> Voltar
                             </button>
                         </div>
                     </div>
@@ -435,13 +435,13 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </div>
                         </div>
 
-                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
+                        <div className="flex gap-2 pt-3 border-t border-[#f0e6d2]">
                             <button
                                 type="button"
                                 onClick={() => setStep(2)}
-                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2"
+                                className="px-4 py-2.5 rounded-xl border border-[#e0e0e0] text-[#666] text-sm font-bold hover:bg-[#f5f5f5] transition-all duration-200 active:scale-95 flex items-center gap-1.5"
                             >
-                                <ChevronLeft size={16} /> Voltar
+                                <ChevronLeft size={14} /> Voltar
                             </button>
                         </div>
                     </div>
@@ -569,14 +569,14 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </div>
                         )}
 
-                        <div className="flex gap-3 pt-4 border-t border-[#f0e6d2]">
+                        <div className="flex gap-2 pt-3 border-t border-[#f0e6d2]">
                             <button
                                 type="button"
                                 onClick={() => setStep(3)}
                                 disabled={isPending}
-                                className="px-6 py-3 rounded-xl border border-[#e0e0e0] text-[#666] font-bold hover:bg-[#f5f5f5] transition-colors flex items-center gap-2 disabled:opacity-50"
+                                className="px-4 py-2.5 rounded-xl border border-[#e0e0e0] text-[#666] text-sm font-bold hover:bg-[#f5f5f5] transition-all duration-200 active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
                             >
-                                <ChevronLeft size={16} /> Voltar
+                                <ChevronLeft size={14} /> Voltar
                             </button>
                             <button
                                 type="button"
@@ -586,7 +586,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                                     !booking.client_name.trim() ||
                                     !booking.client_phone.trim()
                                 }
-                                className="flex-1 bg-gradient-to-r from-cyan-700 to-cyan-800 text-white font-bold py-3 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+                                className="flex-1 bg-gradient-to-r from-cyan-700 to-cyan-800 text-white text-sm font-bold py-2.5 rounded-xl disabled:opacity-50 hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2"
                             >
                                 {isPending ? (
                                     <>
@@ -618,27 +618,27 @@ function ServiceCard({ service, isSelected, onSelect }) {
         <button
             type="button"
             onClick={onSelect}
-            className={`w-full text-left bg-[#fcfbf9] border rounded-xl transition-all duration-300 p-4 ${
+            className={`w-full text-left border rounded-2xl transition-all duration-200 p-3 active:scale-[0.98] ${
                 isSelected
-                    ? "border-cyan-600 ring-1 ring-cyan-600/30 bg-cyan-50/30"
-                    : "border-[#f0e6d2] hover:border-cyan-600/50"
+                    ? "border-cyan-500 ring-1 ring-cyan-500/30 bg-cyan-50 shadow-sm"
+                    : "border-slate-100 bg-white hover:border-cyan-300 hover:bg-cyan-50/20"
             }`}
         >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-[#4a4a4a] text-sm mb-1">{service.name}</h4>
-                    <p className="text-xs text-[#888] leading-relaxed line-clamp-2">
+                    <h4 className="font-bold text-slate-700 text-xs md:text-sm mb-0.5">{service.name}</h4>
+                    <p className="text-[11px] text-slate-400 font-light leading-relaxed line-clamp-2">
                         {service.description}
                     </p>
                 </div>
                 <div className="text-right shrink-0">
-                    <div className="text-xs text-slate-400">{service.duration_minutes}min</div>
-                    <div className="font-bold text-slate-700 text-sm">{priceFormatted}</div>
+                    <div className="text-[10px] text-slate-400 font-medium">{service.duration_minutes}min</div>
+                    <div className="font-bold text-slate-700 text-xs">{priceFormatted}</div>
                 </div>
             </div>
             {isSelected && (
-                <div className="mt-2 flex items-center gap-1 text-cyan-700 text-xs font-bold">
-                    <CheckCircle size={14} /> Selecionado
+                <div className="mt-1.5 flex items-center gap-1 text-cyan-600 text-[11px] font-bold">
+                    <CheckCircle size={12} /> Selecionado
                 </div>
             )}
         </button>

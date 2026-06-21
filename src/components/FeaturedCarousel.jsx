@@ -44,7 +44,7 @@ export default function FeaturedCarousel({ services = [] }) {
 
     return (
         <div 
-            className="w-full relative py-12 px-6 md:px-12 overflow-hidden bg-slate-900 text-white rounded-[3rem] my-12 shadow-2xl shadow-slate-900/40 border border-slate-800"
+            className="w-full relative py-8 px-4 md:py-12 md:px-10 overflow-hidden bg-slate-900 text-white rounded-2xl md:rounded-[3rem] my-6 md:my-12 shadow-xl shadow-slate-900/30 border border-slate-800"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
@@ -54,7 +54,7 @@ export default function FeaturedCarousel({ services = [] }) {
 
             <div className="text-center mb-10 relative z-10 max-w-2xl mx-auto">
                 <span className="text-yellow-500 font-medium tracking-widest uppercase text-xs mb-3 block">Assinatura SpaSmooth</span>
-                <h2 className="text-3xl md:text-5xl font-serif mb-4">Nossas Experiências Memoráveis</h2>
+                <h2 className="text-xl md:text-4xl font-serif mb-3">Nossas Experiências Memoráveis</h2>
                 <p className="text-slate-400 text-sm">Descubra os momentos de bem-estar mais cobiçados do nosso spa.</p>
             </div>
 
@@ -76,7 +76,7 @@ export default function FeaturedCarousel({ services = [] }) {
                     </>
                 )}
 
-                <div className="relative min-h-[550px] md:min-h-[450px] w-full">
+                <div className="relative min-h-[400px] md:min-h-[450px] w-full">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentIndex}
@@ -84,7 +84,7 @@ export default function FeaturedCarousel({ services = [] }) {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.5, ease: "easeInOut" }}
-                            className={`absolute inset-0 w-full h-full p-8 md:p-14 rounded-[2.5rem] flex flex-col md:flex-row gap-6 md:gap-10 justify-between items-center
+                            className={`absolute inset-0 w-full h-full p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] flex flex-col md:flex-row gap-4 md:gap-8 justify-between items-center
                                 ${isMagic 
                                     ? 'bg-gradient-to-br from-yellow-900/40 to-black border-2 border-yellow-500/30 shadow-[0_0_40px_rgba(234,179,8,0.15)]' 
                                     : 'bg-slate-800/50 backdrop-blur-sm border border-slate-700/50'
@@ -96,7 +96,7 @@ export default function FeaturedCarousel({ services = [] }) {
                                         {isMagic ? <Gem size={32} /> : isTantrica ? <Flame size={32} /> : <Sparkles size={32} />}
                                     </div>
                                     <div className="flex flex-col items-center md:items-start justify-center">
-                                        <h3 className="text-2xl md:text-3xl font-serif font-bold mb-2">{service.name}</h3>
+                                        <h3 className="text-lg md:text-2xl font-serif font-bold mb-1">{service.name}</h3>
                                         <div className="flex gap-2">
                                             {isMagic && (
                                                 <div className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
@@ -112,7 +112,7 @@ export default function FeaturedCarousel({ services = [] }) {
                                     </div>
                                 </div>
                                 
-                                <p className={`text-sm md:text-lg leading-relaxed mb-6 md:mb-8 max-w-xl ${isMagic ? 'text-yellow-100/70' : 'text-slate-400'}`}>
+                                <p className={`text-xs md:text-base leading-relaxed mb-4 md:mb-6 max-w-xl font-light ${isMagic ? 'text-yellow-100/70' : 'text-slate-400'}`}>
                                     {service.description}
                                 </p>
                             </div>
@@ -120,14 +120,14 @@ export default function FeaturedCarousel({ services = [] }) {
                             <div className="w-full md:w-auto flex flex-col items-center md:items-end md:min-w-[320px]">
                                 <div className="text-center md:text-right mb-6 md:mb-10">
                                     <div className="text-slate-500 text-xs md:text-sm uppercase font-medium tracking-widest mb-2">Duração & Valor</div>
-                                    <div className={`text-4xl md:text-5xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : 'text-white'}`}>
+                                    <div className={`text-2xl md:text-4xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : 'text-white'}`}>
                                         R$ {Number(service.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                     </div>
                                 </div>
                                 
                                 <button 
                                     onClick={() => handleBooking(service)}
-                                    className={`w-full py-4 md:py-5 px-8 rounded-full text-sm md:text-base font-bold tracking-widest uppercase transition-all duration-300 transform hover:-translate-y-1
+                                    className={`w-full py-3 md:py-4 px-6 rounded-full text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-200 active:scale-95 hover:-translate-y-0.5
                                         ${isMagic 
                                             ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-yellow-950 shadow-xl shadow-yellow-500/30' 
                                             : 'bg-white hover:bg-cyan-50 text-slate-900 shadow-xl shadow-white/10'

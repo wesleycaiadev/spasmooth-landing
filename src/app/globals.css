@@ -118,3 +118,22 @@ html {
   background: #94a3b8;
 }
 
+/* Hide scrollbar for horizontal carousel */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Bottom sheet slide-up animation */
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0.5; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slideUpSheet {
+  animation: slideUpSheet 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+}
+
+/* Accordion expand/collapse */
+.accordion-content {
+  overflow: hidden;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+}
+

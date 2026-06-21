@@ -40,10 +40,10 @@ export default function ServiceBookingCard({ treatment, isPremium = false }) {
     const isMagic = treatment.name.toLowerCase().includes('magic');
 
     return (
-        <div className={`p-8 rounded-[2.5rem] flex flex-col h-full relative overflow-hidden group transition-all duration-500 hover:-translate-y-2
+        <div className={`p-4 md:p-6 rounded-2xl md:rounded-3xl flex flex-col h-full relative overflow-hidden group transition-all duration-300 hover:-translate-y-1
             ${isPremium || isMagic 
-                ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-2xl shadow-slate-900/40 border-2 border-slate-700 hover:border-slate-500' 
-                : 'bg-white text-slate-800 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] border-2 border-slate-100 hover:border-cyan-100 hover:shadow-[0_20px_50px_-10px_rgba(6,182,212,0.15)]'
+                ? 'bg-gradient-to-br from-slate-900 to-slate-800 text-white shadow-lg shadow-slate-900/30 border border-slate-700 hover:border-slate-500' 
+                : 'bg-white text-slate-800 shadow-sm hover:shadow-md border border-slate-100 hover:border-cyan-100'
             }`}
         >
             {isMagic && (
@@ -51,42 +51,42 @@ export default function ServiceBookingCard({ treatment, isPremium = false }) {
             )}
             
             <div className="relative z-10 flex flex-col h-full">
-                <div className="flex items-start justify-between mb-6">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center
+                <div className="flex items-start justify-between mb-4">
+                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center
                         ${isMagic ? 'bg-yellow-500/20 text-yellow-400' : 
                           isPremium ? 'bg-white/10 text-white' : 'bg-cyan-50 text-cyan-600'}`}
                     >
-                        {isMagic ? <Gem size={28} /> : <Icon size={28} />}
+                        {isMagic ? <Gem size={22} /> : <Icon size={22} />}
                     </div>
                     
                     <div className="text-right">
-                        <div className={`text-xs font-medium uppercase tracking-wider mb-1 ${isPremium ? 'text-slate-400' : 'text-slate-400'}`}>{timeStr}</div>
-                        <div className={`text-xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : isPremium ? 'text-white' : 'text-slate-700'}`}>
+                        <div className={`text-[10px] font-medium uppercase tracking-wider mb-0.5 ${isPremium ? 'text-slate-400' : 'text-slate-400'}`}>{timeStr}</div>
+                        <div className={`text-base md:text-lg font-light tracking-wide ${isMagic ? 'text-yellow-400' : isPremium ? 'text-white' : 'text-slate-700'}`}>
                             {priceStr}
                         </div>
                     </div>
                 </div>
 
                 <div className="flex-grow flex flex-col relative z-10">
-                    <h3 className={`text-2xl font-serif mb-4 ${isPremium ? 'text-white' : 'text-slate-800'}`}>
+                    <h3 className={`text-base md:text-lg font-serif mb-2 ${isPremium ? 'text-white' : 'text-slate-800'}`}>
                         {treatment.name}
                     </h3>
                     
-                    <p className={`text-sm leading-relaxed mb-6 ${isPremium ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`text-xs md:text-sm leading-relaxed mb-4 font-light ${isPremium ? 'text-slate-400' : 'text-slate-500'}`}>
                         {treatment.description}
                     </p>
                 </div>
 
-                <div className="mt-auto pt-6">
+                <div className="mt-auto pt-4">
                     <button
                         type="button"
                         onClick={handleBooking}
-                        className={`w-full py-4 px-6 rounded-2xl text-sm font-bold tracking-widest uppercase transition-all duration-300 transform group-hover:scale-[1.02]
+                        className={`w-full py-3 px-5 rounded-xl text-xs font-bold tracking-widest uppercase transition-all duration-200 active:scale-95
                             ${isMagic 
-                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-yellow-950 shadow-lg shadow-yellow-500/20' 
+                                ? 'bg-gradient-to-r from-yellow-500 to-yellow-400 hover:from-yellow-400 hover:to-yellow-300 text-yellow-950 shadow-md shadow-yellow-500/20' 
                                 : isPremium 
-                                    ? 'bg-white hover:bg-slate-100 text-slate-900 shadow-lg shadow-white/5' 
-                                    : 'bg-slate-900 hover:bg-cyan-800 text-white shadow-lg shadow-slate-900/10'
+                                    ? 'bg-white hover:bg-slate-100 text-slate-900 shadow-md shadow-white/5' 
+                                    : 'bg-slate-900 hover:bg-cyan-800 text-white shadow-md shadow-slate-900/10'
                             }`}
                     >
                         Reservar Momento

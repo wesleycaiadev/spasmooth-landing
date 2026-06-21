@@ -54,10 +54,10 @@ export default function TimeSlotPicker({
                             type="button"
                             onClick={() => onSelect(time)}
                             className={`
-                                relative py-3 px-4 min-w-[80px] text-sm font-bold rounded-xl border transition-all duration-200 text-center
+                                relative py-2.5 px-3.5 min-w-[72px] text-sm font-bold rounded-2xl border transition-all duration-200 text-center active:scale-95
                                 ${
                                     isSelected
-                                        ? "bg-cyan-700 text-white border-cyan-700 shadow-md transform scale-105"
+                                        ? "bg-cyan-700 text-white border-cyan-700 shadow-md"
                                         : "bg-white text-slate-700 border-slate-200 hover:border-cyan-500 hover:text-cyan-700 hover:bg-cyan-50/50"
                                 }
                             `}
