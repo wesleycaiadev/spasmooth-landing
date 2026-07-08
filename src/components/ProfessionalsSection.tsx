@@ -10,7 +10,7 @@ import ProfessionalModal from './ProfessionalModal';
 
 export default function ProfessionalsSection() {
     const { location, changeLocation } = useLocation();
-    const [pros, setPros] = useState([]);
+    const [pros, setPros] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedPro, setSelectedPro] = useState(null);
 

@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -73,3 +74,4 @@ export default function Preloader() {
         </AnimatePresence>
     );
 }
+

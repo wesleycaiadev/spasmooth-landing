@@ -27,6 +27,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/react-big-calendar": "^1.16.3",
+    "@types/react-dom": "^19.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.1.7",
     "typescript": "6.0.3"

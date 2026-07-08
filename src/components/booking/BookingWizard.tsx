@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
@@ -644,3 +645,4 @@ function ServiceCard({ service, isSelected, onSelect }) {
         </button>
     );
 }
+

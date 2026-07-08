@@ -1,9 +1,7 @@
 "use strict";
 
 import { z } from "zod";
-
-const UNITS = ["Aracaju", "Maceió", "Recife"] as const;
-const BOOKING_STATUSES = ["pendente", "confirmado", "cancelado", "concluido"] as const;
+import { UNITS, BOOKING_STATUSES } from "@/lib/constants";
 
 const phoneRegex = /^\(?\d{2}\)?\s?\d{4,5}-?\d{4}$/;
 

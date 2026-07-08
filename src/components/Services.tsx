@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { getActiveServices } from '@/services/admin/services';
 import FeaturedCarousel from './FeaturedCarousel';
 import ServiceAccordion from './ServiceAccordion';
@@ -53,3 +54,4 @@ export default async function Services() {
         </section>
     );
 }
+

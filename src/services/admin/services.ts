@@ -5,19 +5,7 @@ import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
 import { createServiceSchema, updateServiceSchema } from '@/lib/validations/service';
 import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/service';
-
-export type Service = {
-    id: string;
-    name: string;
-    category: 'combo' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
-    price: number;
-    duration_minutes: number;
-    description: string;
-    active: boolean;
-    created_at: string;
-};
-
-type ActionResult = { success: true } | { success: false; error: string };
+import type { Service, ActionResult } from '@/types';
 
 export async function getServices(): Promise<Service[]> {
     const adminCheck = await verifyAdmin();
@@ -60,7 +48,7 @@ export async function getActiveServices(): Promise<Service[]> {
 export async function createService(input: CreateServiceInput): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const parsed = createServiceSchema.safeParse(input);
 
@@ -88,7 +76,7 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
 export async function updateService(id: string, input: UpdateServiceInput): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const parsed = updateServiceSchema.safeParse(input);
 
@@ -119,7 +107,7 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
 export async function updateServicePrice(id: string, price: number): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         if (typeof price !== 'number' || price < 0 || isNaN(price)) {
             return { success: false, error: 'Preço inválido.' };
@@ -148,7 +136,7 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
 export async function toggleServiceActive(id: string, currentStatus: boolean): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
         const { error } = await supabase
@@ -173,7 +161,7 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
 export async function deleteService(id: string): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
         const { error } = await supabase

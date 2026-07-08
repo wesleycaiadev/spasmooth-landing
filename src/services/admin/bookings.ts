@@ -9,33 +9,14 @@ import {
     type ListBookingsFilter,
 } from "@/lib/validations/booking";
 
-type ServiceResponse<T = unknown> = {
-    success: boolean;
-    data?: T;
-    error?: string;
-};
-
-export type BookingRow = {
-    id: string;
-    created_at: string;
-    unit: string;
-    professional_id: string;
-    service_id: string;
-    client_name: string;
-    client_phone: string;
-    starts_at: string;
-    ends_at: string;
-    status: string;
-    notes: string;
-    professionals: { name: string; location: string } | null;
-    services: { name: string; duration_minutes: number; price: number } | null;
-};
+import type { ServiceResponse, BookingWithRelations } from "@/types";
+import { BOOKING_TO_LEAD_STATUS } from "@/lib/constants";
 
 // verifyAdmin importado de @/lib/auth
 
 export async function listBookings(
     filters?: ListBookingsFilter
-): Promise<ServiceResponse<BookingRow[]>> {
+): Promise<ServiceResponse<BookingWithRelations[]>> {
     try {
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: "Acesso negado." };
@@ -85,7 +66,7 @@ export async function listBookings(
             return { success: false, error: "Erro ao buscar agendamentos." };
         }
 
-        return { success: true, data: data as BookingRow[] };
+        return { success: true, data: data as BookingWithRelations[] };
     } catch (e: any) {
         console.error("[listBookings exception]:", e);
         return { success: false, error: "Erro interno: " + (e.message || "") };
@@ -118,7 +99,7 @@ export async function updateBookingStatus(
         }
 
         // Sincronizar com tabela leads
-        const leadStatus = mapBookingStatusToLead(status);
+        const leadStatus = BOOKING_TO_LEAD_STATUS[status as keyof typeof BOOKING_TO_LEAD_STATUS] || 'novo';
         await supabase
             .from("leads")
             .update({ status_kanban: leadStatus })
@@ -133,7 +114,7 @@ export async function updateBookingStatus(
 export async function getWeeklyCalendar(
     professionalId: string,
     weekStartDate: string
-): Promise<ServiceResponse<BookingRow[]>> {
+): Promise<ServiceResponse<BookingWithRelations[]>> {
     try {
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: "Acesso negado." };
@@ -164,19 +145,9 @@ export async function getWeeklyCalendar(
             return { success: false, error: "Erro ao buscar grade semanal." };
         }
 
-        return { success: true, data: data as BookingRow[] };
+        return { success: true, data: data as BookingWithRelations[] };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
     }
 }
 
-/** Mapeia status de bookings para status do kanban de leads */
-function mapBookingStatusToLead(bookingStatus: string): string {
-    const map: Record<string, string> = {
-        'pendente': 'novo',
-        'confirmado': 'agendado',
-        'concluido': 'concluido',
-        'cancelado': 'cancelado',
-    };
-    return map[bookingStatus] ?? 'novo';
-}

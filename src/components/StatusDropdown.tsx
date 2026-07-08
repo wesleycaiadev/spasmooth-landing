@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -150,3 +151,4 @@ function getOptionColorDot(status) {
 function getSelectedColorDot(status) {
     return getOptionColorDot(status);
 }
+

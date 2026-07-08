@@ -8,43 +8,8 @@ import {
     type AvailableSlotsInput,
 } from "@/lib/validations/booking";
 
-type ServiceResponse<T = unknown> = {
-    success: boolean;
-    data?: T;
-    error?: string;
-};
-
-type Professional = {
-    id: string;
-    name: string;
-    photo_url: string | null;
-    gallery_urls: string[];
-    specialties: string[];
-    location: string;
-    location_start_date: string | null;
-    location_end_date: string | null;
-    active: boolean;
-};
-
-type Service = {
-    id: string;
-    name: string;
-    duration_minutes: number;
-    price: number;
-    description: string;
-    category: string;
-    active: boolean;
-};
-
-const BUSINESS_HOURS: Record<number, { start: number; end: number } | null> = {
-    0: null,
-    1: { start: 8, end: 20 },
-    2: { start: 8, end: 20 },
-    3: { start: 8, end: 20 },
-    4: { start: 8, end: 20 },
-    5: { start: 8, end: 20 },
-    6: { start: 9, end: 16 },
-};
+import type { ServiceResponse, Professional, Service } from "@/types";
+import { BUSINESS_HOURS, MINIMUM_ADVANCE_MINUTES } from "@/lib/constants";
 
 export async function getActiveProfessionals(
     unit: string
@@ -189,7 +154,6 @@ export async function getAvailableSlots(
         const todayIso = nowSp.toLocaleDateString("en-CA");
         const isToday = date === todayIso;
         const currentMinutes = nowSp.getHours() * 60 + nowSp.getMinutes();
-        const MINIMUM_ADVANCE = 30;
 
         const slots: string[] = [];
 
@@ -197,7 +161,7 @@ export async function getAvailableSlots(
             const timeStr = `${String(hour).padStart(2, "0")}:00`;
             const slotStartMinutes = hour * 60;
 
-            if (isToday && slotStartMinutes < currentMinutes + MINIMUM_ADVANCE) {
+            if (isToday && slotStartMinutes < currentMinutes + MINIMUM_ADVANCE_MINUTES) {
                 continue;
             }
 

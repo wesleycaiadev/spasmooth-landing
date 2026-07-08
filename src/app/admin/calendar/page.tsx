@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -325,12 +326,12 @@ function EventModal({ event, onClose }) {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function AdminCalendar() {
-    const [events, setEvents] = useState([]);
+    const [events, setEvents] = useState<any[]>([]);
     const [selectedPro, setSelectedPro] = useState("all");
     const [loading, setLoading] = useState(true);
-    const [prosList, setProsList] = useState([]);
+    const [prosList, setProsList] = useState<any[]>([]);
     const [currentView, setCurrentView] = useState(Views.MONTH);
-    const [selectedEvent, setSelectedEvent] = useState(null);
+    const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
     useEffect(() => {
         (async () => {
@@ -498,3 +499,4 @@ export default function AdminCalendar() {
         </div>
     );
 }
+

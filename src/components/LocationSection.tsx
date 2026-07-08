@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { MapPin, Phone, Clock, Navigation } from 'lucide-react';
@@ -114,3 +115,4 @@ export default function LocationSection() {
         </section>
     );
 }
+

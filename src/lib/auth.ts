@@ -8,19 +8,14 @@ export type AdminCheckResult = {
     error?: string;
 };
 
-// Pega as variáveis (tenta com S ou sem S para garantir)
 const envEmails = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
 
-// Divide por vírgula OU por quebra de linha (\n), limpa os espaços e deixa tudo minúsculo
 const ADMIN_EMAILS = envEmails
     .split(/[\n,]+/)
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-/**
- * Verifica se o usuário autenticado é admin.
- * Checa userId via Clerk + email contra ADMIN_EMAILS (env var).
- */
+
 export async function verifyAdmin(): Promise<AdminCheckResult> {
     const { userId } = await auth();
 

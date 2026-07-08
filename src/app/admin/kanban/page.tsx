@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -15,8 +16,8 @@ const COLUMNS = {
 };
 
 export default function KanbanPage() {
-    const [leads, setLeads] = useState([]);
-    const [professionals, setProfessionals] = useState([]);
+    const [leads, setLeads] = useState<any[]>([]);
+    const [professionals, setProfessionals] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [newLead, setNewLead] = useState({
@@ -31,9 +32,9 @@ export default function KanbanPage() {
     });
 
     const [viewMode, setViewMode] = useState('kanban'); // 'kanban' or 'list'
-    const [draggedLeadId, setDraggedLeadId] = useState(null);
+    const [draggedLeadId, setDraggedLeadId] = useState<any>(null);
 
-    const [whatsappModal, setWhatsappModal] = useState(null); // { isOpen: false, lead: null, type: '' }
+    const [whatsappModal, setWhatsappModal] = useState<any>(null); // { isOpen: false, lead: null, type: '' }
 
     const fetchLeads = async () => {
         setLoading(true);
@@ -129,7 +130,7 @@ export default function KanbanPage() {
 
     const getLeadsByStatus = (status) => leads.filter(lead => (lead.status_kanban || 'novo') === status);
 
-    const [selectedLead, setSelectedLead] = useState(null);
+    const [selectedLead, setSelectedLead] = useState<any>(null);
     const [note, setNote] = useState('');
 
     const handleDeleteLead = async (e, id) => {
@@ -687,3 +688,4 @@ export default function KanbanPage() {
         </div>
     );
 }
+

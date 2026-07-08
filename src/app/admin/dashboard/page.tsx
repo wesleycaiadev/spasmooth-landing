@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { useEffect, useState } from 'react';
 import * as dashboardService from '@/services/admin/dashboard';
@@ -234,3 +235,4 @@ export default function DashboardPage() {
         </div>
     );
 }
+

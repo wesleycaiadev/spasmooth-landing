@@ -1,8 +1,7 @@
 "use strict";
 
 import { z } from "zod";
-
-const SERVICE_CATEGORIES = ["combo", "day_spa", "estetica", "tantrica", "depilacao"] as const;
+import { SERVICE_CATEGORIES } from "@/lib/constants";
 
 export const createServiceSchema = z.object({
     name: z

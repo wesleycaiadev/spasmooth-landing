@@ -2,19 +2,12 @@
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
-
-export type DashboardLeadMetric = {
-    created_at: string;
-    appointment_date: string | null;
-    status_kanban: string;
-};
-
-type DataResult<T> = { success: true; data: T } | { success: false; error: string };
+import type { DashboardLeadMetric, DataResult } from '@/types';
 
 export async function getDashboardLeads(startDateISO: string, endDateISO: string): Promise<DataResult<DashboardLeadMetric[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         if (!startDateISO || !endDateISO) {
             return { success: false, error: 'Datas de início e fim são obrigatórias.' };

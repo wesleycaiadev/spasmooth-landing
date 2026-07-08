@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { useLocation } from '@/components/LocationProvider';
 
-export default function Hero() {
+export default function Hero(props: any) {
     const { location, isLoadingLocation } = useLocation();
 
     return (
@@ -45,7 +45,7 @@ export default function Hero() {
 
                     <div className="flex flex-col items-center gap-6 pt-4">
                         <button
-                            onClick={() => document.getElementById('profissionais').scrollIntoView({ behavior: 'smooth' })}
+                            onClick={() => document.getElementById('profissionais')?.scrollIntoView({ behavior: 'smooth' })}
                             className="bg-cyan-700 hover:bg-cyan-800 text-white text-lg font-bold px-10 py-4 rounded-full shadow-xl shadow-cyan-200 transition-all hover:scale-105"
                         >
                             Agendar Minha Sessão

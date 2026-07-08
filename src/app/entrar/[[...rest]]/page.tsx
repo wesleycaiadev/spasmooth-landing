@@ -13,7 +13,7 @@ export default function EntrarPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 gap-4">
         <h1 className="text-2xl font-bold text-green-800">Você já está logado!</h1>
-        <p className="text-green-600">Usuário: {user.primaryEmailAddress.emailAddress}</p>
+        <p className="text-green-600">Usuário: {user?.primaryEmailAddress?.emailAddress}</p>
         <div className="flex gap-4">
           <Link href="/admin/kanban" className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700">
             Ir para o Painel Admin

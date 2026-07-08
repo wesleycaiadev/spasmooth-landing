@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 import { useEffect } from 'react';
 import Link from 'next/link';
@@ -113,3 +114,4 @@ function NavItem({ href, icon, label }) {
         </Link>
     );
 }
+

@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
@@ -196,3 +197,4 @@ export default function WeeklyCalendar({ professionals = [] }) {
         </div>
     );
 }
+

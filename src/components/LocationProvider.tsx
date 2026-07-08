@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 
-const LocationContext = createContext();
+const LocationContext = createContext<any>(null);
 
 export const useLocation = () => useContext(LocationContext);
 

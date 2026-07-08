@@ -2,32 +2,13 @@
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
-
-export type Lead = {
-    id: string;
-    nome: string;
-    whatsapp: string;
-    email: string | null;
-    service_name: string | null;
-    professional_id: string | null;
-    appointment_date: string | null;
-    appointment_time: string | null;
-    mensagem_interesse: string | null;
-    status_kanban: string;
-    admin_notes: string | null;
-    created_at: string;
-    professionals?: { name: string } | null;
-};
-
-export type LeadInput = Omit<Lead, 'id' | 'created_at' | 'professionals'>;
-
-type ActionResult = { success: true } | { success: false; error: string };
-type DataResult<T> = { success: true; data: T } | { success: false; error: string };
+import type { Lead, LeadInput, ActionResult, DataResult } from '@/types';
+import { LEAD_TO_BOOKING_STATUS } from '@/lib/constants';
 
 export async function getLeads(): Promise<DataResult<Lead[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -50,7 +31,7 @@ export async function getLeads(): Promise<DataResult<Lead[]>> {
 export async function updateLeadStatus(id: string, newStatus: string): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         if (!id || !newStatus) {
             return { success: false, error: 'ID e status são obrigatórios.' };
@@ -66,9 +47,10 @@ export async function updateLeadStatus(id: string, newStatus: string): Promise<A
         }
 
         // Sincronizar com tabela bookings se existir
+        const bookingStatus = LEAD_TO_BOOKING_STATUS[newStatus as keyof typeof LEAD_TO_BOOKING_STATUS] || 'pendente';
         await supabase
             .from('bookings')
-            .update({ status: mapLeadStatusToBooking(newStatus) })
+            .update({ status: bookingStatus })
             .eq('id', id);
 
         return { success: true };
@@ -80,7 +62,7 @@ export async function updateLeadStatus(id: string, newStatus: string): Promise<A
 export async function deleteLead(id: string): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -100,7 +82,7 @@ export async function deleteLead(id: string): Promise<ActionResult> {
 export async function updateLeadNote(id: string, note: string): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -120,7 +102,7 @@ export async function updateLeadNote(id: string, note: string): Promise<ActionRe
 export async function createLead(leadData: Partial<LeadInput>): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         if (!leadData.nome || !leadData.whatsapp) {
             return { success: false, error: 'Nome e WhatsApp são obrigatórios.' };
@@ -144,7 +126,7 @@ export async function createLead(leadData: Partial<LeadInput>): Promise<ActionRe
 export async function getCalendarEvents(professionalId: string): Promise<DataResult<Lead[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -167,13 +149,3 @@ export async function getCalendarEvents(professionalId: string): Promise<DataRes
     }
 }
 
-/** Mapeia status do kanban de leads para status da tabela bookings */
-function mapLeadStatusToBooking(leadStatus: string): string {
-    const map: Record<string, string> = {
-        'novo': 'pendente',
-        'agendado': 'confirmado',
-        'concluido': 'concluido',
-        'cancelado': 'cancelado',
-    };
-    return map[leadStatus] ?? 'pendente';
-}

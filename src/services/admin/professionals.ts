@@ -2,29 +2,12 @@
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
-
-export type Professional = {
-    id: string;
-    name: string;
-    specialties: string[];
-    photo_url: string;
-    gallery_urls: string[];
-    location: string;
-    location_start_date: string | null;
-    location_end_date: string | null;
-    active: boolean;
-    created_at: string;
-};
-
-export type ProfessionalInput = Omit<Professional, 'id' | 'active' | 'created_at'>;
-
-type ActionResult = { success: true } | { success: false; error: string };
-type DataResult<T> = { success: true; data: T } | { success: false; error: string };
+import type { Professional, ProfessionalInput, ActionResult, DataResult } from '@/types';
 
 export async function getProfessionals(): Promise<DataResult<Professional[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -47,7 +30,7 @@ export async function getProfessionals(): Promise<DataResult<Professional[]>> {
 export async function getActiveProfessionals(): Promise<DataResult<Pick<Professional, 'id' | 'name'>[]>> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -70,7 +53,7 @@ export async function getActiveProfessionals(): Promise<DataResult<Pick<Professi
 export async function createProfessional(proData: ProfessionalInput): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         if (!proData.name?.trim()) {
             return { success: false, error: 'Nome é obrigatório.' };
@@ -99,7 +82,7 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
 export async function updateProfessional(id: string, proData: Partial<ProfessionalInput>): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const dataToUpdate = { ...proData };
         if (dataToUpdate.gallery_urls && dataToUpdate.gallery_urls.length > 0) {
@@ -124,7 +107,7 @@ export async function updateProfessional(id: string, proData: Partial<Profession
 export async function toggleProfessionalActive(id: string, currentStatus: boolean): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 
@@ -144,7 +127,7 @@ export async function toggleProfessionalActive(id: string, currentStatus: boolea
 export async function deleteProfessional(id: string): Promise<ActionResult> {
     try {
         const adminCheck = await verifyAdmin();
-        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
         const supabase = createAdminClient();
 

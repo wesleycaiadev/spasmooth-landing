@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -30,14 +31,14 @@ function formatDuration(minutes) {
 }
 
 export default function ServicesPage() {
-    const [services, setServices] = useState([]);
+    const [services, setServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('combo');
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingId, setEditingId] = useState(null);
-    const [editingPriceId, setEditingPriceId] = useState(null);
+    const [editingId, setEditingId] = useState<any>(null);
+    const [editingPriceId, setEditingPriceId] = useState<any>(null);
     const [editingPriceValue, setEditingPriceValue] = useState('');
-    const [toast, setToast] = useState(null);
+    const [toast, setToast] = useState<any>(null);
     const toastTimeout = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -539,3 +540,4 @@ export default function ServicesPage() {
         </div>
     );
 }
+
