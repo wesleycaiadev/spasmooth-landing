@@ -25,7 +25,7 @@ export default function EntrarPage() {
           </SignOutButton>
         </div>
         <p className="text-sm text-slate-400 mt-4 max-w-xs text-center">
-          Se você clicar em "Ir para o Painel" e voltar para esta tela, clique em "Sair" e faça login novamente para renovar sua sessão.
+          Se você clicar em &quot;Ir para o Painel&quot; e voltar para esta tela, clique em &quot;Sair&quot; e faça login novamente para renovar sua sessão.
         </p>
       </div>
     );

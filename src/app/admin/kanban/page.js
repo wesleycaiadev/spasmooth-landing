@@ -303,7 +303,7 @@ export default function KanbanPage() {
                                             ) : (
                                                 lead.mensagem_interesse && (
                                                     <p className="text-xs text-slate-500 line-clamp-2 mb-4 bg-slate-50/50 p-3 rounded-xl italic font-serif border border-slate-100/50">
-                                                        "{lead.mensagem_interesse}"
+                                                        &quot;{lead.mensagem_interesse}&quot;
                                                     </p>
                                                 )
                                             )}
@@ -403,7 +403,7 @@ export default function KanbanPage() {
                                                     <p className="text-xs text-slate-500">{lead.professionals?.name || 'Qualquer Prof.'}</p>
                                                 </div>
                                             ) : (
-                                                <p className="text-xs italic text-slate-500 truncate w-40">"{lead.mensagem_interesse}"</p>
+                                                <p className="text-xs italic text-slate-500 truncate w-40">&quot;{lead.mensagem_interesse}&quot;</p>
                                             )}
                                         </td>
                                         <td className="p-4">
@@ -519,7 +519,7 @@ export default function KanbanPage() {
                             ) : (
                                 <div className="bg-cyan-50 p-6 rounded-3xl border border-cyan-100 relative">
                                     <label className="text-xs font-bold text-cyan-700 uppercase mb-2 block tracking-widest">Mensagem de Interesse</label>
-                                    <p className="text-slate-700 italic font-serif leading-relaxed">"{selectedLead.mensagem_interesse}"</p>
+                                    <p className="text-slate-700 italic font-serif leading-relaxed">&quot;{selectedLead.mensagem_interesse}&quot;</p>
                                 </div>
                             )}
 

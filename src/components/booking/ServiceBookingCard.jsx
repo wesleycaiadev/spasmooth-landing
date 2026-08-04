@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, Layers, Palette, Flame, Scissors, Gem, Check } from 'lucide-react';
+import { calculateDiscount } from '@/lib/discounts';
 
 const iconMap = {
     combo: Layers,
@@ -12,10 +13,13 @@ const iconMap = {
 
 export default function ServiceBookingCard({ treatment, isPremium = false }) {
     const Icon = iconMap[treatment.category] || Sparkles;
+    const disc = calculateDiscount(treatment);
     
-    const priceStr = treatment.price 
+    const originalPriceStr = treatment.price 
         ? `R$ ${Number(treatment.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
         : (treatment.durations && treatment.durations[0] ? treatment.durations[0].price : 'Sob Consulta');
+
+    const priceStr = disc.hasDiscount ? disc.formattedFinalPrice : originalPriceStr;
         
     const timeStr = treatment.duration_minutes 
         ? `${treatment.duration_minutes} min` 
@@ -52,18 +56,33 @@ export default function ServiceBookingCard({ treatment, isPremium = false }) {
             
             <div className="relative z-10 flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4">
-                    <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center
-                        ${isMagic ? 'bg-yellow-500/20 text-yellow-400' : 
-                          isPremium ? 'bg-white/10 text-white' : 'bg-cyan-50 text-cyan-600'}`}
-                    >
-                        {isMagic ? <Gem size={22} /> : <Icon size={22} />}
+                    <div className="flex items-center gap-2">
+                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center
+                            ${isMagic ? 'bg-yellow-500/20 text-yellow-400' : 
+                              isPremium ? 'bg-white/10 text-white' : 'bg-cyan-50 text-cyan-600'}`}
+                        >
+                            {isMagic ? <Gem size={22} /> : <Icon size={22} />}
+                        </div>
+
+                        {disc.hasDiscount && (
+                            <span className="text-[10px] font-black bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-1 rounded-full uppercase tracking-wider shadow-sm animate-pulse">
+                                🔥 {disc.discountPercent}% OFF
+                            </span>
+                        )}
                     </div>
                     
                     <div className="text-right">
                         <div className={`text-[10px] font-medium uppercase tracking-wider mb-0.5 ${isPremium ? 'text-slate-400' : 'text-slate-400'}`}>{timeStr}</div>
-                        <div className={`text-base md:text-lg font-light tracking-wide ${isMagic ? 'text-yellow-400' : isPremium ? 'text-white' : 'text-slate-700'}`}>
-                            {priceStr}
-                        </div>
+                        {disc.hasDiscount ? (
+                            <div className="flex flex-col items-end">
+                                <span className="text-xs line-through text-slate-400 font-light">{disc.formattedOriginalPrice}</span>
+                                <span className="text-base md:text-lg font-bold text-amber-500">{disc.formattedFinalPrice}</span>
+                            </div>
+                        ) : (
+                            <div className={`text-base md:text-lg font-light tracking-wide ${isMagic ? 'text-yellow-400' : isPremium ? 'text-white' : 'text-slate-700'}`}>
+                                {priceStr}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -96,3 +115,4 @@ export default function ServiceBookingCard({ treatment, isPremium = false }) {
         </div>
     );
 }
+

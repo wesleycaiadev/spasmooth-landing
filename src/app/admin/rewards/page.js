@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Award, Search, Star, Gift, Crown, Clock, History } from 'lucide-react';
-import { TREATMENTS } from '@/lib/data';
+import { Award, Search, Star, Gift, Crown, Clock, History, Settings, X, Check } from 'lucide-react';
+import { sanitizePhoneNumber } from '@/lib/discounts';
 
 export default function RewardsPage() {
     const [leads, setLeads] = useState([]);
@@ -12,8 +12,49 @@ export default function RewardsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedClient, setSelectedClient] = useState(null);
 
-    // Configuração de Prêmio Padrão (Pode vir do DB no futuro)
-    const REWARD_THRESHOLD = 5; // A cada 5 serviços, ganha um prêmio
+    // Configuração de Prêmio do Admin
+    const [rewardThreshold, setRewardThreshold] = useState(5);
+    const [rewardType, setRewardType] = useState('discount_percent');
+    const [rewardTitle, setRewardTitle] = useState('15% de Desconto VIP no próximo agendamento');
+    const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+
+    const [tempThreshold, setTempThreshold] = useState('5');
+    const [tempType, setTempType] = useState('discount_percent');
+    const [tempTitle, setTempTitle] = useState('');
+
+    useEffect(() => {
+        try {
+            const savedConfig = localStorage.getItem('spasmooth_reward_config');
+            if (savedConfig) {
+                const parsed = JSON.parse(savedConfig);
+                if (parsed.threshold) setRewardThreshold(Number(parsed.threshold));
+                if (parsed.type) setRewardType(parsed.type);
+                if (parsed.title) setRewardTitle(parsed.title);
+            }
+        } catch (e) {
+            console.error('Erro ao carregar configurações de prêmio:', e);
+        }
+    }, []);
+
+    const openConfigModal = () => {
+        setTempThreshold(String(rewardThreshold));
+        setTempType(rewardType);
+        setTempTitle(rewardTitle);
+        setIsConfigModalOpen(true);
+    };
+
+    const saveRewardConfig = () => {
+        const numThreshold = Math.max(1, parseInt(tempThreshold, 10) || 5);
+        setRewardThreshold(numThreshold);
+        setRewardType(tempType);
+        setRewardTitle(tempTitle.trim() || 'Prêmio Especial VIP');
+        localStorage.setItem('spasmooth_reward_config', JSON.stringify({
+            threshold: numThreshold,
+            type: tempType,
+            title: tempTitle.trim() || 'Prêmio Especial VIP',
+        }));
+        setIsConfigModalOpen(false);
+    };
 
     useEffect(() => {
         async function fetchLeads() {
@@ -22,7 +63,7 @@ export default function RewardsPage() {
             const { data, error } = await supabase
                 .from('leads')
                 .select('id, nome, whatsapp, service_name, created_at, status_kanban, appointment_date')
-                .eq('status_kanban', 'concluido') // Considera apenas serviços concluídos para premiação
+                .eq('status_kanban', 'concluido')
                 .order('created_at', { ascending: false });
 
             if (!error && data) {
@@ -39,13 +80,13 @@ export default function RewardsPage() {
 
         allLeads.forEach(lead => {
             if (!lead.whatsapp) return;
-            const phone = lead.whatsapp.replace(/\D/g, '');
+            const phone = sanitizePhoneNumber(lead.whatsapp);
             if (!phone) return;
 
             if (!clientMap[phone]) {
                 clientMap[phone] = {
                     phone,
-                    name: lead.nome,
+                    name: lead.nome || 'Cliente sem nome',
                     totalServices: 0,
                     history: [],
                     lastVisit: null
@@ -61,7 +102,6 @@ export default function RewardsPage() {
             }
         });
 
-        // Filtrar apenas com 2 ou mais serviços
         const recurring = Object.values(clientMap)
             .filter(c => c.totalServices >= 2)
             .sort((a, b) => b.totalServices - a.totalServices);
@@ -70,8 +110,8 @@ export default function RewardsPage() {
     };
 
     const filteredClients = recurringClients.filter(c =>
-        c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        c.phone.includes(searchTerm)
+        (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (c.phone || '').includes(searchTerm)
     );
 
     return (
@@ -83,21 +123,120 @@ export default function RewardsPage() {
                         Clube Fidelidade
                     </h1>
                     <p className="text-slate-500 mt-2 font-light">
-                        Faça a gestão dos clientes VIPs e acompanhe as premiações.
+                        Gestão de clientes VIPs e premiações ({rewardThreshold} atendimentos = {rewardTitle}).
                     </p>
                 </div>
 
-                <div className="relative w-full md:w-auto min-w-[300px]">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nome ou telefone..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium text-slate-700"
-                    />
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        onClick={openConfigModal}
+                        className="bg-white hover:bg-amber-50 text-amber-700 border border-amber-200 px-5 py-3 rounded-2xl flex items-center gap-2 font-bold text-sm transition-all shadow-sm hover:shadow"
+                        id="btn-config-reward"
+                    >
+                        <Settings size={18} />
+                        Regra de Prêmio
+                    </button>
+
+                    <div className="relative w-full md:w-auto min-w-[260px]">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nome ou telefone..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-11 pr-4 py-3 bg-white/80 backdrop-blur-sm border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium text-slate-700"
+                        />
+                    </div>
                 </div>
             </header>
+
+            {/* Modal de Configuração da Regra do Prêmio */}
+            {isConfigModalOpen && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+                    <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative animate-scaleUp">
+                        <button
+                            onClick={() => setIsConfigModalOpen(false)}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <Crown size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800">Configurar Prêmio VIP</h3>
+                                <p className="text-xs text-slate-400 font-medium">Defina os critérios e a recompensa do clube</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
+                                    Serviços Concluídos Necessários (Meta)
+                                </label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="50"
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 font-bold text-slate-800 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                                    value={tempThreshold}
+                                    onChange={(e) => setTempThreshold(e.target.value)}
+                                />
+                                <span className="text-[11px] text-slate-400 mt-1 block">A cada X atendimentos concluídos, o cliente ganha o prêmio.</span>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
+                                    Tipo de Prêmio
+                                </label>
+                                <select
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                                    value={tempType}
+                                    onChange={(e) => setTempType(e.target.value)}
+                                >
+                                    <option value="discount_percent">Desconto Percentual (% OFF)</option>
+                                    <option value="discount_fixed">Desconto Fixo (R$ OFF)</option>
+                                    <option value="free_service">Serviço Grátis / Cortesia</option>
+                                    <option value="custom">Prêmio Personalizado</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
+                                    Título / Descrição do Prêmio *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: 15% de Desconto VIP ou 30min Massagem Cortesia"
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                                    value={tempTitle}
+                                    onChange={(e) => setTempTitle(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                            <button
+                                type="button"
+                                onClick={() => setIsConfigModalOpen(false)}
+                                className="px-5 py-2.5 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-100"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={saveRewardConfig}
+                                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-amber-200 transition-all"
+                            >
+                                Salvar Regra
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="md:col-span-3">
@@ -118,10 +257,10 @@ export default function RewardsPage() {
                                     </thead>
                                     <tbody className="text-sm">
                                         {filteredClients.map((client, idx) => {
-                                            const progress = client.totalServices % REWARD_THRESHOLD;
-                                            const rewardsEarned = Math.floor(client.totalServices / REWARD_THRESHOLD);
+                                            const progress = client.totalServices % rewardThreshold;
+                                            const rewardsEarned = Math.floor(client.totalServices / rewardThreshold);
                                             const isRewardReady = progress === 0 && client.totalServices > 0;
-                                            const displayProgress = isRewardReady ? REWARD_THRESHOLD : progress;
+                                            const displayProgress = isRewardReady ? rewardThreshold : progress;
 
                                             return (
                                                 <tr
@@ -132,7 +271,7 @@ export default function RewardsPage() {
                                                     <td className="p-4 pl-6">
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-400 to-orange-400 text-white flex items-center justify-center font-bold font-serif shadow-sm">
-                                                                {client.name.charAt(0).toUpperCase()}
+                                                                {(client.name || 'C').charAt(0).toUpperCase()}
                                                             </div>
                                                             <div>
                                                                 <p className="font-bold text-slate-800">{client.name}</p>
@@ -158,7 +297,7 @@ export default function RewardsPage() {
                                                     <td className="p-4 pr-6">
                                                         <div className="flex flex-col items-center justify-center">
                                                             <div className="flex gap-1 mb-1">
-                                                                {[...Array(REWARD_THRESHOLD)].map((_, i) => (
+                                                                {[...Array(rewardThreshold)].map((_, i) => (
                                                                     <div
                                                                         key={i}
                                                                         className={`w-2 h-6 rounded-sm transition-all ${i < displayProgress ? 'bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]' : 'bg-slate-100'}`}
@@ -166,7 +305,7 @@ export default function RewardsPage() {
                                                                 ))}
                                                             </div>
                                                             <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">
-                                                                {isRewardReady ? '🔥 PRÊMIO LIBERADO!' : `${displayProgress}/${REWARD_THRESHOLD} para Prêmio`}
+                                                                {isRewardReady ? '🔥 PRÊMIO LIBERADO!' : `${displayProgress}/${rewardThreshold} para Prêmio`}
                                                             </span>
                                                         </div>
                                                     </td>
@@ -190,16 +329,17 @@ export default function RewardsPage() {
                     {selectedClient ? (
                         <div className="bg-white rounded-3xl shadow-xl shadow-amber-900/5 p-6 border border-amber-100 sticky top-24 animate-slideInRight">
                             <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-400 text-white flex items-center justify-center font-bold font-serif text-2xl shadow-lg shadow-amber-200 mb-4 mx-auto">
-                                {selectedClient.name.charAt(0).toUpperCase()}
+                                {(selectedClient.name || 'C').charAt(0).toUpperCase()}
                             </div>
                             <h3 className="text-xl font-serif font-bold text-center text-slate-800 mb-1">{selectedClient.name}</h3>
                             <p className="text-center text-sm text-slate-500 mb-6 font-medium">{selectedClient.phone}</p>
 
-                            {(selectedClient.totalServices % REWARD_THRESHOLD === 0) && selectedClient.totalServices > 0 && (
+                            {(selectedClient.totalServices % rewardThreshold === 0) && selectedClient.totalServices > 0 && (
                                 <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-2xl mb-6 shadow-lg shadow-amber-200 relative overflow-hidden group">
                                     <div className="absolute top-0 right-0 w-16 h-16 bg-white/20 rounded-full blur-xl -mr-5 -mt-5 group-hover:scale-150 transition-transform"></div>
                                     <h4 className="font-bold flex items-center gap-2 mb-1 relative z-10"><Gift size={18} /> Prêmio Disponível!</h4>
-                                    <p className="text-xs text-amber-100 relative z-10">O cliente atingiu a marca de {selectedClient.totalServices} serviços e tem direito a um resgate.</p>
+                                    <p className="text-xs text-amber-100 relative z-10 font-medium mb-1">Premiação: <strong>{rewardTitle}</strong></p>
+                                    <p className="text-[11px] text-amber-100/90 relative z-10">Marca atingida: {selectedClient.totalServices} serviços concluídos.</p>
                                     <button className="w-full mt-3 bg-white text-orange-600 py-2 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-amber-50 transition-colors relative z-10">
                                         Marcar como Resgatado
                                     </button>
@@ -238,3 +378,4 @@ export default function RewardsPage() {
         </div>
     );
 }
+

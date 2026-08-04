@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import * as svcService from '@/services/admin/services';
+import { calculateDiscount } from '@/lib/discounts';
 import {
     Package, Plus, Trash2, Pencil, Check, X, Eye, EyeOff,
-    Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2, Flame, Flower2, HeartHandshake
+    Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2, Flame, Flower2, HeartHandshake,
+    Tag, Percent, Zap
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
@@ -40,6 +42,10 @@ export default function ServicesPage() {
     const [toast, setToast] = useState(null);
     const toastTimeout = useRef(null);
 
+    const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
+    const [discountTargetCategory, setDiscountTargetCategory] = useState('combo');
+    const [discountInputPercent, setDiscountInputPercent] = useState('15');
+
     const [formData, setFormData] = useState({
         name: '',
         category: 'combo',
@@ -58,7 +64,7 @@ export default function ServicesPage() {
         setLoading(true);
         try {
             const data = await svcService.getServices();
-            setServices(data);
+            setServices(data || []);
         } catch (err) {
             console.error(err);
             showToast('Erro ao carregar serviços.', 'error');
@@ -169,6 +175,56 @@ export default function ServicesPage() {
         showToast('Serviço removido.');
     };
 
+    const handleApplyDiscount = async (categoryTarget, percentVal) => {
+        if (isNaN(percentVal) || percentVal < 0 || percentVal > 100) {
+            showToast('Digite um percentual de desconto válido entre 0 e 100%.', 'error');
+            return;
+        }
+
+        const result = await svcService.applyDiscountToCategory(categoryTarget, percentVal);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao aplicar desconto.', 'error');
+            return;
+        }
+
+        const categoryLabel = categoryTarget === 'all' || categoryTarget === 'tudo'
+            ? 'todos os serviços'
+            : `serviços da categoria ${CATEGORY_LABELS[categoryTarget]?.label || categoryTarget}`;
+
+        showToast(`Desconto de ${percentVal}% aplicado com sucesso para ${categoryLabel}!`);
+        setIsDiscountModalOpen(false);
+        fetchServices();
+    };
+
+    const handleClearDiscount = async (categoryTarget) => {
+        const result = await svcService.clearCategoryDiscount(categoryTarget);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao remover descontos.', 'error');
+            return;
+        }
+
+        const categoryLabel = categoryTarget === 'all' || categoryTarget === 'tudo'
+            ? 'todos os serviços'
+            : `serviços da categoria ${CATEGORY_LABELS[categoryTarget]?.label || categoryTarget}`;
+
+        showToast(`Descontos removidos com sucesso de ${categoryLabel}.`);
+        fetchServices();
+    };
+
+    const handleToggleSingleDiscount = async (svc, percentVal, active) => {
+        const result = await svcService.updateServiceDiscount(svc.id, percentVal, active);
+
+        if (!result.success) {
+            showToast(result.error || 'Erro ao atualizar desconto do serviço.', 'error');
+            return;
+        }
+
+        setServices(prev => prev.map(s => s.id === svc.id ? { ...s, discount_percent: percentVal, discount_active: active } : s));
+        showToast(active ? `Desconto de ${percentVal}% ativado em "${svc.name}".` : `Desconto desativado em "${svc.name}".`);
+    };
+
     const counts = {
         combo: services.filter(s => s.category === 'combo').length,
         day_spa: services.filter(s => s.category === 'day_spa').length,
@@ -199,32 +255,144 @@ export default function ServicesPage() {
             )}
 
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
                 <div>
                     <h1 className="text-3xl font-serif font-bold text-slate-800 tracking-tight">
                         Gerenciar Serviços
                     </h1>
                     <p className="text-slate-500 mt-2 font-light">
-                        Gerencie preços, categorias e visibilidade do catálogo.
+                        Gerencie preços, categorias, promoções e visibilidade do catálogo.
                     </p>
                 </div>
-                <button
-                    onClick={() => {
-                        if (isFormOpen && !editingId) {
-                            resetForm();
-                        } else {
-                            resetForm();
-                            setFormData(prev => ({ ...prev, category: activeTab }));
-                            setIsFormOpen(true);
-                        }
-                    }}
-                    className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center gap-3 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    id="btn-new-service"
-                >
-                    <Plus size={20} />
-                    {isFormOpen && !editingId ? 'Fechar Formulário' : 'Novo Serviço'}
-                </button>
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                    <button
+                        onClick={() => {
+                            setDiscountTargetCategory(activeTab === 'outros' ? 'all' : activeTab);
+                            setIsDiscountModalOpen(true);
+                        }}
+                        className="flex-1 md:flex-initial bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-5 py-3 rounded-xl flex items-center justify-center gap-2 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        id="btn-open-discount-modal"
+                    >
+                        <Tag size={18} />
+                        Promover / Desconto
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            if (isFormOpen && !editingId) {
+                                resetForm();
+                            } else {
+                                resetForm();
+                                setFormData(prev => ({ ...prev, category: activeTab }));
+                                setIsFormOpen(true);
+                            }
+                        }}
+                        className="flex-1 md:flex-initial bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl flex items-center justify-center gap-3 font-bold transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                        id="btn-new-service"
+                    >
+                        <Plus size={20} />
+                        {isFormOpen && !editingId ? 'Fechar' : 'Novo Serviço'}
+                    </button>
+                </div>
             </div>
+
+            {/* Modal de Desconto */}
+            {isDiscountModalOpen && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+                    <div className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl border border-slate-100 relative animate-scaleUp">
+                        <button
+                            onClick={() => setIsDiscountModalOpen(false)}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors"
+                        >
+                            <X size={20} />
+                        </button>
+
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                                <Zap size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-slate-800">Aplicar Desconto</h3>
+                                <p className="text-xs text-slate-400 font-medium">Aplicação em lote por categoria ou catálogo completo</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 my-6">
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
+                                    Alvo do Desconto
+                                </label>
+                                <select
+                                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                                    value={discountTargetCategory}
+                                    onChange={(e) => setDiscountTargetCategory(e.target.value)}
+                                >
+                                    <option value="all">🔥 TODOS OS SERVIÇOS (Catálogo Completo)</option>
+                                    <option value="combo">Combos & Promoções</option>
+                                    <option value="day_spa">Day Spa</option>
+                                    <option value="estetica">Estética</option>
+                                    <option value="depilacao">Depilação</option>
+                                    <option value="tantrica">Tântricas</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="text-xs font-bold text-slate-500 uppercase block mb-1.5">
+                                    Percentual de Desconto (% OFF)
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        placeholder="Ex: 15"
+                                        className="w-full border border-slate-200 rounded-xl pl-4 pr-12 py-3 bg-slate-50 font-extrabold text-slate-800 text-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
+                                        value={discountInputPercent}
+                                        onChange={(e) => setDiscountInputPercent(e.target.value)}
+                                    />
+                                    <Percent size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 pt-2">
+                                {[5, 10, 15, 20, 25, 30].map(pct => (
+                                    <button
+                                        key={pct}
+                                        type="button"
+                                        onClick={() => setDiscountInputPercent(String(pct))}
+                                        className={`flex-1 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                                            discountInputPercent === String(pct)
+                                                ? 'bg-amber-500 text-white border-amber-500'
+                                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        {pct}%
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-2 pt-2 border-t border-slate-100">
+                            <button
+                                onClick={() => handleApplyDiscount(discountTargetCategory, parseFloat(discountInputPercent))}
+                                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white py-3 rounded-xl font-bold shadow-lg shadow-amber-200 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Check size={18} />
+                                Aplicar Desconto de {discountInputPercent}%
+                            </button>
+
+                            <button
+                                onClick={() => handleClearDiscount(discountTargetCategory)}
+                                className="w-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                            >
+                                <X size={14} />
+                                Removendo / Zerar Descontos deste Alvo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Form */}
             {isFormOpen && (
@@ -395,142 +563,174 @@ export default function ServicesPage() {
                 </div>
             ) : (
                 <div className="space-y-4">
-                    {filteredServices.map((svc) => (
-                        <div
-                            key={svc.id}
-                            className={`group bg-white/60 backdrop-blur-md rounded-2xl p-5 md:p-6 transition-all duration-300 border relative overflow-hidden ${
-                                svc.active
-                                    ? 'border-white/60 shadow-md hover:shadow-lg hover:-translate-y-0.5'
-                                    : 'border-slate-100 opacity-50 grayscale'
-                            }`}
-                            id={`service-${svc.id}`}
-                        >
-                            {/* Active indicator */}
-                            <div className={`absolute top-0 left-0 w-1 h-full rounded-r-full transition-colors ${
-                                svc.active
-                                    ? svc.category === 'massage' ? 'bg-cyan-400' : 'bg-violet-400'
-                                    : 'bg-slate-200'
-                            }`} />
+                    {filteredServices.map((svc) => {
+                        const disc = calculateDiscount(svc);
 
-                            <div className="flex flex-col md:flex-row md:items-center gap-4 pl-3">
-                                {/* Info */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <h4 className="font-bold text-slate-800 text-lg truncate">
-                                            {svc.name}
-                                        </h4>
-                                        {!svc.active && (
-                                            <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
-                                                Inativo
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-4 text-sm text-slate-400">
-                                        <span className="flex items-center gap-1">
-                                            <Clock size={14} />
-                                            {formatDuration(svc.duration_minutes)}
-                                        </span>
-                                        {svc.description && (
-                                            <span className="hidden md:inline truncate max-w-xs">
-                                                {svc.description}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
+                        return (
+                            <div
+                                key={svc.id}
+                                className={`group bg-white/60 backdrop-blur-md rounded-2xl p-5 md:p-6 transition-all duration-300 border relative overflow-hidden ${
+                                    svc.active
+                                        ? disc.hasDiscount
+                                            ? 'border-amber-200/80 shadow-md hover:shadow-xl hover:-translate-y-0.5 bg-gradient-to-r from-amber-50/20 via-white/80 to-white/60'
+                                            : 'border-white/60 shadow-md hover:shadow-lg hover:-translate-y-0.5'
+                                        : 'border-slate-100 opacity-50 grayscale'
+                                }`}
+                                id={`service-${svc.id}`}
+                            >
+                                <div className={`absolute top-0 left-0 w-1.5 h-full rounded-r-full transition-colors ${
+                                    svc.active
+                                        ? disc.hasDiscount ? 'bg-amber-500' : svc.category === 'combo' ? 'bg-cyan-400' : 'bg-violet-400'
+                                        : 'bg-slate-200'
+                                }`} />
 
-                                {/* Price */}
-                                <div className="flex items-center gap-2 shrink-0">
-                                    {editingPriceId === svc.id ? (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-sm font-medium">R$</span>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                min="0"
-                                                className="w-28 border border-cyan-300 bg-cyan-50/50 rounded-xl px-3 py-2 text-right font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
-                                                value={editingPriceValue}
-                                                onChange={e => setEditingPriceValue(e.target.value)}
-                                                onKeyDown={e => {
-                                                    if (e.key === 'Enter') handlePriceSave(svc.id);
-                                                    if (e.key === 'Escape') setEditingPriceId(null);
-                                                }}
-                                                autoFocus
-                                                id={`price-input-${svc.id}`}
-                                            />
-                                            <button
-                                                onClick={() => handlePriceSave(svc.id)}
-                                                className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
-                                                title="Salvar preço"
-                                                aria-label="Salvar preço"
-                                            >
-                                                <Check size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => setEditingPriceId(null)}
-                                                className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
-                                                title="Cancelar"
-                                                aria-label="Cancelar edição de preço"
-                                            >
-                                                <X size={18} />
-                                            </button>
+                                <div className="flex flex-col md:flex-row md:items-center gap-4 pl-3">
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center flex-wrap gap-2.5 mb-1">
+                                            <h4 className="font-bold text-slate-800 text-lg truncate">
+                                                {svc.name}
+                                            </h4>
+
+                                            {disc.hasDiscount && (
+                                                <span className="text-[11px] bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider shrink-0 shadow-sm flex items-center gap-1 animate-pulse">
+                                                    🔥 {disc.discountPercent}% OFF
+                                                </span>
+                                            )}
+
+                                            {!svc.active && (
+                                                <span className="text-[10px] bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider shrink-0">
+                                                    Inativo
+                                                </span>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => {
-                                                setEditingPriceId(svc.id);
-                                                setEditingPriceValue(String(svc.price));
-                                            }}
-                                            className="flex items-center gap-2 bg-slate-50/80 hover:bg-cyan-50 px-4 py-2 rounded-xl border border-slate-200/60 hover:border-cyan-200 transition-all group/price cursor-pointer"
-                                            title="Clique para editar o preço"
-                                            aria-label={`Editar preço de ${svc.name}`}
-                                        >
-                                            <DollarSign size={14} className="text-slate-300 group-hover/price:text-cyan-500 transition-colors" />
-                                            <span className="font-bold text-slate-800 text-lg">
-                                                {formatCurrency(svc.price)}
+                                        <div className="flex items-center gap-4 text-sm text-slate-400">
+                                            <span className="flex items-center gap-1 font-medium">
+                                                <Clock size={14} />
+                                                {formatDuration(svc.duration_minutes)}
                                             </span>
-                                            <Pencil size={12} className="text-slate-300 group-hover/price:text-cyan-500 transition-colors ml-1" />
-                                        </button>
-                                    )}
-                                </div>
+                                            {svc.description && (
+                                                <span className="hidden md:inline truncate max-w-xs font-light">
+                                                    {svc.description}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
 
-                                {/* Actions */}
-                                <div className="flex items-center gap-1 shrink-0 border-l border-slate-100/50 pl-4 ml-2">
-                                    <button
-                                        onClick={() => handleEdit(svc)}
-                                        className="p-2.5 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all"
-                                        title="Editar serviço"
-                                        aria-label={`Editar ${svc.name}`}
-                                    >
-                                        <Pencil size={18} />
-                                    </button>
-                                    <button
-                                        onClick={() => toggleActive(svc.id, svc.active)}
-                                        className={`p-2.5 rounded-xl transition-all ${
-                                            svc.active
-                                                ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
-                                                : 'text-green-400 hover:text-green-600 hover:bg-green-50'
-                                        }`}
-                                        title={svc.active ? 'Desativar serviço' : 'Ativar serviço'}
-                                        aria-label={svc.active ? `Desativar ${svc.name}` : `Ativar ${svc.name}`}
-                                    >
-                                        {svc.active ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(svc.id)}
-                                        className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
-                                        title="Remover serviço"
-                                        aria-label={`Remover ${svc.name}`}
-                                    >
-                                        <Trash2 size={18} />
-                                    </button>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                        <button
+                                            onClick={() => handleToggleSingleDiscount(svc, svc.discount_percent && svc.discount_percent > 0 ? svc.discount_percent : 15, !svc.discount_active)}
+                                            className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 ${
+                                                disc.hasDiscount
+                                                    ? 'bg-amber-100/80 text-amber-800 border-amber-300 hover:bg-amber-200'
+                                                    : 'bg-slate-50 text-slate-400 border-slate-200/60 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200'
+                                            }`}
+                                            title={disc.hasDiscount ? 'Desativar desconto neste serviço' : 'Ativar desconto rápido neste serviço'}
+                                        >
+                                            <Tag size={13} />
+                                            {disc.hasDiscount ? `${disc.discountPercent}%` : 'Desconto'}
+                                        </button>
+
+                                        {editingPriceId === svc.id ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-slate-400 text-sm font-medium">R$</span>
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    min="0"
+                                                    className="w-28 border border-cyan-300 bg-cyan-50/50 rounded-xl px-3 py-2 text-right font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
+                                                    value={editingPriceValue}
+                                                    onChange={e => setEditingPriceValue(e.target.value)}
+                                                    onKeyDown={e => {
+                                                        if (e.key === 'Enter') handlePriceSave(svc.id);
+                                                        if (e.key === 'Escape') setEditingPriceId(null);
+                                                    }}
+                                                    autoFocus
+                                                    id={`price-input-${svc.id}`}
+                                                />
+                                                <button
+                                                    onClick={() => handlePriceSave(svc.id)}
+                                                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-colors"
+                                                    title="Salvar preço"
+                                                    aria-label="Salvar preço"
+                                                >
+                                                    <Check size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setEditingPriceId(null)}
+                                                    className="p-2 text-slate-400 hover:bg-slate-50 rounded-xl transition-colors"
+                                                    title="Cancelar"
+                                                    aria-label="Cancelar edição de preço"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setEditingPriceId(svc.id);
+                                                    setEditingPriceValue(String(svc.price));
+                                                }}
+                                                className={`flex items-center gap-2 px-4 py-2 rounded-xl border transition-all group/price cursor-pointer ${
+                                                    disc.hasDiscount
+                                                        ? 'bg-amber-50/60 border-amber-200/80 hover:bg-amber-100/60'
+                                                        : 'bg-slate-50/80 hover:bg-cyan-50 border-slate-200/60 hover:border-cyan-200'
+                                                }`}
+                                                title="Clique para editar o preço base"
+                                                aria-label={`Editar preço de ${svc.name}`}
+                                            >
+                                                <DollarSign size={14} className="text-slate-300 group-hover/price:text-cyan-500 transition-colors" />
+                                                <div className="flex flex-col text-right">
+                                                    {disc.hasDiscount && (
+                                                        <span className="text-[11px] line-through text-slate-400 font-medium">
+                                                            {disc.formattedOriginalPrice}
+                                                        </span>
+                                                    )}
+                                                    <span className={`font-extrabold text-lg ${disc.hasDiscount ? 'text-emerald-700' : 'text-slate-800'}`}>
+                                                        {disc.formattedFinalPrice}
+                                                    </span>
+                                                </div>
+                                                <Pencil size={12} className="text-slate-300 group-hover/price:text-cyan-500 transition-colors ml-1" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1 shrink-0 border-l border-slate-100/50 pl-4 ml-2">
+                                        <button
+                                            onClick={() => handleEdit(svc)}
+                                            className="p-2.5 text-slate-400 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition-all"
+                                            title="Editar serviço"
+                                            aria-label={`Editar ${svc.name}`}
+                                        >
+                                            <Pencil size={18} />
+                                        </button>
+                                        <button
+                                            onClick={() => toggleActive(svc.id, svc.active)}
+                                            className={`p-2.5 rounded-xl transition-all ${
+                                                svc.active
+                                                    ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+                                                    : 'text-green-400 hover:text-green-600 hover:bg-green-50'
+                                            }`}
+                                            title={svc.active ? 'Desativar serviço' : 'Ativar serviço'}
+                                            aria-label={svc.active ? `Desativar ${svc.name}` : `Ativar ${svc.name}`}
+                                        >
+                                            {svc.active ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(svc.id)}
+                                            className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                            title="Remover serviço"
+                                            aria-label={`Remover ${svc.name}`}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
 
-            {/* Summary Footer */}
             {!loading && filteredServices.length > 0 && (
                 <div className="mt-8 text-center text-xs text-slate-400 font-medium">
                     {filteredServices.filter(s => s.active).length} serviço(s) ativo(s) de {filteredServices.length} total
@@ -539,3 +739,4 @@ export default function ServicesPage() {
         </div>
     );
 }
+

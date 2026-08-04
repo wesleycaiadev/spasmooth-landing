@@ -26,6 +26,16 @@ export const createServiceSchema = z.object({
         .transform(v => v.trim())
         .optional()
         .default(""),
+    discount_percent: z
+        .number({ error: "Percentual de desconto deve ser um número." })
+        .min(0, { error: "Desconto não pode ser negativo." })
+        .max(100, { error: "Desconto não pode ser maior que 100%." })
+        .optional()
+        .default(0),
+    discount_active: z
+        .boolean()
+        .optional()
+        .default(false),
 });
 
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
@@ -33,3 +43,4 @@ export type CreateServiceInput = z.infer<typeof createServiceSchema>;
 export const updateServiceSchema = createServiceSchema.partial();
 
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
+

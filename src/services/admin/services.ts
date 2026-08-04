@@ -194,3 +194,118 @@ export async function deleteService(id: string): Promise<ActionResult> {
         return { success: false, error: 'Erro inesperado ao remover serviço.' };
     }
 }
+
+export async function applyDiscountToCategory(category: string, percent: number): Promise<ActionResult> {
+    try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
+
+        if (typeof percent !== 'number' || percent < 0 || percent > 100 || isNaN(percent)) {
+            return { success: false, error: 'Percentual de desconto inválido (deve ser entre 0% e 100%).' };
+        }
+
+        const supabase = createAdminClient();
+        const discount_active = percent > 0;
+
+        let query = supabase
+            .from('services')
+            .update({
+                discount_percent: percent,
+                discount_active,
+            });
+
+        if (category !== 'all' && category !== 'tudo') {
+            query = query.eq('category', category);
+        } else {
+            query = query.not('id', 'is', null);
+        }
+
+        const { error } = await query;
+
+        if (error) {
+            console.error("Supabase Error [applyDiscountToCategory]:", error.message);
+            const userMsg = error.message.includes('column') || error.message.includes('discount')
+                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
+                : `Falha ao aplicar desconto: ${error.message}`;
+            return { success: false, error: userMsg };
+        }
+
+        revalidatePath('/');
+        revalidatePath('/admin/services');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [applyDiscountToCategory]:", err);
+        return { success: false, error: 'Erro inesperado ao aplicar desconto.' };
+    }
+}
+
+export async function clearCategoryDiscount(category: string): Promise<ActionResult> {
+    try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
+
+        const supabase = createAdminClient();
+        let query = supabase
+            .from('services')
+            .update({
+                discount_percent: 0,
+                discount_active: false,
+            });
+
+        if (category !== 'all' && category !== 'tudo') {
+            query = query.eq('category', category);
+        } else {
+            query = query.not('id', 'is', null);
+        }
+
+        const { error } = await query;
+
+        if (error) {
+            console.error("Supabase Error [clearCategoryDiscount]:", error.message);
+            const userMsg = error.message.includes('column') || error.message.includes('discount')
+                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
+                : `Falha ao remover descontos: ${error.message}`;
+            return { success: false, error: userMsg };
+        }
+
+        revalidatePath('/');
+        revalidatePath('/admin/services');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [clearCategoryDiscount]:", err);
+        return { success: false, error: 'Erro inesperado ao remover descontos.' };
+    }
+}
+
+export async function updateServiceDiscount(id: string, percent: number, active: boolean): Promise<ActionResult> {
+    try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
+
+        const supabase = createAdminClient();
+        const { error } = await supabase
+            .from('services')
+            .update({
+                discount_percent: percent,
+                discount_active: active,
+            })
+            .eq('id', id);
+
+        if (error) {
+            console.error("Supabase Error [updateServiceDiscount]:", error.message);
+            const userMsg = error.message.includes('column') || error.message.includes('discount')
+                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
+                : `Falha ao atualizar desconto: ${error.message}`;
+            return { success: false, error: userMsg };
+        }
+
+        revalidatePath('/');
+        revalidatePath('/admin/services');
+        return { success: true };
+    } catch (err) {
+        console.error("Exception [updateServiceDiscount]:", err);
+        return { success: false, error: 'Erro inesperado ao atualizar desconto.' };
+    }
+}
+
+

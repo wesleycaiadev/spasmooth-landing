@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Flame, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
+import { calculateDiscount } from '@/lib/discounts';
 
 export default function FeaturedCarousel({ services = [] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -20,10 +21,11 @@ export default function FeaturedCarousel({ services = [] }) {
     if (!services || services.length === 0) return null;
 
     const handleBooking = (service) => {
+        const disc = calculateDiscount(service);
         const serviceData = {
             id: service.id,
             name: service.name,
-            defaultOption: service.durations ? service.durations[0] : { time: 'Experiência', price: service.price }
+            defaultOption: service.durations ? service.durations[0] : { time: 'Experiência', price: disc.hasDiscount ? disc.formattedFinalPrice : service.price }
         };
         sessionStorage.setItem('selected_service', JSON.stringify(serviceData));
         
@@ -39,6 +41,7 @@ export default function FeaturedCarousel({ services = [] }) {
     const prevSlide = () => setCurrentIndex((prev) => (prev - 1 + services.length) % services.length);
 
     const service = services[currentIndex];
+    const disc = calculateDiscount(service);
     const isMagic = service.name.toLowerCase().includes('magic');
     const isTantrica = service.category === 'tantrica';
 
@@ -97,7 +100,12 @@ export default function FeaturedCarousel({ services = [] }) {
                                     </div>
                                     <div className="flex flex-col items-center md:items-start justify-center">
                                         <h3 className="text-lg md:text-2xl font-serif font-bold mb-1">{service.name}</h3>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                            {disc.hasDiscount && (
+                                                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-sm animate-pulse">
+                                                    🔥 {disc.discountPercent}% OFF
+                                                </div>
+                                            )}
                                             {isMagic && (
                                                 <div className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
                                                     Exclusivo
@@ -120,9 +128,16 @@ export default function FeaturedCarousel({ services = [] }) {
                             <div className="w-full md:w-auto flex flex-col items-center md:items-end md:min-w-[320px]">
                                 <div className="text-center md:text-right mb-6 md:mb-10">
                                     <div className="text-slate-500 text-xs md:text-sm uppercase font-medium tracking-widest mb-2">Duração & Valor</div>
-                                    <div className={`text-2xl md:text-4xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : 'text-white'}`}>
-                                        R$ {Number(service.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </div>
+                                    {disc.hasDiscount ? (
+                                        <div className="flex flex-col items-center md:items-end">
+                                            <span className="text-sm line-through text-slate-400 font-light">{disc.formattedOriginalPrice}</span>
+                                            <span className="text-2xl md:text-4xl font-bold text-amber-400">{disc.formattedFinalPrice}</span>
+                                        </div>
+                                    ) : (
+                                        <div className={`text-2xl md:text-4xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : 'text-white'}`}>
+                                            R$ {Number(service.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                        </div>
+                                    )}
                                 </div>
                                 
                                 <button 
@@ -160,3 +175,4 @@ export default function FeaturedCarousel({ services = [] }) {
         </div>
     );
 }
+
