@@ -9,7 +9,7 @@ export type AdminCheckResult = {
 };
 
 // Pega as variáveis (tenta com S ou sem S para garantir)
-const envEmails = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
+const envEmails = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || "";
 
 // Divide por vírgula OU por quebra de linha (\n), limpa os espaços e deixa tudo minúsculo
 const ADMIN_EMAILS = envEmails

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { UserButton, useUser, ClerkProvider } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
@@ -28,24 +28,29 @@ export default function AdminLayout({ children }) {
 function AdminContent({ children }) {
     const { user, isLoaded, isSignedIn } = useUser();
     const router = useRouter();
-
-    const ALLOWED_EMAILS = (process.env.NEXT_PUBLIC_ADMIN_EMAILS ?? '')
-        .split(',')
-        .map(e => e.trim().toLowerCase())
-        .filter(Boolean);
+    const [isAdmin, setIsAdmin] = useState(null);
 
     useEffect(() => {
-        if (isLoaded && !isSignedIn) {
-            router.push('/entrar');
-        } else if (isLoaded && isSignedIn) {
-            const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
-            if (ALLOWED_EMAILS.length > 0 && !ALLOWED_EMAILS.includes(userEmail)) {
-                router.push('/');
-            }
-        }
-    }, [isLoaded, isSignedIn, user, router]);
+        if (!isLoaded) return;
 
-    if (!isLoaded) {
+        if (!isSignedIn) {
+            router.push('/entrar');
+            return;
+        }
+
+        fetch('/api/admin/verify')
+            .then(res => res.json())
+            .then(data => {
+                if (!data.isAdmin) {
+                    router.push('/');
+                } else {
+                    setIsAdmin(true);
+                }
+            })
+            .catch(() => router.push('/'));
+    }, [isLoaded, isSignedIn, router]);
+
+    if (!isLoaded || isAdmin === null) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
@@ -53,10 +58,7 @@ function AdminContent({ children }) {
         );
     }
 
-    const userEmail = user?.primaryEmailAddress?.emailAddress?.toLowerCase();
-    const isAuthorized = isSignedIn && (ALLOWED_EMAILS.length === 0 || ALLOWED_EMAILS.includes(userEmail));
-
-    if (!isAuthorized) {
+    if (!isAdmin) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600"></div>
@@ -104,7 +106,6 @@ function AdminContent({ children }) {
 }
 
 function NavItem({ href, icon, label }) {
-    const router = useRouter();
     return (
         <Link href={href} className="flex items-center gap-3 px-5 py-3.5 text-slate-500 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-transparent rounded-xl transition-all duration-300 group font-medium relative overflow-hidden">
             <span className="relative z-10 group-hover:scale-110 transition-transform duration-300">{icon}</span>
