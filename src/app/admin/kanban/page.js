@@ -131,6 +131,37 @@ export default function KanbanPage() {
 
     const [selectedLead, setSelectedLead] = useState(null);
     const [note, setNote] = useState('');
+    const [isEditingSchedule, setIsEditingSchedule] = useState(false);
+    const [editScheduleData, setEditScheduleData] = useState({ date: '', time: '', professional_id: '' });
+
+    const handleSaveSchedule = async () => {
+        if (!selectedLead) return;
+        try {
+            await leadsService.updateLeadSchedule(
+                selectedLead.id, 
+                editScheduleData.date, 
+                editScheduleData.time, 
+                editScheduleData.professional_id
+            );
+            
+            // Update local state
+            const updatedLeads = leads.map(l => l.id === selectedLead.id ? { 
+                ...l, 
+                appointment_date: editScheduleData.date,
+                appointment_time: editScheduleData.time,
+                professional_id: editScheduleData.professional_id,
+                professionals: professionals.find(p => p.id === editScheduleData.professional_id) || l.professionals
+            } : l);
+            
+            setLeads(updatedLeads);
+            setSelectedLead(updatedLeads.find(l => l.id === selectedLead.id));
+            setIsEditingSchedule(false);
+            alert('Agendamento atualizado com sucesso!');
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao atualizar agendamento.');
+        }
+    };
 
     const handleDeleteLead = async (e, id) => {
         e.stopPropagation();
@@ -148,6 +179,12 @@ export default function KanbanPage() {
     const handleCardClick = (lead) => {
         setSelectedLead(lead);
         setNote(lead.admin_notes || '');
+        setIsEditingSchedule(false);
+        setEditScheduleData({
+            date: lead.appointment_date || '',
+            time: lead.appointment_time || '',
+            professional_id: lead.professional_id || ''
+        });
     };
 
     const saveNote = async () => {
@@ -474,7 +511,7 @@ export default function KanbanPage() {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="p-8 space-y-8 flex-1">
+                        <div className="p-8 space-y-8 flex-1 pb-24">
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Email</label>
@@ -505,14 +542,53 @@ export default function KanbanPage() {
                                         <div className="flex gap-4 border-t border-amber-200/30 pt-4">
                                             <div>
                                                 <label className="text-amber-800/60 text-xs font-bold uppercase">Profissional</label>
-                                                <p className="text-amber-900 font-medium">{selectedLead.professionals?.name || '---'}</p>
+                                                {isEditingSchedule ? (
+                                                    <select 
+                                                        className="w-full text-sm border border-amber-200 rounded p-1 mt-1 bg-white"
+                                                        value={editScheduleData.professional_id}
+                                                        onChange={(e) => setEditScheduleData({...editScheduleData, professional_id: e.target.value})}
+                                                    >
+                                                        <option value="">Indefinido</option>
+                                                        {professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                                    </select>
+                                                ) : (
+                                                    <p className="text-amber-900 font-medium">{selectedLead.professionals?.name || '---'}</p>
+                                                )}
                                             </div>
                                             <div>
                                                 <label className="text-amber-800/60 text-xs font-bold uppercase">Data & Hora</label>
-                                                <p className="text-amber-900 font-medium">
-                                                    {new Date(selectedLead.appointment_date + 'T00:00:00').toLocaleDateString()} às {selectedLead.appointment_time}
-                                                </p>
+                                                {isEditingSchedule ? (
+                                                    <div className="flex gap-2 mt-1">
+                                                        <input 
+                                                            type="date" 
+                                                            className="w-full text-sm border border-amber-200 rounded p-1 bg-white"
+                                                            value={editScheduleData.date}
+                                                            onChange={(e) => setEditScheduleData({...editScheduleData, date: e.target.value})}
+                                                        />
+                                                        <input 
+                                                            type="time" 
+                                                            className="w-full text-sm border border-amber-200 rounded p-1 bg-white"
+                                                            value={editScheduleData.time}
+                                                            onChange={(e) => setEditScheduleData({...editScheduleData, time: e.target.value})}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-amber-900 font-medium">
+                                                        {selectedLead.appointment_date ? new Date(selectedLead.appointment_date + 'T00:00:00').toLocaleDateString() : '---'} às {selectedLead.appointment_time || '---'}
+                                                    </p>
+                                                )}
                                             </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-end pt-2">
+                                            {isEditingSchedule ? (
+                                                <div className="flex gap-2">
+                                                    <button onClick={() => setIsEditingSchedule(false)} className="text-xs px-3 py-1.5 rounded bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors font-semibold">Cancelar</button>
+                                                    <button onClick={handleSaveSchedule} className="text-xs px-3 py-1.5 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors font-semibold">Salvar</button>
+                                                </div>
+                                            ) : (
+                                                <button onClick={() => setIsEditingSchedule(true)} className="text-xs px-3 py-1.5 rounded bg-amber-100 text-amber-800 hover:bg-amber-200 transition-colors font-semibold">Editar Horário</button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

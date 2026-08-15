@@ -6,7 +6,7 @@ import { calculateDiscount } from '@/lib/discounts';
 import {
     Package, Plus, Trash2, Pencil, Check, X, Eye, EyeOff,
     Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2, Flame, Flower2, HeartHandshake,
-    Tag, Percent, Zap
+    Tag, Percent, Zap, Search
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
@@ -39,6 +39,7 @@ export default function ServicesPage() {
     const [editingId, setEditingId] = useState(null);
     const [editingPriceId, setEditingPriceId] = useState(null);
     const [editingPriceValue, setEditingPriceValue] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [toast, setToast] = useState(null);
     const toastTimeout = useRef(null);
 
@@ -76,11 +77,21 @@ export default function ServicesPage() {
         fetchServices();
     }, [fetchServices]);
 
-    const filteredServices = services.filter(s => 
-        activeTab === 'outros' 
+    const filteredServices = services.filter(s => {
+        const matchesTab = activeTab === 'outros' 
             ? !['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
-            : s.category === activeTab
-    );
+            : s.category === activeTab;
+            
+        if (!matchesTab) return false;
+        
+        if (searchTerm.trim() !== '') {
+            const term = searchTerm.toLowerCase();
+            return s.name.toLowerCase().includes(term) || 
+                   (s.description && s.description.toLowerCase().includes(term));
+        }
+        
+        return true;
+    });
 
     const resetForm = () => {
         setFormData({ name: '', category: 'combo', price: '', duration_minutes: '', description: '' });
@@ -508,7 +519,7 @@ export default function ServicesPage() {
             )}
 
             {/* Category Tabs */}
-            <div className="flex gap-3 mb-8">
+            <div className="flex gap-3 mb-8 overflow-x-auto pb-2 custom-scrollbar snap-x">
                 {Object.entries(CATEGORY_LABELS).map(([key, { label, icon: Icon, color }]) => {
                     const count = counts[key];
                     const isActive = activeTab === key;
@@ -517,7 +528,7 @@ export default function ServicesPage() {
                         <button
                             key={key}
                             onClick={() => setActiveTab(key)}
-                            className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 border ${
+                            className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm transition-all duration-300 border whitespace-nowrap shrink-0 snap-start ${
                                 isActive
                                     ? color === 'cyan'
                                         ? 'bg-cyan-600 text-white border-cyan-600 shadow-lg shadow-cyan-200/50'
@@ -538,6 +549,20 @@ export default function ServicesPage() {
                         </button>
                     );
                 })}
+            </div>
+
+            {/* Search Bar */}
+            <div className="relative mb-6 max-w-2xl">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                    type="search"
+                    className="w-full pl-11 pr-4 py-3 bg-white/60 backdrop-blur-md border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all font-medium text-slate-700 shadow-sm"
+                    placeholder="Buscar serviço por nome ou descrição..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
 
             {/* Services List */}

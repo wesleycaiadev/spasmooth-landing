@@ -141,6 +141,53 @@ export async function createLead(leadData: Partial<LeadInput>): Promise<ActionRe
     }
 }
 
+export async function updateLeadSchedule(id: string, date: string, time: string, professionalId: string): Promise<ActionResult> {
+    try {
+        const adminCheck = await verifyAdmin();
+        if (!adminCheck.success) return { success: false, error: adminCheck.error };
+
+        if (!id) return { success: false, error: 'ID do agendamento é obrigatório.' };
+
+        const supabase = createAdminClient();
+
+        // 1. Atualizar lead
+        const updateData: any = {
+            appointment_date: date || null,
+            appointment_time: time || null,
+        };
+        if (professionalId) {
+            updateData.professional_id = professionalId;
+        }
+
+        const { error: leadError } = await supabase.from('leads').update(updateData).eq('id', id);
+
+        if (leadError) {
+            console.error("Supabase Error [updateLeadSchedule - leads]:", leadError.message);
+            return { success: false, error: 'Falha ao atualizar agendamento do lead.' };
+        }
+
+        // 2. Atualizar bookings, caso o cliente também acompanhe por essa tabela
+        const bookingUpdateData: any = {
+            appointment_date: date || null,
+            appointment_time: time || null,
+        };
+        if (professionalId) {
+            bookingUpdateData.professional_id = professionalId;
+        }
+
+        const { error: bookingError } = await supabase.from('bookings').update(bookingUpdateData).eq('id', id);
+        
+        if (bookingError) {
+            // Logamos mas não falhamos a request se o booking não existir (pode ser só lead)
+            console.warn("Aviso ao atualizar booking vinculado:", bookingError.message);
+        }
+
+        return { success: true };
+    } catch {
+        return { success: false, error: 'Erro interno do servidor.' };
+    }
+}
+
 export async function getCalendarEvents(professionalId: string): Promise<DataResult<Lead[]>> {
     try {
         const adminCheck = await verifyAdmin();

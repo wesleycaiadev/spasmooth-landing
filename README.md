@@ -24,8 +24,22 @@
 
 O SpaSmooth começou como uma landing page e evoluiu para uma plataforma completa de agendamento online com painel administrativo. O sistema resolve dois problemas centrais:
 
-1. **Captação de clientes** — landing page com design imersivo, SEO técnico completo (Open Graph, schema.org, sitemap dinâmico) e funil de conversão direto para o wizard de agendamento.
-2. **Gestão operacional** — painel admin com kanban de leads, calendário semanal por profissional, dashboard de métricas e sistema de agendamentos com controle de status.
+1. **Captação de clientes** — landing page com design imersivo, SEO técnico completo (Open Graph, schema.org, sitemap dinâmico) e funil de conversão direto para o wizard de agendamento. Menu de serviços agora conta com barra de pesquisa para melhor experiência.
+2. **Gestão operacional** — painel admin com kanban de leads, calendário semanal por profissional, dashboard de métricas, sistema de agendamentos e controle de Layout dinâmico.
+
+### Painel Administrativo (`/admin`)
+
+- **Dashboard:** Visão geral de métricas, leads novos e profissionais (Gráficos Recharts).
+- **Kanban (Gestão de Leads):** 
+  - Arraste e solte para mudar status (Novo, Agendado, Concluído, Cancelado).
+  - Controle de duplicatas (tags visuais de recorrentes).
+  - Integração via botão de WhatsApp direto para o cliente.
+  - Edição de Horário e Data de Agendamento diretamente no card de detalhes.
+- **Calendário Semanal e Mensal:** Visualização limpa dos serviços agendados por profissional.
+- **Serviços:** Cadastro e edição (com upload de imagem) do menu de tratamentos.
+- **Profissionais:** Gerenciamento da equipe.
+- **Configuração de Layout:** Tela para reorganizar a ordem e a visibilidade das seções da Landing Page dinamicamente.
+- **Sistema de Fidelidade (Rewards):** Pontos e selos gamificados para os clientes.
 
 ---
 

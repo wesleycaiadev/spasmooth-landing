@@ -99,9 +99,28 @@ function DetailedCard({ event }) {
 }
 
 // ─── Custom Toolbar ───────────────────────────────────────────────────────────
-function CustomToolbar({ date, view, onNavigate, onView, selectedPro, setSelectedPro, prosList }) {
-    const month = date.toLocaleString("pt-BR", { month: "long" });
-    const year = date.toLocaleString("pt-BR", { year: "numeric" });
+function CustomToolbar({ date, view, onNavigate, onView, selectedPro, setSelectedPro, prosList, setCurrentDate }) {
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+
+    const months = [
+        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+
+    const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 2 + i);
+
+    const handleMonthChange = (e) => {
+        const newDate = new Date(date);
+        newDate.setMonth(parseInt(e.target.value, 10));
+        setCurrentDate(newDate);
+    };
+
+    const handleYearChange = (e) => {
+        const newDate = new Date(date);
+        newDate.setFullYear(parseInt(e.target.value, 10));
+        setCurrentDate(newDate);
+    };
 
     return (
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -128,10 +147,26 @@ function CustomToolbar({ date, view, onNavigate, onView, selectedPro, setSelecte
                         <ChevronRight size={16} />
                     </button>
                 </div>
-                <span className="font-serif text-2xl font-bold text-slate-700 capitalize">
-                    {month}{" "}
-                    <span className="text-slate-400 text-lg font-normal">{year}</span>
-                </span>
+                <div className="flex items-center gap-2">
+                    <select
+                        value={currentMonth}
+                        onChange={handleMonthChange}
+                        className="font-serif text-xl md:text-2xl font-bold text-slate-700 capitalize bg-transparent outline-none cursor-pointer hover:bg-slate-50 p-1 rounded-lg"
+                    >
+                        {months.map((m, idx) => (
+                            <option key={idx} value={idx}>{m}</option>
+                        ))}
+                    </select>
+                    <select
+                        value={currentYear}
+                        onChange={handleYearChange}
+                        className="text-slate-400 text-lg md:text-xl font-normal bg-transparent outline-none cursor-pointer hover:bg-slate-50 p-1 rounded-lg"
+                    >
+                        {years.map((y) => (
+                            <option key={y} value={y}>{y}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
@@ -330,7 +365,14 @@ export default function AdminCalendar() {
     const [loading, setLoading] = useState(true);
     const [prosList, setProsList] = useState([]);
     const [currentView, setCurrentView] = useState(Views.MONTH);
+    const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedEvent, setSelectedEvent] = useState(null);
+
+    useEffect(() => {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            setCurrentView(Views.DAY);
+        }
+    }, []);
 
     useEffect(() => {
         (async () => {
@@ -408,6 +450,7 @@ export default function AdminCalendar() {
                 selectedPro={selectedPro}
                 setSelectedPro={setSelectedPro}
                 prosList={prosList}
+                setCurrentDate={setCurrentDate}
             />
         ),
         event: ({ event }) =>
@@ -471,6 +514,8 @@ export default function AdminCalendar() {
                     endAccessor="end"
                     style={{ minHeight: "72vh" }}
                     culture="pt-BR"
+                    date={currentDate}
+                    onNavigate={(newDate) => setCurrentDate(newDate)}
                     view={currentView}
                     onView={setCurrentView}
                     eventPropGetter={eventPropGetter}

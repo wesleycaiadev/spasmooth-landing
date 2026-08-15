@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { UserButton, useUser, ClerkProvider } from "@clerk/nextjs";
 import { useRouter } from 'next/navigation';
-import { LayoutDashboard, Users, Settings, Briefcase, Calendar, Award, CalendarCheck, Package } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, Briefcase, Calendar, Award, CalendarCheck, Package, Layers } from 'lucide-react';
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/admin/dashboard' },
@@ -11,6 +11,7 @@ const sidebarItems = [
     { icon: Calendar, label: 'Agenda', href: '/admin/calendar' },
     { icon: Package, label: 'Serviços', href: '/admin/services' },
     { icon: Briefcase, label: 'Profissionais', href: '/admin/professionals' },
+    { icon: Layers, label: 'Layout', href: '/admin/layout' },
     { icon: Award, label: 'Fidelidade', href: '/admin/rewards' },
     { icon: Settings, label: 'Configurações', href: '/admin/settings' },
 ];
@@ -68,11 +69,11 @@ function AdminContent({ children }) {
         <div className="flex min-h-screen bg-gradient-to-br from-cyan-50 via-white to-sky-50 pb-20 md:pb-0">
             <AdminNotifications />
 
-            <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 z-50 md:hidden flex justify-around items-center px-1 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
+            <nav className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-slate-200/60 z-50 md:hidden flex overflow-x-auto items-center px-2 py-3 shadow-[0_-4px_24px_rgba(0,0,0,0.05)] custom-scrollbar">
                 {sidebarItems.map((item) => (
-                    <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 p-2 text-slate-500 hover:text-cyan-600 transition-colors w-16">
+                    <Link key={item.href} href={item.href} className="flex flex-col items-center gap-1.5 p-2 text-slate-500 hover:text-cyan-600 transition-colors min-w-[70px] flex-shrink-0">
                         <item.icon size={22} />
-                        <span className="text-[8px] font-bold uppercase tracking-wider truncate w-full text-center">{item.label}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-wider truncate w-full text-center">{item.label}</span>
                     </Link>
                 ))}
             </nav>
@@ -94,7 +95,7 @@ function AdminContent({ children }) {
                 </div>
             </aside>
 
-            <main className="flex-1 md:ml-72 p-4 md:p-8 lg:p-12 relative overflow-x-hidden">
+            <main className="flex-1 md:ml-72 p-4 md:p-8 lg:p-12 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-sky-200/20 rounded-full blur-[100px] pointer-events-none -z-10"></div>
 
                 {children}

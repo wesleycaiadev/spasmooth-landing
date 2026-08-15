@@ -50,8 +50,9 @@ const CATEGORY_CONFIG = {
 const CATEGORY_ORDER = ['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
 const PREMIUM_CATEGORIES = ['day_spa', 'tantrica'];
 
-export default function ServiceAccordion({ groupedServices }) {
-    const [openCategory, setOpenCategory] = useState(CATEGORY_ORDER[0]);
+export default function ServiceAccordion({ groupedServices, categoryOrder = [] }) {
+    const orderToUse = categoryOrder.length > 0 ? categoryOrder : CATEGORY_ORDER;
+    const [openCategory, setOpenCategory] = useState(orderToUse[0]);
 
     const toggleCategory = (cat) => {
         setOpenCategory((prev) => (prev === cat ? null : cat));
@@ -59,7 +60,7 @@ export default function ServiceAccordion({ groupedServices }) {
 
     return (
         <div className="space-y-3 md:space-y-12">
-            {CATEGORY_ORDER.map((catKey) => {
+            {orderToUse.map((catKey) => {
                 const services = groupedServices[catKey];
                 if (!services || services.length === 0) return null;
 

@@ -1,32 +1,44 @@
 import { getActiveServices } from '@/services/admin/services';
+import { getCategoryLayoutConfig, getFeaturedCarouselConfig } from '@/services/admin/layout';
 import FeaturedCarousel from './FeaturedCarousel';
 import ServiceAccordion from './ServiceAccordion';
 
 export default async function Services() {
     let services = [];
+    let categoryOrder = [];
+    let carouselConfig = null;
 
     try {
-        const dbServices = await getActiveServices();
-        services = dbServices;
+        const [dbServices, catRes, carRes] = await Promise.all([
+            getActiveServices(),
+            getCategoryLayoutConfig(),
+            getFeaturedCarouselConfig()
+        ]);
+        services = dbServices || [];
+        categoryOrder = catRes.success ? catRes.data : [];
+        carouselConfig = carRes.success ? carRes.data : { mode: 'promotions', serviceIds: [], maxItems: 3 };
     } catch (error) {
-        console.error('[Services] Falha ao buscar do banco:', error.message);
+        console.error('[Services] Falha ao buscar dados:', error.message);
     }
 
     // Filtragem para o Carrossel
-    const featuredServices = services.filter(s => 
-        s.name.includes('Spa Magic Plus') || 
-        s.name.includes('Vivência') || 
-        s.name.includes('Day Spa Standard')
-    );
+    let featuredServices = [];
+    if (carouselConfig?.mode === 'manual') {
+        featuredServices = services.filter(s => carouselConfig.serviceIds.includes(s.id));
+    } else {
+        // Promotions mode
+        featuredServices = services.filter(s => {
+            if (!s.prices || s.prices.length === 0) return false;
+            // Verifica se tem algum preço com desconto
+            return s.prices.some(p => p.discount_percentage > 0);
+        }).slice(0, carouselConfig?.maxItems || 3);
+    }
 
     // Agrupar por categoria
-    const groupedServices = {
-        combo: services.filter(s => s.category === 'combo'),
-        day_spa: services.filter(s => s.category === 'day_spa'),
-        estetica: services.filter(s => s.category === 'estetica'),
-        depilacao: services.filter(s => s.category === 'depilacao'),
-        tantrica: services.filter(s => s.category === 'tantrica'),
-    };
+    const groupedServices = {};
+    for (const cat of categoryOrder) {
+        groupedServices[cat] = services.filter(s => s.category === cat);
+    }
 
     return (
         <section id="servicos" className="py-12 md:py-24 bg-[#fafafa] relative overflow-hidden">
@@ -44,7 +56,7 @@ export default async function Services() {
                 </div>
 
                 {/* Blocos de Serviços — Accordion no mobile, Grid no desktop */}
-                <ServiceAccordion groupedServices={groupedServices} />
+                <ServiceAccordion groupedServices={groupedServices} categoryOrder={categoryOrder} />
 
                 <div className="mt-10 md:mt-20 text-center text-xs font-medium text-slate-400 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100">
                     Informações e valores podem ser ajustados conforme disponibilidade. O pagamento é realizado diretamente no local.
