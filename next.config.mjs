@@ -34,6 +34,7 @@ const securityHeaders = isProd
     : baseHeaders;
 
 const nextConfig = {
+    output: 'standalone',
     eslint: {
         ignoreDuringBuilds: true,
     },

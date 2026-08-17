@@ -225,8 +225,8 @@ export async function applyDiscountToCategory(category: string, percent: number)
         if (error) {
             console.error("Supabase Error [applyDiscountToCategory]:", error.message);
             const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao aplicar desconto: ${error.message}`;
+                ? 'Colunas de desconto não encontradas. Execute o SQL "sql/004_add_discounts.sql" no Supabase.'
+                : 'Falha ao aplicar desconto.';
             return { success: false, error: userMsg };
         }
 
@@ -263,8 +263,8 @@ export async function clearCategoryDiscount(category: string): Promise<ActionRes
         if (error) {
             console.error("Supabase Error [clearCategoryDiscount]:", error.message);
             const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao remover descontos: ${error.message}`;
+                ? 'Colunas de desconto não encontradas. Execute o SQL "sql/004_add_discounts.sql" no Supabase.'
+                : 'Falha ao remover descontos.';
             return { success: false, error: userMsg };
         }
 
@@ -294,8 +294,8 @@ export async function updateServiceDiscount(id: string, percent: number, active:
         if (error) {
             console.error("Supabase Error [updateServiceDiscount]:", error.message);
             const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao atualizar desconto: ${error.message}`;
+                ? 'Colunas de desconto não encontradas. Execute o SQL "sql/004_add_discounts.sql" no Supabase.'
+                : 'Falha ao atualizar desconto.';
             return { success: false, error: userMsg };
         }
 

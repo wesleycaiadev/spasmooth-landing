@@ -5,7 +5,7 @@ import { createAdminClient } from '@/lib/supabaseAdmin';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const BUCKET = 'professional-photos';
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-const ADMIN_EMAILS = process.env.NEXT_PUBLIC_ADMIN_EMAILS ? process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',') : [];
+const ADMIN_EMAILS = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : [];
 
 function generateUniqueId() {
     return crypto.randomUUID();
@@ -13,14 +13,14 @@ function generateUniqueId() {
 
 function sanitizeFileName(rawName) {
     const dotIdx = rawName.lastIndexOf('.');
-    const baseName = dotIdx > 0 ? rawName.slice(0, dotIdx) : rawName;
-    const ext = dotIdx > 0 ? rawName.slice(dotIdx + 1).toLowerCase() : '';
+    const baseName = dotIdx > 0 ? rawName.slice(0, dotIdx) : (dotIdx === 0 ? '' : rawName);
+    const ext = dotIdx >= 0 ? rawName.slice(dotIdx + 1).toLowerCase() : '';
 
     const sanitized = baseName
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[()[\]{}]/g, '')
-        .replace(/[^a-zA-Z0-9._-]/g, '_')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
         .replace(/_+/g, '_')
         .replace(/^_|_$/g, '')
         .toLowerCase();
