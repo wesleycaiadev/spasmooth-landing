@@ -12,6 +12,10 @@
 - Página de confirmação deixa explícito que a solicitação aguarda confirmação da equipe.
 - A seção de depoimentos estáticos foi retirada porque não havia fonte verificável para os nomes, notas e textos existentes.
 - Atualização compatível com Next 16 para `params` assíncronos nas duas rotas dinâmicas públicas.
+- Correção de fidelidade: hero com a composição aprovada, novo asset editorial local e marca aplicada pela interface; sem card ou círculo decorativo.
+- Preloader personalizado preservado com exibição de 420 ms e saída de 360 ms.
+- Header alinhado à navegação aprovada; seletor de unidade mostra cidade e estado e continua chamando o `LocationProvider` existente.
+- Catálogo agora resolve imagens por `slug`; os sete serviços prioritários com asset aprovado não compartilham a mesma fotografia.
 
 ## Validação executada
 
@@ -23,6 +27,7 @@
 | `npm test` | passou |
 | `npm run test:db` | passou |
 | `git diff --check` | passou |
+| auditoria anti-IA (código modificado) | sem emojis, sparkles, bolhas ou cards decorativos no hero |
 
 ## Revisão visual pendente
 
