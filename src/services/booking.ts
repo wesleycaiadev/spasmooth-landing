@@ -45,16 +45,6 @@ type Service = {
     seo_content?: any;
 };
 
-const BUSINESS_HOURS: Record<number, { start: number; end: number } | null> = {
-    0: null,
-    1: { start: 8, end: 20 },
-    2: { start: 8, end: 20 },
-    3: { start: 8, end: 20 },
-    4: { start: 8, end: 20 },
-    5: { start: 8, end: 20 },
-    6: { start: 9, end: 16 },
-};
-
 export async function getActiveProfessionals(
     unit: string
 ): Promise<ServiceResponse<Professional[]>> {
@@ -172,14 +162,6 @@ export async function createBooking(
         const now = new Date();
         if (startsAt.getTime() < now.getTime() + 30 * 60 * 1000) {
             return { success: false, error: "Agende com pelo menos 30 minutos de antecedência." };
-        }
-
-        const dateObj = new Date(date + "T12:00:00");
-        const dayOfWeek = dateObj.getDay();
-        const businessHours = BUSINESS_HOURS[dayOfWeek];
-
-        if (!businessHours) {
-            return { success: false, error: "Não atendemos neste dia da semana." };
         }
 
         const { data: bookingId, error: rpcError } = await supabase.rpc(

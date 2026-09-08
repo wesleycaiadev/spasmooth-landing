@@ -15,6 +15,9 @@ DO $$ DECLARE v_pro uuid; v_svc uuid; v_id uuid; v_day date; v_slot text; v_star
  INSERT INTO public.services(name,category,duration_minutes,price,active) VALUES('SECURITY TEST','combo',60,100,true) RETURNING id INTO v_svc;
  v_day := (now() at time zone 'America/Maceio')::date+1;
  IF extract(dow from v_day)=0 THEN v_day:=v_day+1; END IF;
+ INSERT INTO public.professional_schedule(professional_id,day_of_week,start_time,end_time,is_day_off)
+ VALUES(v_pro::text,extract(dow from v_day)::integer,'08:00','21:00',false);
+ IF NOT '20:00'=ANY(public.available_booking_slots(v_pro,v_svc,v_day)) THEN RAISE EXCEPTION 'ADMIN_SCHEDULE_END_TIME_TEST_FAILED'; END IF;
  v_slot := (public.available_booking_slots(v_pro,v_svc,v_day))[1];
  IF v_slot IS NULL THEN RAISE EXCEPTION 'AVAILABILITY_TEST_FAILED'; END IF;
  v_start := (v_day+v_slot::time) AT TIME ZONE 'America/Maceio';
