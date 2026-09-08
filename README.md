@@ -1,181 +1,62 @@
-<h1 align="center">🌿 SpaSmooth</h1>
+# SpaSmooTh
 
-<p align="center">
-  Plataforma Full-Stack de agendamento e gestão para clínicas SPA —
-  arquitetura Zero Trust, RPC atômica anti-double-booking e painel administrativo protegido.
-</p>
+Plataforma de agendamento e gestão para o SpaSmooTh, com site público, páginas de serviços otimizadas para busca e painel administrativo.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15+-black?style=for-the-badge&logo=next.js" />
-  <img src="https://img.shields.io/badge/Supabase-PostgreSQL-green?style=for-the-badge&logo=supabase" />
-  <img src="https://img.shields.io/badge/TypeScript-Strict-blue?style=for-the-badge&logo=typescript" />
-  <img src="https://img.shields.io/badge/Tailwind-CSS-cyan?style=for-the-badge&logo=tailwind-css" />
-  <img src="https://img.shields.io/badge/Clerk-Auth-6C47FF?style=for-the-badge&logo=clerk&logoColor=white" />
-  <img src="https://img.shields.io/badge/Zod-Validation-E02020?style=for-the-badge" />
-</p>
+**Site:** [spasmooth.com.br](https://spasmooth.com.br)
 
-<p align="center">
-  <strong>🔗 <a href="https://spasmooth.com.br">spasmooth.com.br</a></strong>
-</p>
+## Principais recursos
 
----
-
-## Sobre o projeto
-
-O SpaSmooth começou como uma landing page e evoluiu para uma plataforma completa de agendamento online com painel administrativo. O sistema resolve dois problemas centrais:
-
-1. **Captação de clientes** — landing page com design imersivo, SEO técnico completo (Open Graph, schema.org, sitemap dinâmico) e funil de conversão direto para o wizard de agendamento. Menu de serviços agora conta com barra de pesquisa para melhor experiência.
-2. **Gestão operacional** — painel admin com kanban de leads, calendário semanal por profissional, dashboard de métricas, sistema de agendamentos e controle de Layout dinâmico.
-
-### Painel Administrativo (`/admin`)
-
-- **Dashboard:** Visão geral de métricas, leads novos e profissionais (Gráficos Recharts).
-- **Kanban (Gestão de Leads):** 
-  - Arraste e solte para mudar status (Novo, Agendado, Concluído, Cancelado).
-  - Controle de duplicatas (tags visuais de recorrentes).
-  - Integração via botão de WhatsApp direto para o cliente.
-  - Edição de Horário e Data de Agendamento diretamente no card de detalhes.
-- **Calendário Semanal e Mensal:** Visualização limpa dos serviços agendados por profissional.
-- **Serviços:** Cadastro e edição (com upload de imagem) do menu de tratamentos.
-- **Profissionais:** Gerenciamento da equipe.
-- **Configuração de Layout:** Tela para reorganizar a ordem e a visibilidade das seções da Landing Page dinamicamente.
-- **Sistema de Fidelidade (Rewards):** Pontos e selos gamificados para os clientes.
-
----
-
-## Funcionalidades
-
-- **Wizard de agendamento em 5 etapas** — escolha de unidade, profissional, serviço, data/horário e dados do cliente, com grade horária calculada no servidor em tempo real
-- **Anti-double-booking atômico** — função PL/pgSQL com `SELECT ... FOR UPDATE` garante que dois clientes simultâneos nunca reservem o mesmo horário
-- **Painel admin protegido** — autenticação via Clerk com whitelist de emails, kanban de leads, calendário semanal e ações de confirmar/cancelar agendamentos
-- **Dashboard de métricas** — conversão de leads, receita por período e filtros por unidade (Aracaju, Maceió, Recife)
-- **Headers de segurança OWASP** — CSP, HSTS, X-Frame-Options, Referrer-Policy e Permissions-Policy configurados em produção
-
----
-
-## Arquitetura
-
-### Zero Trust — frontend tratado como hostil
-
-O princípio central da arquitetura é que nenhuma operação de banco de dados ocorre no cliente. Todo acesso ao Supabase passa exclusivamente por Server Actions usando a `SUPABASE_SERVICE_ROLE_KEY` no servidor.
-Browser → Server Action → supabaseAdmin → PostgreSQL
-↑
-auth() + Zod validation
-(nunca chega ao banco sem passar aqui)
-
-Componentes client-side recebem apenas os dados já processados como props — sem imports de Supabase, sem queries expostas no bundle.
-
-### RPC atômica — eliminação de race condition
-
-O maior risco técnico de um sistema de agendamento é o double-booking por requisições simultâneas. A solução implementada é uma função PL/pgSQL que executa verificação e inserção em uma única transação:
-```sql
--- sql/002_check_and_create_booking.sql
-CREATE FUNCTION check_and_create_booking(...)
-RETURNS uuid AS $$
-BEGIN
-  -- Lock pessimista: bloqueia o range do profissional
-  SELECT id FROM bookings
-  WHERE professional_id = p_professional_id
-    AND tstzrange(starts_at, ends_at) && tstzrange(p_starts_at, p_ends_at)
-    AND status != 'cancelado'
-  FOR UPDATE;
-
-  IF FOUND THEN
-    RAISE EXCEPTION 'SLOT_UNAVAILABLE';
-  END IF;
-
-  -- INSERT só ocorre se não houver conflito
-  INSERT INTO bookings (...) VALUES (...);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-```
-
-O índice GiST em `tstzrange(starts_at, ends_at)` garante que a verificação de sobreposição seja eficiente mesmo com alto volume de agendamentos.
-
-### Validação em camadas
-
-Cada input passa por três barreiras antes de chegar ao banco:
-
-1. **HTML** — `maxLength` nos campos do formulário
-2. **Zod** — schema tipado com limites, regex e sanitização (`src/lib/validations/booking.ts`)
-3. **PostgreSQL** — constraints e a própria RPC rejeitam dados inválidos
-
-### Segurança administrativa
-
-Todas as Server Actions do painel admin verificam sessão e autorização antes de qualquer operação:
-```typescript
-const { userId } = await auth()
-const user = await currentUser()
-const email = user.emailAddresses[0].emailAddress
-
-if (!ADMIN_EMAILS.includes(email)) {
-  return { success: false, error: 'Acesso negado' }
-}
-```
-
-Não há verificação client-side de permissões — o `useUser` do Clerk é usado apenas para UI, nunca como controle de acesso real.
-
----
+- Agendamento online por unidade, profissional, serviço, data e horário.
+- Agenda configurável no Admin: os horários exibidos ao cliente respeitam o início, fim e folgas definidos para cada profissional.
+- Prevenção de conflitos de agenda no PostgreSQL.
+- Painel administrativo para profissionais, serviços, leads, calendário e layout.
+- Páginas de serviços com metadados, canonical, sitemap e `robots.txt`.
+- Autorização administrativa no servidor e validação de dados com Zod.
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Banco de dados | Supabase — PostgreSQL |
-| Autenticação | Clerk |
-| Validação | Zod |
-| Estilização | Tailwind CSS |
-| Deploy | Vercel |
-| Linguagem | TypeScript + JavaScript |
+- Next.js 16 / React
+- Supabase (PostgreSQL)
+- Clerk
+- Tailwind CSS
+- Vercel
 
----
+## Desenvolvimento local
 
-## Estrutura relevante
-src/
-├── lib/
-│   ├── validations/booking.ts   # Schemas Zod + tipos TypeScript
-│   └── supabaseAdmin.ts         # Cliente server-only (service role)
-├── services/
-│   ├── booking.ts               # Server Actions públicas
-│   └── admin/
-│       ├── bookings.ts          # Server Actions admin (auth obrigatória)
-│       └── dashboard.ts         # Métricas e agregações
-sql/
-├── 001_booking_tables.sql       # Schema + RLS + índice GiST
-└── 002_check_and_create_booking.sql  # RPC atômica anti-race-condition
+1. Instale as dependências:
 
----
+   ```bash
+   npm ci
+   ```
 
-## Rodando localmente
+2. Crie `.env.local` a partir de `.env.example` e preencha as credenciais do seu ambiente.
+
+3. Inicie o projeto:
+
+   ```bash
+   npm run dev
+   ```
+
+O site fica disponível em `http://localhost:3000` e o painel em `/admin`.
+
+## Banco de dados
+
+As alterações de banco ficam em `sql/` e em `supabase/migrations/`. Execute somente as migrações adequadas ao ambiente alvo; os arquivos históricos não devem ser reaplicados em uma base de produção já migrada.
+
+Para validar as regras de agendamento em um banco isolado em memória:
+
 ```bash
-git clone https://github.com/wesleycaiadev/spasmooth-landing.git
-cd spasmooth-landing
-npm install
+npm run test:db
 ```
 
-Crie `.env.local` na raiz:
-```env
-NEXT_PUBLIC_SUPABASE_URL=sua_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_anon_key
-SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key
+## Verificações
 
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=sua_pub_key
-CLERK_SECRET_KEY=sua_secret_key
-```
-
-Execute os SQLs em `sql/` no Supabase SQL Editor (na ordem numérica), depois:
 ```bash
-npm run dev
+npm test
+npm run typecheck
+npm run lint
 ```
 
-- `localhost:3000` — landing page
-- `localhost:3000/admin` — painel administrativo (requer email autorizado)
+## Segurança
 
----
-
-## Autor
-
-**Wesley Caiã** — Desenvolvedor Front-End
-
-[wesleycaiadev.vercel.app](https://wesleycaiadev.vercel.app) · [wesleycaia.dev@gmail.com](mailto:wesleycaia.dev@gmail.com)
+Não versione arquivos `.env`, credenciais, tokens ou dados de clientes. Operações administrativas e acesso ao Supabase usam apenas o servidor.
