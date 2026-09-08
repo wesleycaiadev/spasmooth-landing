@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Flame, Gem, ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight, Clock3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { calculateDiscount } from '@/lib/discounts';
 
 export default function FeaturedCarousel({ services = [] }) {
@@ -42,44 +43,35 @@ export default function FeaturedCarousel({ services = [] }) {
 
     const service = services[currentIndex];
     const disc = calculateDiscount(service);
-    const isMagic = service.name.toLowerCase().includes('magic');
-    const isTantrica = service.category === 'tantrica';
+    const imageByCategory = { combo: '/images/treatments/pedras-quentes.webp', day_spa: '/images/treatments/day-spa.webp', estetica: '/images/treatments/autocuidado.webp', depilacao: '/images/treatments/autocuidado.webp', tantrica: '/images/treatments/bambu.webp' };
+    const image = imageByCategory[service.category] || '/images/treatments/day-spa.webp';
 
     return (
-        <div 
-            className="w-full relative py-8 px-4 md:py-12 md:px-10 overflow-hidden bg-slate-900 text-white rounded-2xl md:rounded-[3rem] my-6 md:my-12 shadow-xl shadow-slate-900/30 border border-slate-800"
+        <section
+            aria-label="Experiências em destaque"
+            className="relative overflow-hidden rounded-[2rem] border border-[rgb(6_59_100_/_0.12)] bg-[var(--spa-ink)] text-white shadow-xl shadow-[rgb(6_59_100_/_0.18)] md:rounded-[2.5rem]"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10 pointer-events-none"></div>
-            <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-cyan-900 rounded-full mix-blend-screen filter blur-[120px] opacity-40 pointer-events-none"></div>
-            <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-yellow-900 rounded-full mix-blend-screen filter blur-[120px] opacity-20 pointer-events-none"></div>
-
-            <div className="text-center mb-10 relative z-10 max-w-2xl mx-auto">
-                <span className="text-yellow-500 font-medium tracking-widest uppercase text-xs mb-3 block">Assinatura SpaSmooth</span>
-                <h2 className="text-xl md:text-4xl font-serif mb-3">Nossas Experiências Memoráveis</h2>
-                <p className="text-slate-400 text-sm">Descubra os momentos de bem-estar mais cobiçados do nosso spa.</p>
-            </div>
-
-            <div className="relative max-w-4xl mx-auto z-10">
+            <div className="relative z-10">
                 {services.length > 1 && (
                     <>
                         <button 
                             onClick={prevSlide}
-                            className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full items-center justify-center border border-white/10 transition-all z-20 text-white/70 hover:text-white"
+                            className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-[rgb(6_59_100_/_0.65)] text-white transition hover:bg-white hover:text-[var(--spa-ink)] md:grid"
                         >
                             <ChevronLeft size={24} />
                         </button>
                         <button 
                             onClick={nextSlide}
-                            className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 w-12 h-12 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full items-center justify-center border border-white/10 transition-all z-20 text-white/70 hover:text-white"
+                            className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full border border-white/20 bg-[rgb(6_59_100_/_0.65)] text-white transition hover:bg-white hover:text-[var(--spa-ink)] md:grid"
                         >
                             <ChevronRight size={24} />
                         </button>
                     </>
                 )}
 
-                <div className="relative min-h-[400px] md:min-h-[450px] w-full">
+                <div className="relative min-h-[470px] w-full md:min-h-[430px]">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentIndex}
@@ -87,84 +79,37 @@ export default function FeaturedCarousel({ services = [] }) {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.5, ease: "easeInOut" }}
-                            className={`absolute inset-0 w-full h-full p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] flex flex-col md:flex-row gap-4 md:gap-8 justify-between items-center
-                                ${isMagic 
-                                    ? 'bg-gradient-to-br from-yellow-900/40 to-black border-2 border-yellow-500/30 shadow-[0_0_40px_rgba(234,179,8,0.15)]' 
-                                    : 'bg-slate-800/50 backdrop-blur-sm border border-slate-700/50'
-                                }`}
+                            className="absolute inset-0 grid h-full w-full md:grid-cols-2"
                         >
-                            <div className="flex-1 w-full text-center md:text-left">
-                                <div className="flex flex-col md:flex-row items-center md:items-start gap-4 mb-6">
-                                    <div className={`p-4 rounded-2xl inline-flex ${isMagic ? 'bg-yellow-500/20 text-yellow-400' : 'bg-cyan-500/10 text-cyan-400'}`}>
-                                        {isMagic ? <Gem size={32} /> : isTantrica ? <Flame size={32} /> : <Sparkles size={32} />}
-                                    </div>
-                                    <div className="flex flex-col items-center md:items-start justify-center">
-                                        <h3 className="text-lg md:text-2xl font-serif font-bold mb-1">{service.name}</h3>
-                                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                            {disc.hasDiscount && (
-                                                <div className="bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-xs px-3 py-1 rounded-full uppercase tracking-widest shadow-sm animate-pulse">
-                                                    🔥 {disc.discountPercent}% OFF
-                                                </div>
-                                            )}
-                                            {isMagic && (
-                                                <div className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-                                                    Exclusivo
-                                                </div>
-                                            )}
-                                            {isTantrica && !isMagic && (
-                                                <div className="bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest">
-                                                    Vivência VIP
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <p className={`text-xs md:text-base leading-relaxed mb-4 md:mb-6 max-w-xl font-light ${isMagic ? 'text-yellow-100/70' : 'text-slate-400'}`}>
-                                    {service.description}
-                                </p>
-                            </div>
-
-                            <div className="w-full md:w-auto flex flex-col items-center md:items-end md:min-w-[320px]">
-                                <div className="text-center md:text-right mb-6 md:mb-10">
-                                    <div className="text-slate-500 text-xs md:text-sm uppercase font-medium tracking-widest mb-2">Duração & Valor</div>
+                            <div className="order-2 flex flex-col justify-center p-7 sm:p-10 md:order-1 md:p-12">
+                                <p className="mb-4 text-[11px] font-extrabold uppercase tracking-[.16em] text-[#86d9ea]">Experiência em destaque</p>
+                                <h2 className="spa-display max-w-md text-4xl leading-tight md:text-5xl">{service.name}</h2>
+                                <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300 md:text-base">{service.description}</p>
+                                <div className="mt-6 flex items-center gap-2 text-sm text-[#bde8f0]"><Clock3 size={16} aria-hidden="true" /> {service.duration_minutes ? `${service.duration_minutes} min` : 'Duração conforme opção'}</div>
+                                <div className="mt-5 flex items-end gap-3">
                                     {disc.hasDiscount ? (
-                                        <div className="flex flex-col items-center md:items-end">
-                                            <span className="text-sm line-through text-slate-400 font-light">{disc.formattedOriginalPrice}</span>
-                                            <span className="text-2xl md:text-4xl font-bold text-amber-400">{disc.formattedFinalPrice}</span>
-                                        </div>
+                                        <><span className="text-sm text-slate-400 line-through">{disc.formattedOriginalPrice}</span><span className="text-2xl font-bold text-white">{disc.formattedFinalPrice}</span></>
                                     ) : (
-                                        <div className={`text-2xl md:text-4xl font-light tracking-wide ${isMagic ? 'text-yellow-400' : 'text-white'}`}>
+                                        <span className="text-2xl font-bold text-white">
                                             R$ {Number(service.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                        </div>
+                                        </span>
                                     )}
                                 </div>
-                                
-                                <button 
-                                    onClick={() => handleBooking(service)}
-                                    className={`w-full py-3 md:py-4 px-6 rounded-full text-xs md:text-sm font-bold tracking-widest uppercase transition-all duration-200 active:scale-95 hover:-translate-y-0.5
-                                        ${isMagic 
-                                            ? 'bg-gradient-to-r from-yellow-600 to-yellow-400 hover:from-yellow-500 hover:to-yellow-300 text-yellow-950 shadow-xl shadow-yellow-500/30' 
-                                            : 'bg-white hover:bg-cyan-50 text-slate-900 shadow-xl shadow-white/10'
-                                        }`}
-                                >
-                                    Reservar Momento
-                                </button>
+                                <button onClick={() => handleBooking(service)} className="mt-7 flex min-h-12 w-fit items-center gap-2 rounded-full bg-white px-5 text-sm font-extrabold text-[var(--spa-ink)] transition hover:bg-[var(--spa-sky)]">Reservar momento <ArrowRight size={17} aria-hidden="true" /></button>
                             </div>
+                            <div className="relative order-1 min-h-[210px] overflow-hidden md:order-2 md:min-h-full"><Image src={image} alt={`Ambiente que representa ${service.name}`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-[rgb(6_59_100_/_0.5)] via-transparent to-transparent md:bg-gradient-to-r" /></div>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
                 {services.length > 1 && (
-                    <div className="flex justify-center gap-3 mt-8">
+                    <div className="absolute bottom-5 left-8 flex gap-2 md:bottom-7 md:left-12">
                         {services.map((_, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentIndex(idx)}
                                 className={`h-2 rounded-full transition-all duration-500 ${
-                                    idx === currentIndex 
-                                        ? `w-10 ${isMagic ? 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'bg-cyan-400'}` 
-                                        : 'w-2 bg-slate-700 hover:bg-slate-500'
+                                    idx === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/70'
                                 }`}
                                 aria-label={`Ir para o slide ${idx + 1}`}
                             />
@@ -172,7 +117,6 @@ export default function FeaturedCarousel({ services = [] }) {
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     );
 }
-

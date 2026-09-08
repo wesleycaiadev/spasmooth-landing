@@ -1,61 +1,41 @@
 "use client";
+
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronDown, MapPin, Menu, X } from 'lucide-react';
+import BrandMark from './BrandMark';
+import { useLocation } from './LocationProvider';
+
+const navigation = [
+    { href: '/#servicos', label: 'Tratamentos' },
+    { href: '/#profissionais', label: 'Agendar' },
+    { href: '/#faq', label: 'Dúvidas' },
+    { href: '/#localizacao', label: 'Localização' },
+];
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
-    const closeMenu = () => setIsMenuOpen(false);
+    const [locationOpen, setLocationOpen] = useState(false);
+    const { location, changeLocation } = useLocation();
+    const selectLocation = (city) => { changeLocation(city); setLocationOpen(false); };
 
     return (
-        <header className="fixed w-full top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-100">
-            <div className="container mx-auto px-6 py-4 flex justify-between items-center">
-                {/* Logo */}
-                <button aria-label="Voltar ao início" className="flex flex-col items-center leading-none select-none cursor-pointer" onClick={() => window.scrollTo(0, 0)}>
-                    <div className="relative mb-1">
-                        <svg aria-hidden="true" width="40" height="30" viewBox="0 0 100 80" fill="none" stroke="#bddee7" strokeWidth="3">
-                            <path d="M50 10 C30 30, 10 50, 10 80 H90 C90 50, 70 30, 50 10" />
-                            <path d="M50 10 C40 40, 30 60, 30 80" strokeWidth="2" />
-                            <path d="M50 10 C60 40, 70 60, 70 80" strokeWidth="2" />
-                        </svg>
-                    </div>
-                    <span className="text-2xl font-light text-slate-500 tracking-wide">
-                        Spa<span className="font-bold text-slate-700">SmooTh</span>
-                    </span>
-                    <span className="text-[10px] text-cyan-700 tracking-[0.1em] uppercase mt-1">Spa, Massoterapia & Bronzeamento</span>
-                </button>
-
-                {/* Desktop Nav */}
-                <nav aria-label="Navegação Principal" className="hidden md:flex items-center gap-8 text-slate-600 font-semibold">
-                    <a href="#servicos" title="Ver Tratamentos" className="hover:text-cyan-700 transition-colors">Tratamentos</a>
-                    <a href="#profissionais" title="Agendar Sessão" className="hover:text-cyan-700 transition-colors">Agendar</a>
-                    <a href="#depoimentos" title="Ler Depoimentos" className="hover:text-cyan-700 transition-colors">Depoimentos</a>
-                    <a href="#faq" title="Dúvidas Frequentes" className="hover:text-cyan-700 transition-colors">Dúvidas</a>
-                    <a href="#localizacao" title="Nossa Localização" className="hover:text-cyan-700 transition-colors">Localização</a>
-                    <a href="#profissionais" title="Agendar Sessão Agora" className="px-8 py-3 rounded-full font-bold transition-all duration-300 transform hover:-translate-y-1 shadow-md bg-orange-400 hover:bg-orange-500 text-white shadow-orange-200">
-                        Agendar Agora
-                    </a>
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-[var(--spa-line)] bg-white/95 shadow-[0_4px_20px_rgb(6_59_100_/_0.05)] backdrop-blur-xl">
+            <div className="spa-shell flex h-[76px] items-center justify-between gap-4">
+                <BrandMark />
+                <nav aria-label="Navegação principal" className="hidden items-center gap-6 lg:flex">
+                    {navigation.map((item) => <Link key={item.href} href={item.href} className="text-xs font-extrabold text-slate-600 transition-colors hover:text-[var(--spa-blue)]">{item.label}</Link>)}
                 </nav>
-
-                {/* Mobile Toggle */}
-                <button aria-label="Abrir Menu" id="menu-btn" className="md:hidden p-2 text-slate-600" onClick={toggleMenu}>
-                    <Menu className="w-7 h-7" aria-hidden="true" />
-                </button>
-            </div>
-
-            {/* Mobile Menu */}
-            {isMenuOpen && (
-                <div id="mobile-menu" role="menu" className="md:hidden bg-white w-full border-b border-slate-100 shadow-lg py-6 px-6 flex flex-col gap-4 absolute top-full left-0">
-                    <a href="#servicos" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Tratamentos</a>
-                    <a href="#profissionais" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Agendar</a>
-                    <a href="#depoimentos" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Depoimentos</a>
-                    <a href="#localizacao" role="menuitem" className="mobile-link text-lg py-4 border-b border-slate-50" onClick={closeMenu}>Localização</a>
-                    <a href="#profissionais" role="menuitem" className="w-full mt-2 px-8 py-4 rounded-full font-bold bg-orange-400 text-white text-center shadow-md" onClick={closeMenu}>
-                        Agendar Sessão
-                    </a>
+                <div className="hidden items-center gap-3 md:flex">
+                    <div className="relative">
+                        <button type="button" onClick={() => setLocationOpen((open) => !open)} aria-expanded={locationOpen} className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--spa-line)] bg-white px-3 text-xs font-extrabold text-[var(--spa-ink)] transition hover:bg-[var(--spa-mist)]"><MapPin size={15} className="text-[var(--spa-blue)]" aria-hidden="true" />{location}<ChevronDown size={14} aria-hidden="true" /></button>
+                        {locationOpen && <div className="absolute right-0 top-[calc(100%+8px)] w-40 overflow-hidden rounded-xl border border-[var(--spa-line)] bg-white p-1 shadow-xl">{['Aracaju', 'Maceió', 'Recife'].map((city) => <button type="button" key={city} onClick={() => selectLocation(city)} className={`block w-full rounded-lg px-3 py-2 text-left text-xs font-bold ${city === location ? 'bg-[var(--spa-sky)] text-[var(--spa-ink)]' : 'text-slate-600 hover:bg-slate-50'}`}>{city}</button>)}</div>}
+                    </div>
+                    <Link href="/#profissionais" className="spa-button-primary text-xs">Agendar agora</Link>
                 </div>
-            )}
+                <button type="button" aria-label={isMenuOpen ? 'Fechar menu' : 'Abrir menu'} aria-expanded={isMenuOpen} className="grid h-11 w-11 place-items-center rounded-full border border-[var(--spa-line)] text-[var(--spa-ink)] md:hidden" onClick={() => setIsMenuOpen((open) => !open)}>{isMenuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}</button>
+            </div>
+            {isMenuOpen && <div className="border-t border-[var(--spa-line)] bg-white px-4 py-4 md:hidden"><nav aria-label="Navegação móvel" className="spa-shell flex flex-col">{navigation.map((item) => <Link key={item.href} href={item.href} onClick={() => setIsMenuOpen(false)} className="border-b border-slate-100 py-4 text-sm font-extrabold text-[var(--spa-ink)]">{item.label}</Link>)}<div className="grid grid-cols-3 gap-2 py-4" aria-label="Escolha de unidade">{['Aracaju', 'Maceió', 'Recife'].map((city) => <button type="button" key={city} onClick={() => selectLocation(city)} className={`min-h-11 rounded-lg text-xs font-extrabold ${city === location ? 'bg-[var(--spa-ink)] text-white' : 'bg-[var(--spa-mist)] text-slate-600'}`}>{city}</button>)}</div><Link href="/#profissionais" onClick={() => setIsMenuOpen(false)} className="spa-button-primary mt-1 w-full">Agendar minha sessão</Link></nav></div>}
         </header>
     );
 }

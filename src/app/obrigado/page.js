@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle2, Clock3, MessageCircle } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
 
 export const metadata = {
     robots: {
@@ -10,39 +11,27 @@ export const metadata = {
 
 export default function ObrigadoPage() {
     return (
-        <div className="min-h-screen bg-[#FFFDF9] flex flex-col items-center justify-center p-6 text-center">
-            <div className="bg-white p-10 md:p-14 rounded-3xl border border-[#e6dcc5]/50 shadow-2xl shadow-[#b48e43]/10 max-w-lg w-full animate-slideUp">
-                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-100">
-                    <CheckCircle className="w-10 h-10 text-green-600" />
+        <div className="min-h-screen bg-[var(--spa-cream)] p-5 pt-24 md:p-10 md:pt-28">
+            <div className="mx-auto flex max-w-xl justify-center"><BrandMark /></div>
+            <main className="mx-auto mt-8 max-w-xl rounded-[2rem] border border-[var(--spa-line)] bg-white p-7 text-center shadow-2xl shadow-[rgb(6_59_100_/_0.10)] md:p-12 animate-slideUp">
+                <div className="mx-auto mb-6 grid h-20 w-20 place-items-center rounded-full border border-emerald-200 bg-emerald-50">
+                    <CheckCircle2 className="h-10 w-10 text-emerald-600" />
                 </div>
+                <p className="spa-eyebrow mb-3">Pedido enviado</p>
+                <h1 className="spa-display text-4xl text-[var(--spa-ink)]">Solicitação recebida.</h1>
+                <p className="mt-5 leading-relaxed text-slate-600">Recebemos seu pedido de agendamento. A disponibilidade do horário será confirmada pela equipe pelo WhatsApp.</p>
 
-                <h1 className="text-3xl font-serif text-[#4a4a4a] mb-4">Solicitação Recebida!</h1>
-
-                <p className="text-[#666] mb-8 leading-relaxed">
-                    Recebemos seu pedido de agendamento com sucesso.
-                    <br /><br />
-                    <strong className="text-[#b48e43]">Fique atento(a) ao seu WhatsApp!</strong>
-                    <br />
-                    Nossa equipe entrará em contato em instantes para confirmar a disponibilidade do horário escolhido.
-                </p>
-
-                <div className="bg-[#fcfbf9] p-4 rounded-xl border border-[#f0e6d2] mb-8 flex items-center gap-4 text-left">
-                    <div className="bg-[#b48e43]/10 p-3 rounded-full shrink-0">
-                        <Clock className="text-[#b48e43] w-6 h-6" />
-                    </div>
-                    <div>
-                        <p className="text-xs font-bold text-[#b48e43] uppercase mb-0.5">Próximo Passo</p>
-                        <p className="text-sm text-[#666] leading-tight">Aguarde nossa confirmação para garantir sua experiência.</p>
-                    </div>
+                <div className="my-8 grid gap-3 text-left sm:grid-cols-2">
+                    <div className="rounded-2xl border border-[var(--spa-line)] bg-[var(--spa-mist)] p-4"><Clock3 className="mb-2 text-[var(--spa-blue)]" size={21} aria-hidden="true" /><p className="text-sm font-extrabold text-[var(--spa-ink)]">Aguarde a confirmação</p><p className="mt-1 text-xs leading-relaxed text-slate-600">O horário escolhido só fica confirmado após o retorno da equipe.</p></div>
+                    <div className="rounded-2xl border border-[var(--spa-line)] bg-[var(--spa-mist)] p-4"><MessageCircle className="mb-2 text-[#25D366]" size={21} aria-hidden="true" /><p className="text-sm font-extrabold text-[var(--spa-ink)]">Fique de olho no WhatsApp</p><p className="mt-1 text-xs leading-relaxed text-slate-600">Usaremos o contato informado no seu pedido.</p></div>
                 </div>
-
                 <Link
                     href="/"
-                    className="block w-full bg-[#1a1a1a] hover:bg-black text-[#b48e43] font-bold py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 uppercase tracking-wide text-sm"
+                    className="spa-button-primary w-full"
                 >
                     Voltar para o Início
                 </Link>
-            </div>
+            </main>
         </div>
     );
 }

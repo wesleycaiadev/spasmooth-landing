@@ -17,10 +17,10 @@ export default function ProfessionalCard({ pro, onClick, index = 0 }) {
             className="
                 group cursor-pointer bg-white overflow-hidden
                 transition-all duration-300 active:scale-[0.97]
-                min-w-[80%] snap-center md:min-w-0
+                min-w-[84%] snap-center md:min-w-0
                 rounded-2xl md:rounded-3xl
-                shadow-md hover:shadow-xl
-                border border-slate-100 hover:border-rose-200
+                shadow-sm hover:shadow-xl hover:shadow-[rgb(6_59_100_/_0.12)]
+                border border-[var(--spa-line)] hover:border-[var(--spa-blue)]
                 hover:-translate-y-1
                 opacity-0 animate-slideUp
             "
@@ -48,7 +48,7 @@ export default function ProfessionalCard({ pro, onClick, index = 0 }) {
                 )}
 
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[rgb(6_59_100_/_0.9)] via-[rgb(6_59_100_/_0.12)] to-transparent opacity-90" />
 
                 {/* Badge de fotos */}
                 {galleryCount > 1 && (
@@ -61,7 +61,7 @@ export default function ProfessionalCard({ pro, onClick, index = 0 }) {
                 {/* Info overlay */}
                 <div className="absolute bottom-0 left-0 w-full p-4 md:p-5 text-white">
                     <h3 className="text-lg md:text-xl font-serif font-bold mb-0.5">{pro.name}</h3>
-                    <p className="text-rose-300 font-medium text-xs tracking-wider uppercase mb-2">{pro.role}</p>
+                    <p className="mb-2 text-xs font-extrabold uppercase tracking-wider text-[#86d9ea]">{pro.role}</p>
                     <div className="flex flex-wrap gap-1.5">
                         {pro.specialties.slice(0, 2).map((spec, i) => (
                             <span

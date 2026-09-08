@@ -32,35 +32,28 @@ export default function LocationSection() {
     const activeDetails = locationDetails[location] || locationDetails['Aracaju'];
 
     return (
-        <section id="localizacao" className="py-20 bg-slate-50 relative overflow-hidden">
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="text-center max-w-2xl mx-auto mb-16 animate-on-scroll">
-                    <div className="inline-flex items-center gap-2 bg-cyan-100 text-cyan-800 px-4 py-1.5 rounded-full text-sm font-semibold tracking-wider uppercase border border-cyan-200 mb-6">
-                        <MapPin className="w-4 h-4" />
-                        <span>Como Chegar</span>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-serif text-slate-800 mb-6">
-                        Nossa <span className="text-cyan-700 italic">Localização</span>
-                    </h2>
-                    <p className="text-slate-600 text-lg">
-                        Venha nos visitar em {isLoadingLocation ? '...' : location} e desfrute de momentos inesquecíveis de relaxamento.
-                    </p>
+        <section id="localizacao" className="relative overflow-hidden bg-[var(--spa-mist)] py-16 md:py-24">
+            <div className="spa-shell relative z-10">
+                <div className="mb-9 max-w-2xl md:mb-12">
+                    <p className="spa-eyebrow mb-3 flex items-center gap-2"><MapPin size={15} aria-hidden="true" /> Como chegar</p>
+                    <h2 className="spa-display text-4xl text-[var(--spa-ink)] md:text-5xl">Nossa localização.</h2>
+                    <p className="mt-4 text-base text-slate-600">Encontre a unidade selecionada em {isLoadingLocation ? '...' : location} e escolha a melhor forma de chegar.</p>
                 </div>
 
-                <div className="grid lg:grid-cols-2 gap-12 items-center bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden animate-on-scroll">
+                <div className="grid items-stretch overflow-hidden rounded-[2rem] border border-[var(--spa-line)] bg-white shadow-xl shadow-[rgb(6_59_100_/_0.08)] lg:grid-cols-2">
                     {/* Informações */}
-                    <div className="p-10 lg:p-14">
-                        <h3 className="text-2xl font-semibold text-slate-800 mb-8">Spa<span className="font-light">SmooTh</span></h3>
+                    <div className="p-7 md:p-10 lg:p-12">
+                        <h3 className="spa-display mb-8 text-3xl text-[var(--spa-ink)]">SpaSmooTh {location}</h3>
 
                         <div className="space-y-8 text-slate-600">
                             <div className="flex items-start gap-4">
-                                <div className="bg-cyan-100 p-3 rounded-full text-cyan-600 shrink-0">
+                                <div className="shrink-0 rounded-full bg-[var(--spa-sky)] p-3 text-[var(--spa-blue)]">
                                     <MapPin className="w-6 h-6" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-slate-800 mb-1">Endereço</h4>
                                     <p className="text-sm">{activeDetails.address}</p>
-                                    <a href={activeDetails.mapsLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-cyan-600 hover:text-cyan-700 font-medium mt-2 transition-colors">
+                                    <a href={activeDetails.mapsLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 font-extrabold text-[var(--spa-blue)] transition-colors hover:text-[var(--spa-ink)]">
                                         <Navigation className="w-4 h-4" />
                                         <span>Abrir no Google Maps</span>
                                     </a>
@@ -68,22 +61,17 @@ export default function LocationSection() {
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="bg-cyan-100 p-3 rounded-full text-cyan-600 shrink-0">
+                                <div className="shrink-0 rounded-full bg-[var(--spa-sky)] p-3 text-[var(--spa-blue)]">
                                     <Clock className="w-6 h-6" />
                                 </div>
                                 <div className="w-full">
-                                    <h4 className="font-semibold text-slate-800 mb-2">Horário de Funcionamento</h4>
-                                    <ul className="space-y-2 text-sm max-w-xs">
-                                        <li className="flex justify-between pb-2">
-                                            <span>Todos os dias</span>
-                                            <span className="font-medium text-slate-800">07:00 - 21:00</span>
-                                        </li>
-                                    </ul>
+                                    <h4 className="mb-2 font-semibold text-slate-800">Horários disponíveis</h4>
+                                    <p className="max-w-xs text-sm">Consulte as opções atualizadas ao iniciar o agendamento.</p>
                                 </div>
                             </div>
 
                             <div className="flex items-start gap-4">
-                                <div className="bg-cyan-100 p-3 rounded-full text-cyan-600 shrink-0">
+                                <div className="shrink-0 rounded-full bg-[var(--spa-sky)] p-3 text-[var(--spa-blue)]">
                                     <Phone className="w-6 h-6" />
                                 </div>
                                 <div>
