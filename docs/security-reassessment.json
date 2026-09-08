@@ -1,0 +1,66 @@
+{
+  "checked_at": "2026-09-08T10:14:37.895268+00:00",
+  "production_origin": "https://www.spasmooth.com.br",
+  "http_checks": [
+    {
+      "path": "/admin/kanban",
+      "method": "GET",
+      "status": 307,
+      "location": "/entrar",
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    {
+      "path": "/admin/rewards",
+      "method": "GET",
+      "status": 307,
+      "location": "/entrar",
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    {
+      "path": "/seguranca",
+      "method": "GET",
+      "status": 307,
+      "location": "https://www.spasmooth.com.br/entrar?redirect_url=https%3A%2F%2Fwww.spasmooth.com.br%2Fseguranca",
+      "cache_control": "private, no-cache, no-store, max-age=0, must-revalidate"
+    },
+    {
+      "path": "/api/admin/session",
+      "method": "POST",
+      "status": 403,
+      "location": null,
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "path": "/api/admin/upload",
+      "method": "POST",
+      "status": 403,
+      "location": null,
+      "cache_control": "private, no-store, max-age=0"
+    },
+    {
+      "path": "/api/admin/session",
+      "method": "POST",
+      "status": 403,
+      "location": null,
+      "cache_control": "private, no-store, max-age=0"
+    }
+  ],
+  "clerk_public_settings": {
+    "frontend_host": "grand-reindeer-97.clerk.accounts.dev",
+    "test_mode": true,
+    "second_factors": [
+      "phone_code"
+    ],
+    "authenticator_app_enabled": false,
+    "backup_codes_enabled": false,
+    "mfa_required_at_sign_in": false,
+    "enumeration_protection_enabled": false,
+    "password_compromise_check_enabled": true
+  },
+  "npm_audit_known_vulnerabilities": 0,
+  "supabase_security_advisor": [
+    "extension_in_public: btree_gist"
+  ],
+  "app_session_secret_present_in_env_listing": false,
+  "authenticated_end_to_end_verified": false
+}

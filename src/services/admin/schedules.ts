@@ -1,4 +1,5 @@
 "use server";
+import { uuid, scheduleSchema } from '@/lib/validations/admin';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
@@ -19,6 +20,7 @@ type DataResult<T> = { success: true; data: T } | { success: false; error: strin
 
 export async function getScheduleForProfessional(proId: string): Promise<DataResult<ProfessionalSchedule[]>> {
     try {
+        if (!uuid.safeParse(proId).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -30,7 +32,7 @@ export async function getScheduleForProfessional(proId: string): Promise<DataRes
             .eq('professional_id', proId);
 
         if (error) {
-            console.error("Supabase Error [getScheduleForProfessional]:", error.message);
+            console.error("Supabase Error [getScheduleForProfessional]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao buscar agenda.' };
         }
 
@@ -42,6 +44,8 @@ export async function getScheduleForProfessional(proId: string): Promise<DataRes
 
 export async function upsertProfessionalSchedule(proId: string, scheduleData: ScheduleInput[]): Promise<ActionResult> {
     try {
+        const parsed = scheduleSchema.safeParse(scheduleData); if (!uuid.safeParse(proId).success || !parsed.success) return { success: false, error: 'Dados inválidos.' };
+        scheduleData = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -58,27 +62,8 @@ export async function upsertProfessionalSchedule(proId: string, scheduleData: Sc
             professional_id: proId,
         }));
 
-        // Primeiro tenta deletar os existentes
-        const { error: deleteError } = await supabase
-            .from('professional_schedule')
-            .delete()
-            .eq('professional_id', proId);
-
-        if (deleteError) {
-            console.error("Supabase Error [upsertSchedule:delete]:", deleteError.message);
-            return { success: false, error: 'Falha ao limpar agenda existente.' };
-        }
-
-        const { error: insertError } = await supabase
-            .from('professional_schedule')
-            .insert(upsertData);
-
-        if (insertError) {
-            console.error("Supabase Error [upsertSchedule:insert]:", insertError.message);
-            // Tentar restaurar: re-inserir dados antigos em caso de falha
-            // Pelo menos logamos o erro para investigação
-            return { success: false, error: 'Falha ao salvar agenda. Os dados antigos podem ter sido perdidos — verifique no banco.' };
-        }
+        const { error } = await supabase.rpc('replace_professional_schedule', { p_professional_id: proId, p_schedule: upsertData });
+        if (error) return { success: false, error: 'Falha ao salvar agenda.' };
 
         return { success: true };
     } catch {

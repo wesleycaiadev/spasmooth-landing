@@ -87,8 +87,8 @@ export async function listBookings(
 
         return { success: true, data: data as BookingRow[] };
     } catch (e: any) {
-        console.error("[listBookings exception]:", e);
-        return { success: false, error: "Erro interno: " + (e.message || "") };
+        console.error("[listBookings exception]:", "OPERATION_FAILED");
+        return { success: false, error: "Erro interno do servidor." };
     }
 }
 
@@ -107,22 +107,8 @@ export async function updateBookingStatus(
         const { id, status } = parsed.data;
         const supabase = createAdminClient();
 
-        const { error } = await supabase
-            .from("bookings")
-            .update({ status })
-            .eq("id", id);
-
-        if (error) {
-            console.error("[updateBookingStatus]", error.code);
-            return { success: false, error: "Erro ao atualizar status." };
-        }
-
-        // Sincronizar com tabela leads
-        const leadStatus = mapBookingStatusToLead(status);
-        await supabase
-            .from("leads")
-            .update({ status_kanban: leadStatus })
-            .eq("id", id);
+        const { error } = await supabase.rpc('admin_set_lead_status', { p_id: id, p_status: mapBookingStatusToLead(status) });
+        if (error) return { success: false, error: 'Falha ao atualizar status. Verifique conflitos de horário.' };
 
         return { success: true };
     } catch {

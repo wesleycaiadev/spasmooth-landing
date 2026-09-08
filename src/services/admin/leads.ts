@@ -1,6 +1,8 @@
 "use server";
+import { uuid, date as dateSchema, time as timeSchema, leadSchema, leadStatus } from '@/lib/validations/admin';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
+import { z } from 'zod';
 import { verifyAdmin } from '@/lib/auth';
 
 export type Lead = {
@@ -33,15 +35,15 @@ export async function getLeads(): Promise<DataResult<Lead[]>> {
 
         const { data, error } = await supabase
             .from('leads')
-            .select('*, professionals(name)')
+            .select('id,nome,whatsapp,email,service_name,professional_id,appointment_date,appointment_time,mensagem_interesse,status_kanban,admin_notes,created_at,professionals(name)')
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error("Supabase Error [getLeads]:", error.message);
+            console.error("Supabase Error [getLeads]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao buscar leads.' };
         }
 
-        return { success: true, data: data as Lead[] };
+        return { success: true, data: (data ?? []).map(row => ({ ...row, professionals: Array.isArray(row.professionals) ? row.professionals[0] ?? null : row.professionals })) };
     } catch {
         return { success: false, error: 'Erro interno do servidor.' };
     }
@@ -49,6 +51,7 @@ export async function getLeads(): Promise<DataResult<Lead[]>> {
 
 export async function updateLeadStatus(id: string, newStatus: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || !leadStatus.safeParse(newStatus).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -58,18 +61,8 @@ export async function updateLeadStatus(id: string, newStatus: string): Promise<A
 
         const supabase = createAdminClient();
 
-        const { error } = await supabase.from('leads').update({ status_kanban: newStatus }).eq('id', id);
-
-        if (error) {
-            console.error("Supabase Error [updateLeadStatus]:", error.message);
-            return { success: false, error: 'Falha ao atualizar status.' };
-        }
-
-        // Sincronizar com tabela bookings se existir
-        await supabase
-            .from('bookings')
-            .update({ status: mapLeadStatusToBooking(newStatus) })
-            .eq('id', id);
+        const { error } = await supabase.rpc('admin_set_lead_status', { p_id: id, p_status: newStatus });
+        if (error) return { success: false, error: 'Falha ao atualizar status. Verifique conflitos de horário.' };
 
         return { success: true };
     } catch {
@@ -79,6 +72,7 @@ export async function updateLeadStatus(id: string, newStatus: string): Promise<A
 
 export async function deleteLead(id: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -87,7 +81,7 @@ export async function deleteLead(id: string): Promise<ActionResult> {
         const { error } = await supabase.from('leads').delete().eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [deleteLead]:", error.message);
+            console.error("Supabase Error [deleteLead]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao excluir lead.' };
         }
 
@@ -99,6 +93,7 @@ export async function deleteLead(id: string): Promise<ActionResult> {
 
 export async function updateLeadNote(id: string, note: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || !z.string().max(2000).safeParse(note).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -107,7 +102,7 @@ export async function updateLeadNote(id: string, note: string): Promise<ActionRe
         const { error } = await supabase.from('leads').update({ admin_notes: note }).eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [updateLeadNote]:", error.message);
+            console.error("Supabase Error [updateLeadNote]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao gravar anotação.' };
         }
 
@@ -119,6 +114,8 @@ export async function updateLeadNote(id: string, note: string): Promise<ActionRe
 
 export async function createLead(leadData: Partial<LeadInput>): Promise<ActionResult> {
     try {
+        const parsed = leadSchema.safeParse(leadData); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        leadData = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -131,7 +128,7 @@ export async function createLead(leadData: Partial<LeadInput>): Promise<ActionRe
         const { error } = await supabase.from('leads').insert([leadData]);
 
         if (error) {
-            console.error("Supabase Error [createLead]:", error.message);
+            console.error("Supabase Error [createLead]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao criar lead.' };
         }
 
@@ -143,6 +140,7 @@ export async function createLead(leadData: Partial<LeadInput>): Promise<ActionRe
 
 export async function updateLeadSchedule(id: string, date: string, time: string, professionalId: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || (date && !dateSchema.safeParse(date).success) || (time && !timeSchema.safeParse(time).success) || (professionalId && !uuid.safeParse(professionalId).success)) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -150,37 +148,8 @@ export async function updateLeadSchedule(id: string, date: string, time: string,
 
         const supabase = createAdminClient();
 
-        // 1. Atualizar lead
-        const updateData: any = {
-            appointment_date: date || null,
-            appointment_time: time || null,
-        };
-        if (professionalId) {
-            updateData.professional_id = professionalId;
-        }
-
-        const { error: leadError } = await supabase.from('leads').update(updateData).eq('id', id);
-
-        if (leadError) {
-            console.error("Supabase Error [updateLeadSchedule - leads]:", leadError.message);
-            return { success: false, error: 'Falha ao atualizar agendamento do lead.' };
-        }
-
-        // 2. Atualizar bookings, caso o cliente também acompanhe por essa tabela
-        const bookingUpdateData: any = {
-            appointment_date: date || null,
-            appointment_time: time || null,
-        };
-        if (professionalId) {
-            bookingUpdateData.professional_id = professionalId;
-        }
-
-        const { error: bookingError } = await supabase.from('bookings').update(bookingUpdateData).eq('id', id);
-        
-        if (bookingError) {
-            // Logamos mas não falhamos a request se o booking não existir (pode ser só lead)
-            console.warn("Aviso ao atualizar booking vinculado:", bookingError.message);
-        }
+        const { error } = await supabase.rpc('admin_reschedule_lead', { p_id: id, p_date: date || null, p_time: time || null, p_professional_id: professionalId || null });
+        if (error) return { success: false, error: 'Horário inválido, indisponível ou falha ao salvar.' };
 
         return { success: true };
     } catch {
@@ -190,12 +159,13 @@ export async function updateLeadSchedule(id: string, date: string, time: string,
 
 export async function getCalendarEvents(professionalId: string): Promise<DataResult<Lead[]>> {
     try {
+        if (professionalId !== 'all' && !uuid.safeParse(professionalId).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
         const supabase = createAdminClient();
 
-        let query = supabase.from('leads').select('*').neq('status_kanban', 'cancelado');
+        let query = supabase.from('leads').select('id,nome,whatsapp,email,service_name,professional_id,appointment_date,appointment_time,mensagem_interesse,status_kanban,admin_notes,created_at').neq('status_kanban', 'cancelado');
 
         if (professionalId !== 'all') {
             query = query.eq('professional_id', professionalId);
@@ -204,7 +174,7 @@ export async function getCalendarEvents(professionalId: string): Promise<DataRes
         const { data, error } = await query;
 
         if (error) {
-            console.error("Supabase Error [getCalendarEvents]:", error.message);
+            console.error("Supabase Error [getCalendarEvents]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao buscar eventos do calendário.' };
         }
 
@@ -223,4 +193,11 @@ function mapLeadStatusToBooking(leadStatus: string): string {
         'cancelado': 'cancelado',
     };
     return map[leadStatus] ?? 'pendente';
+}
+
+export async function getRecentLeadNotifications(since: string) {
+    const admin = await verifyAdmin();
+    if (!admin.success || !z.iso.datetime().safeParse(since).success) return { success: false as const, data: [] };
+    const { data, error } = await createAdminClient().from('leads').select('id,nome,service_name').gt('created_at', since).order('created_at').limit(30);
+    return { success: !error, data: data || [] };
 }

@@ -1,41 +1,22 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { updateBookingInterest } from '@/services/booking';
 import { ArrowRight } from 'lucide-react';
 
 export default function InterestPage() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [interest, setInterest] = useState('');
-    const [leadId, setLeadId] = useState(null);
-
-    useEffect(() => {
-        // Retrieve Lead ID stored in Step 1
-        const storedId = localStorage.getItem('current_lead_id');
-        if (!storedId) {
-            router.push('/'); // Redirect to start if no ID found
-        } else {
-            setLeadId(storedId);
-        }
-    }, [router]);
-
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!leadId) return;
 
         setLoading(true);
 
         try {
-            const { error } = supabase
-                ? await supabase.rpc('update_lead_interest', {
-                    p_id: leadId,
-                    p_interest: interest
-                })
-                : { error: new Error('Supabase não disponível') };
-
-            if (error) throw error;
+            const result = await updateBookingInterest(interest);
+            if (!result.success) throw new Error(result.error);
 
             router.push('/obrigado');
 
@@ -63,6 +44,7 @@ export default function InterestPage() {
                 <form onSubmit={handleSubmit}>
                     <textarea
                         required
+                        maxLength={500}
                         value={interest}
                         onChange={(e) => setInterest(e.target.value)}
                         className="w-full h-40 px-5 py-4 rounded-xl bg-[#f9f9f9] border border-[#e0e0e0] focus:border-[#b48e43] focus:ring-1 focus:ring-[#b48e43] outline-none transition-all text-[#4a4a4a] placeholder:text-[#ccc] resize-none text-lg"

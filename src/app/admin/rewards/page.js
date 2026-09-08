@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getLeads } from '@/services/admin/leads';
 import { Award, Search, Star, Gift, Crown, Clock, History, Settings, X, Check } from 'lucide-react';
 import { sanitizePhoneNumber } from '@/lib/discounts';
 
@@ -58,15 +58,10 @@ export default function RewardsPage() {
 
     useEffect(() => {
         async function fetchLeads() {
-            if (!supabase) { setLoading(false); return; }
             setLoading(true);
-            const { data, error } = await supabase
-                .from('leads')
-                .select('id, nome, whatsapp, service_name, created_at, status_kanban, appointment_date')
-                .eq('status_kanban', 'concluido')
-                .order('created_at', { ascending: false });
-
-            if (!error && data) {
+            const result = await getLeads();
+            if (result.success) {
+                const data = result.data.filter(lead => lead.status_kanban === 'concluido');
                 setLeads(data);
                 processRecurring(data);
             }

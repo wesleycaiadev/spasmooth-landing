@@ -1,9 +1,11 @@
 "use client";
+import { usePrivacy } from "@/components/PrivacyProvider";
 
 import { MapPin, Phone, Clock, Navigation } from 'lucide-react';
 import { useLocation } from '@/components/LocationProvider';
 
 export default function LocationSection() {
+    const { maps } = usePrivacy();
     const { location, isLoadingLocation } = useLocation();
 
     const locationDetails = {
@@ -96,7 +98,7 @@ export default function LocationSection() {
 
                     {/* Mapa Dinâmico */}
                     <div className="h-96 lg:h-full min-h-[400px] w-full bg-slate-200 relative group">
-                        <iframe
+                        {maps ? <iframe
                             key={location}
                             src={activeDetails.iframeSrc}
                             width="100%"
@@ -107,7 +109,7 @@ export default function LocationSection() {
                             referrerPolicy="no-referrer-when-downgrade"
                             title={activeDetails.iframeTitle}
                             className="absolute inset-0 transition-opacity duration-300 opacity-90 group-hover:opacity-100"
-                        ></iframe>
+                        ></iframe> : <div className="h-full min-h-64 flex items-center justify-center p-6 text-center bg-slate-100"><p>Para mostrar o mapa, autorize “Mapas do Google” em Privacidade e cookies. Você também pode usar o link de endereço.</p></div>}
                     </div>
                 </div>
             </div>
