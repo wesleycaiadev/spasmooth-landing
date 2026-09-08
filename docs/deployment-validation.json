@@ -1,0 +1,177 @@
+{
+  "deployment_id": "dpl_D5ffdeMii1VYzXp5QWUuNetHUA3X",
+  "state": "READY",
+  "supabase_migration_applied": true,
+  "checks": [
+    {
+      "path": "/",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 200 ",
+        "cache-control: private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/privacidade",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 200 ",
+        "cache-control: public, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/admin/kanban",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 307 ",
+        "cache-control: private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "location: /entrar",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/admin/upload",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 403 ",
+        "cache-control: private, no-store, max-age=0",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/booking/action?token=test&action=decline",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 303 ",
+        "cache-control: no-store",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "location: https://spasmooth-landing-n9c2746a3-wesleycaiadevs-projects.vercel.app/admin/kanban",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/booking/notify",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 410 ",
+        "cache-control: private, no-store, max-age=0",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    }
+  ],
+  "supabase_migration_version": "20260908100346",
+  "promoted_to_production": true,
+  "production_origin": "https://www.spasmooth.com.br",
+  "production_checks": [
+    {
+      "path": "/",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 200 ",
+        "cache-control: private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/privacidade",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 200 ",
+        "cache-control: public, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/entrar",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 200 ",
+        "cache-control: private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/admin/kanban",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 307 ",
+        "cache-control: private, no-cache, no-store, max-age=0, must-revalidate",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "location: /entrar",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/admin/upload",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 403 ",
+        "cache-control: private, no-store, max-age=0",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/booking/action?token=test&action=decline",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 303 ",
+        "cache-control: no-store",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "location: https://www.spasmooth.com.br/admin/kanban",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    },
+    {
+      "path": "/api/booking/notify",
+      "exit": 0,
+      "headers": [
+        "HTTP/2 410 ",
+        "cache-control: private, no-store, max-age=0",
+        "content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://challenges.cloudflare.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://images.unsplash.com https://*.supabase.co https://img.clerk.com https://*.clerk.dev https://ui-avatars.com; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://clerk.spasmooth.com.br https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com; font-src 'self' https://fonts.gstatic.com; frame-src 'self' https://*.clerk.accounts.dev https://*.clerk.dev https://*.clerk.com https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests",
+        "strict-transport-security: max-age=63072000; includeSubDomains; preload",
+        "x-content-type-options: nosniff",
+        "x-frame-options: DENY"
+      ]
+    }
+  ],
+  "aliases_verified": [
+    "spasmooth.com.br",
+    "www.spasmooth.com.br",
+    "spasmooth.vercel.app"
+  ]
+}

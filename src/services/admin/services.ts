@@ -1,4 +1,5 @@
 "use server";
+import { uuid, category as categorySchema } from '@/lib/validations/admin';
 
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabaseAdmin';
@@ -32,7 +33,7 @@ export async function getServices(): Promise<Service[]> {
         .order('name', { ascending: true });
 
     if (error) {
-        console.error("Supabase Error [getServices]:", error.message);
+        console.error("Supabase Error [getServices]:", "DATABASE_OPERATION_FAILED");
         return [];
     }
 
@@ -50,7 +51,7 @@ export async function getActiveServices(): Promise<Service[]> {
         .order('name', { ascending: true });
 
     if (error) {
-        console.error("Supabase Error [getActiveServices]:", error.message);
+        console.error("Supabase Error [getActiveServices]:", "DATABASE_OPERATION_FAILED");
         return [];
     }
 
@@ -72,7 +73,7 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
         const { error } = await supabase.from('services').insert([parsed.data]);
 
         if (error) {
-            console.error("Supabase Error [createService]:", error.message);
+            console.error("Supabase Error [createService]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao criar serviço.' };
         }
 
@@ -80,13 +81,14 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [createService]:", err);
+        console.error("Exception [createService]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao criar serviço.' };
     }
 }
 
 export async function updateService(id: string, input: UpdateServiceInput): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -103,7 +105,7 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
             .eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [updateService]:", error.message);
+            console.error("Supabase Error [updateService]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao atualizar serviço.' };
         }
 
@@ -111,13 +113,14 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [updateService]:", err);
+        console.error("Exception [updateService]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao atualizar serviço.' };
     }
 }
 
 export async function updateServicePrice(id: string, price: number): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || !Number.isFinite(price) || price < 0 || price > 100000) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -132,7 +135,7 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
             .eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [updateServicePrice]:", error.message);
+            console.error("Supabase Error [updateServicePrice]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao atualizar preço.' };
         }
 
@@ -140,13 +143,14 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [updateServicePrice]:", err);
+        console.error("Exception [updateServicePrice]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao atualizar preço.' };
     }
 }
 
 export async function toggleServiceActive(id: string, currentStatus: boolean): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || typeof currentStatus !== 'boolean') return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -157,7 +161,7 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
             .eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [toggleServiceActive]:", error.message);
+            console.error("Supabase Error [toggleServiceActive]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao alterar status.' };
         }
 
@@ -165,13 +169,14 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [toggleServiceActive]:", err);
+        console.error("Exception [toggleServiceActive]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao alterar status.' };
     }
 }
 
 export async function deleteService(id: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -182,7 +187,7 @@ export async function deleteService(id: string): Promise<ActionResult> {
             .eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [deleteService]:", error.message);
+            console.error("Supabase Error [deleteService]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao remover serviço.' };
         }
 
@@ -190,13 +195,14 @@ export async function deleteService(id: string): Promise<ActionResult> {
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [deleteService]:", err);
+        console.error("Exception [deleteService]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao remover serviço.' };
     }
 }
 
 export async function applyDiscountToCategory(category: string, percent: number): Promise<ActionResult> {
     try {
+        if (!categorySchema.safeParse(category).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
@@ -223,24 +229,22 @@ export async function applyDiscountToCategory(category: string, percent: number)
         const { error } = await query;
 
         if (error) {
-            console.error("Supabase Error [applyDiscountToCategory]:", error.message);
-            const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao aplicar desconto: ${error.message}`;
-            return { success: false, error: userMsg };
+            console.error("Supabase Error [applyDiscountToCategory]:", "DATABASE_OPERATION_FAILED");
+            return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
         revalidatePath('/');
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [applyDiscountToCategory]:", err);
+        console.error("Exception [applyDiscountToCategory]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao aplicar desconto.' };
     }
 }
 
 export async function clearCategoryDiscount(category: string): Promise<ActionResult> {
     try {
+        if (!categorySchema.safeParse(category).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
@@ -261,24 +265,22 @@ export async function clearCategoryDiscount(category: string): Promise<ActionRes
         const { error } = await query;
 
         if (error) {
-            console.error("Supabase Error [clearCategoryDiscount]:", error.message);
-            const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao remover descontos: ${error.message}`;
-            return { success: false, error: userMsg };
+            console.error("Supabase Error [clearCategoryDiscount]:", "DATABASE_OPERATION_FAILED");
+            return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
         revalidatePath('/');
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [clearCategoryDiscount]:", err);
+        console.error("Exception [clearCategoryDiscount]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao remover descontos.' };
     }
 }
 
 export async function updateServiceDiscount(id: string, percent: number, active: boolean): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || !Number.isFinite(percent) || percent < 0 || percent > 100 || typeof active !== 'boolean') return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error || "Acesso negado." };
 
@@ -292,18 +294,15 @@ export async function updateServiceDiscount(id: string, percent: number, active:
             .eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [updateServiceDiscount]:", error.message);
-            const userMsg = error.message.includes('column') || error.message.includes('discount')
-                ? 'Colunas de desconto não encontradas no Supabase. Execute o SQL "sql/004_add_discounts.sql" no SQL Editor do Supabase.'
-                : `Falha ao atualizar desconto: ${error.message}`;
-            return { success: false, error: userMsg };
+            console.error("Supabase Error [updateServiceDiscount]:", "DATABASE_OPERATION_FAILED");
+            return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
         revalidatePath('/');
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
-        console.error("Exception [updateServiceDiscount]:", err);
+        console.error("Exception [updateServiceDiscount]:", "OPERATION_FAILED");
         return { success: false, error: 'Erro inesperado ao atualizar desconto.' };
     }
 }

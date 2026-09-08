@@ -1,4 +1,5 @@
 "use server";
+import { layoutSchema, categoryOrderSchema, carouselSchema } from '@/lib/validations/admin';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
@@ -45,7 +46,7 @@ export async function getLayoutConfig(): Promise<DataResult<LayoutSection[]>> {
             .single();
 
         if (error) {
-            console.error("Supabase Error [getLayoutConfig]:", error.message);
+            console.error("Supabase Error [getLayoutConfig]:", "DATABASE_OPERATION_FAILED");
             // Se a tabela não existir ainda ou der erro, retorna o default
             return { success: true, data: DEFAULT_LAYOUT };
         }
@@ -62,6 +63,8 @@ export async function getLayoutConfig(): Promise<DataResult<LayoutSection[]>> {
 
 export async function updateLayoutConfig(newLayout: LayoutSection[]): Promise<ActionResult> {
     try {
+        const parsed = layoutSchema.safeParse(newLayout); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        newLayout = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -75,7 +78,7 @@ export async function updateLayoutConfig(newLayout: LayoutSection[]): Promise<Ac
             });
 
         if (error) {
-            console.error("Supabase Error [updateLayoutConfig]:", error.message);
+            console.error("Supabase Error [updateLayoutConfig]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao salvar configuração de layout.' };
         }
 
@@ -110,6 +113,8 @@ export async function getCategoryLayoutConfig(): Promise<DataResult<string[]>> {
 
 export async function updateCategoryLayoutConfig(newOrder: string[]): Promise<ActionResult> {
     try {
+        const parsed = categoryOrderSchema.safeParse(newOrder); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        newOrder = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -123,7 +128,7 @@ export async function updateCategoryLayoutConfig(newOrder: string[]): Promise<Ac
             });
 
         if (error) {
-            console.error("Supabase Error [updateCategoryLayoutConfig]:", error.message);
+            console.error("Supabase Error [updateCategoryLayoutConfig]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao salvar ordem das categorias.' };
         }
 
@@ -158,6 +163,8 @@ export async function getFeaturedCarouselConfig(): Promise<DataResult<FeaturedCa
 
 export async function updateFeaturedCarouselConfig(config: FeaturedCarouselConfig): Promise<ActionResult> {
     try {
+        const parsed = carouselSchema.safeParse(config); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        config = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -171,7 +178,7 @@ export async function updateFeaturedCarouselConfig(config: FeaturedCarouselConfi
             });
 
         if (error) {
-            console.error("Supabase Error [updateFeaturedCarouselConfig]:", error.message);
+            console.error("Supabase Error [updateFeaturedCarouselConfig]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao salvar configuração do carrossel.' };
         }
 

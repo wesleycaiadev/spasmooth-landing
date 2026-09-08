@@ -59,9 +59,11 @@ export default function ProfessionalsPage() {
 
         try {
             if (editingId) {
-                await proService.updateProfessional(editingId, proData);
+                const result = await proService.updateProfessional(editingId, proData);
+                if (!result.success) throw new Error(result.error);
             } else {
-                await proService.createProfessional(proData);
+                const result = await proService.createProfessional(proData);
+                if (!result.success) throw new Error(result.error);
             }
 
             closeForm();

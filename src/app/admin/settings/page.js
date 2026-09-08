@@ -99,7 +99,8 @@ export default function SettingsPage() {
                 is_day_off: s.is_day_off
             }));
 
-            await scheduleService.upsertProfessionalSchedule(selectedPro, upsertData);
+            const result = await scheduleService.upsertProfessionalSchedule(selectedPro, upsertData);
+            if (!result.success) throw new Error(result.error);
             setMessage({ type: 'success', text: 'Horários atualizados com sucesso!' });
 
             fetchScheduleForPro(selectedPro);

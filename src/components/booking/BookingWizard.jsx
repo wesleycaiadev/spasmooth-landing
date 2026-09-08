@@ -40,6 +40,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         client_name: "",
         client_phone: "",
         notes: "",
+        privacy_acknowledged: false,
     });
 
     useEffect(() => {
@@ -167,6 +168,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
             return;
         }
 
+        if (!booking.privacy_acknowledged) { setFeedback({ type: "error", message: "Leia e confirme o aviso de privacidade." }); return; }
         setFeedback({ type: "", message: "" });
 
         startTransition(async () => {
@@ -179,6 +181,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                 client_name: booking.client_name.trim(),
                 client_phone: booking.client_phone.trim(),
                 notes: booking.notes?.trim() ?? "",
+                privacy_acknowledged: booking.privacy_acknowledged,
             });
 
             if (result.success) {
@@ -551,6 +554,10 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </div>
                         </div>
 
+                        <label className="flex items-start gap-3 text-sm text-slate-700">
+                            <input type="checkbox" checked={booking.privacy_acknowledged} onChange={e => setBooking({ ...booking, privacy_acknowledged: e.target.checked })} className="mt-1" />
+                            <span>Li o <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="underline">aviso de privacidade</a> e estou ciente do uso dos meus dados para atender este agendamento. Não envie informações de saúde ou outros dados sensíveis nas observações.</span>
+                        </label>
                         {feedback.message && (
                             <div
                                 role="alert"

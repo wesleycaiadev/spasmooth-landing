@@ -15,11 +15,11 @@ export const createServiceSchema = z.object({
     }),
     price: z
         .number({ error: "Preço deve ser um número." })
-        .min(0, { error: "Preço não pode ser negativo." }),
+        .min(0, { error: "Preço não pode ser negativo." }).max(100000),
     duration_minutes: z
         .number({ error: "Duração deve ser um número." })
         .int({ error: "Duração deve ser um número inteiro." })
-        .min(1, { error: "Duração deve ser pelo menos 1 minuto." }),
+        .min(1, { error: "Duração deve ser pelo menos 1 minuto." }).max(720),
     description: z
         .string()
         .max(500, { error: "Descrição deve ter no máximo 500 caracteres." })

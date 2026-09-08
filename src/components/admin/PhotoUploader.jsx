@@ -346,7 +346,7 @@ export default function PhotoUploader({
                                     <span className="text-cyan-600 underline">clique para selecionar</span>
                                 </p>
                                 <p className="text-xs text-slate-400 mt-1">
-                                    JPG, PNG ou WebP · Máximo 5 MB por foto · Até{' '}
+                                    JPG, PNG ou WebP · Máximo 4 MB por foto · Até{' '}
                                     {maxPhotos - photos.length} foto
                                     {maxPhotos - photos.length !== 1 ? 's' : ''}
                                 </p>

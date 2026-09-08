@@ -1,0 +1,215 @@
+[
+  {
+    "json_build_object": {
+      "policies": [
+        {
+          "schemaname": "public",
+          "tablename": "professionals",
+          "policyname": "public_pros_v2",
+          "roles": [
+            "public"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": "true"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "leads",
+          "policyname": "public_leads_v2",
+          "roles": [
+            "public"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": "true"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "professional_schedule",
+          "policyname": "Public schedules are viewable by everyone",
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "booking_locks",
+          "policyname": "Permitir leitura anonima",
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "booking_locks",
+          "policyname": "Permitir insercao anonima",
+          "roles": [
+            "public"
+          ],
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "true"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "professionals",
+          "policyname": "Permitir leitura pública de profissionais",
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "professionals",
+          "policyname": "Admin tem Acesso Total em Profissionais",
+          "roles": [
+            "authenticated"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "leads",
+          "policyname": "Permitir inserção de novo lead publicamente",
+          "roles": [
+            "public"
+          ],
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "true"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "leads",
+          "policyname": "Admin pode C/R/U/D (Acesso Total) os Leads",
+          "roles": [
+            "authenticated"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "services",
+          "policyname": "Leitura pública de serviços",
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "services",
+          "policyname": "Admin acesso total em serviços",
+          "roles": [
+            "authenticated"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "bookings",
+          "policyname": "Inserção pública de booking",
+          "roles": [
+            "public"
+          ],
+          "cmd": "INSERT",
+          "qual": null,
+          "with_check": "true"
+        },
+        {
+          "schemaname": "public",
+          "tablename": "bookings",
+          "policyname": "Service role acesso total em bookings",
+          "roles": [
+            "service_role"
+          ],
+          "cmd": "ALL",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "bookings",
+          "policyname": "Admin leitura de bookings",
+          "roles": [
+            "authenticated"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "site_config",
+          "policyname": "Permitir leitura pública em site_config",
+          "roles": [
+            "public"
+          ],
+          "cmd": "SELECT",
+          "qual": "true",
+          "with_check": null
+        },
+        {
+          "schemaname": "public",
+          "tablename": "site_config",
+          "policyname": "Permitir update por administradores",
+          "roles": [
+            "public"
+          ],
+          "cmd": "ALL",
+          "qual": "(auth.role() = 'authenticated'::text)",
+          "with_check": null
+        }
+      ],
+      "tables": [
+        {
+          "relname": "booking_locks",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "site_config",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "professional_schedule",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "bookings",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "leads",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "services",
+          "relrowsecurity": true
+        },
+        {
+          "relname": "professionals",
+          "relrowsecurity": true
+        }
+      ],
+      "overlapping_pairs": 0
+    }
+  }
+]

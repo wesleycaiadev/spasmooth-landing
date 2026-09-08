@@ -1,47 +1,33 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getRecentLeadNotifications } from '@/services/admin/leads';
 import { Bell, X } from 'lucide-react';
 
 export default function AdminNotifications() {
     const [notifications, setNotifications] = useState([]);
 
     useEffect(() => {
-        if (!supabase) return;
-
-        // Request notification permission
-        if (typeof window !== 'undefined' && Notification.permission !== 'granted') {
-            Notification.requestPermission();
-        }
-
-        const channel = supabase
-            .channel('realtime-leads')
-            .on(
-                'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'leads' },
-                (payload) => {
-                    handleNewLead(payload.new);
+        let cancelled = false;
+        let since = new Date().toISOString();
+        let running = false;
+        async function poll() {
+            if (running || document.visibilityState !== 'visible') return;
+            running = true;
+            try {
+                const next = new Date().toISOString();
+                const result = await getRecentLeadNotifications(since);
+                if (!cancelled && result.success) {
+                    result.data.forEach(handleNewLead);
+                    since = next;
                 }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
+            } finally { running = false; }
+        }
+        const timer = setInterval(poll, 30000);
+        return () => { cancelled = true; clearInterval(timer); };
     }, []);
 
     const handleNewLead = (lead) => {
-        // Play Sound via Speech Synthesis
-        try {
-            const text = `Novo agendamento de ${lead.nome || 'Cliente'}`;
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pt-BR';
-            window.speechSynthesis.speak(utterance);
-        } catch {
-            // Fallback silencioso se audio falhar
-        }
-
         // Show Toast
         const newNotif = {
             id: Date.now(),

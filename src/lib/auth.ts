@@ -1,45 +1,34 @@
-"use server";
+import 'server-only';
+import { auth, currentUser, clerkClient } from '@clerk/nextjs/server';
+import { cookies } from 'next/headers';
+import { allowedAdmin, readCapability } from '@/lib/security/policy';
+import { capabilitySecret, rateLimit } from '@/lib/security/server';
 
-import { auth, currentUser } from "@clerk/nextjs/server";
+export type AdminCheckResult = { success: boolean; userId?: string; sessionId?: string; error: string };
+export const ADMIN_COOKIE = process.env.NODE_ENV === 'production' ? '__Host-spa_admin' : 'spa_admin';
 
-export type AdminCheckResult = {
-    success: boolean;
-    userId?: string;
-    error?: string;
-};
+export async function verifyAdminIdentity(): Promise<AdminCheckResult> {
+    const denied = { success: false, error: 'Acesso negado. Entre com uma conta administradora e autenticação em duas etapas.' };
+    try {
+        const { userId, sessionId, sessionClaims } = await auth();
+        if (!userId || !sessionId) return denied;
+        const user = await currentUser();
+        if (!user || !allowedAdmin(user, process.env.ADMIN_USER_IDS || '', process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')) return denied;
+        const age = sessionClaims?.fva?.[1];
+        if (!user.twoFactorEnabled || typeof age !== 'number' || age < 0 || age > 480) return denied;
+        const session = await (await clerkClient()).sessions.getSession(sessionId);
+        if (session.status !== 'active' || session.userId !== userId || session.expireAt <= Date.now()) return denied;
+        return { success: true, userId, sessionId, error: '' };
+    } catch { return denied; }
+}
 
-// Pega as variáveis (tenta com S ou sem S para garantir)
-const envEmails = process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
-
-// Divide por vírgula OU por quebra de linha (\n), limpa os espaços e deixa tudo minúsculo
-const ADMIN_EMAILS = envEmails
-    .split(/[\n,]+/)
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
-/**
- * Verifica se o usuário autenticado é admin.
- * Checa userId via Clerk + email contra ADMIN_EMAILS (env var).
- */
 export async function verifyAdmin(): Promise<AdminCheckResult> {
-    const { userId } = await auth();
-
-    if (!userId) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    const user = await currentUser();
-
-    if (!user) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    const email = user.emailAddresses[0]?.emailAddress?.toLowerCase();
-
-    // Se o e-mail do usuário não estiver na lista de admins, bloqueia
-    if (!email || (ADMIN_EMAILS.length > 0 && !ADMIN_EMAILS.includes(email))) {
-        return { success: false, error: "Acesso negado." };
-    }
-
-    return { success: true, userId };
+    // An absent HttpOnly grant is rejected before any external identity lookup.
+    const grant = readCapability((await cookies()).get(ADMIN_COOKIE)?.value, capabilitySecret(), 'admin');
+    if (!grant) return { success: false, error: 'Sessão administrativa expirada. Entre novamente.' };
+    const identity = await verifyAdminIdentity();
+    if (!identity.success) return identity;
+    if (grant.userId !== identity.userId || grant.sessionId !== identity.sessionId) return { success: false, error: 'Sessão administrativa expirada. Entre novamente.' };
+    if (!await rateLimit('admin', 180, 60, identity.userId)) return { success: false, error: 'Muitas solicitações. Aguarde um minuto.' };
+    return identity;
 }

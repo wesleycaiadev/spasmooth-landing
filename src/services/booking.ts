@@ -1,5 +1,9 @@
 "use server";
 
+import { cookies } from "next/headers";
+import { rateLimit, capabilitySecret } from "@/lib/security/server";
+import { signCapability, readCapability } from "@/lib/security/policy";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import {
     createBookingSchema,
@@ -50,11 +54,12 @@ export async function getActiveProfessionals(
     unit: string
 ): Promise<ServiceResponse<Professional[]>> {
     try {
+        if (!["Aracaju", "Maceió", "Recife"].includes(unit)) return { success: false, error: "Unidade inválida." };
         const supabase = createAdminClient();
 
         const { data, error } = await supabase
             .from("professionals")
-            .select("*")
+            .select("id,name,photo_url,gallery_urls,specialties,location,location_start_date,location_end_date,active")
             .eq("active", true)
             .eq("location", unit)
             .order("name");
@@ -96,6 +101,7 @@ export async function getAvailableSlots(
     input: AvailableSlotsInput
 ): Promise<ServiceResponse<string[]>> {
     try {
+        if (!await rateLimit('availability', 60, 60)) return { success: false, error: 'Muitas consultas. Aguarde um minuto.' };
         const parsed = availableSlotsSchema.safeParse(input);
         if (!parsed.success) {
             return { success: false, error: "Parâmetros inválidos." };
@@ -115,104 +121,8 @@ export async function getAvailableSlots(
             return { success: false, error: "Serviço não encontrado." };
         }
 
-        const durationMinutes = serviceData.duration_minutes;
-
-        const { data: proData, error: proErr } = await supabase
-            .from("professionals")
-            .select("active")
-            .eq("id", professional_id)
-            .eq("active", true)
-            .single();
-
-        if (proErr || !proData) {
-            return { success: false, error: "Profissional não encontrado." };
-        }
-
-        const dateObj = new Date(date + "T12:00:00");
-        const dayOfWeek = dateObj.getDay();
-        const hours = BUSINESS_HOURS[dayOfWeek];
-
-        if (!hours) {
-            return { success: true, data: [] };
-        }
-
-        const dayStart = `${date}T${String(hours.start).padStart(2, "0")}:00:00-03:00`;
-        const dayEnd = `${date}T${String(hours.end).padStart(2, "0")}:00:00-03:00`;
-
-        const { data: bookings, error: bookErr } = await supabase
-            .from("bookings")
-            .select("starts_at, ends_at")
-            .eq("professional_id", professional_id)
-            .neq("status", "cancelado")
-            .gte("starts_at", dayStart)
-            .lt("starts_at", dayEnd);
-
-        if (bookErr) {
-            console.error("[getAvailableSlots]", bookErr.code);
-            return { success: false, error: "Erro ao verificar disponibilidade." };
-        }
-
-        const bookedIntervals = (bookings ?? []).map((b) => ({
-            start: new Date(b.starts_at).getTime(),
-            end: new Date(b.ends_at).getTime(),
-        }));
-
-        const { data: scheduleData } = await supabase
-            .from("professional_schedule")
-            .select("start_time, end_time, is_day_off")
-            .eq("professional_id", professional_id)
-            .eq("day_of_week", dayOfWeek)
-            .single();
-
-        let schedStartHour = hours.start;
-        let schedEndHour = hours.end;
-        let isDayOff = false;
-
-        if (scheduleData) {
-            if (scheduleData.is_day_off) {
-                isDayOff = true;
-            } else {
-                const [sh] = scheduleData.start_time.split(":").map(Number);
-                const [eh] = scheduleData.end_time.split(":").map(Number);
-                schedStartHour = sh;
-                schedEndHour = eh;
-            }
-        }
-
-        if (isDayOff) {
-            return { success: true, data: [] };
-        }
-
-        const nowSp = new Date(
-            new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
-        );
-        const todayIso = nowSp.toLocaleDateString("en-CA");
-        const isToday = date === todayIso;
-        const currentMinutes = nowSp.getHours() * 60 + nowSp.getMinutes();
-        const MINIMUM_ADVANCE = 30;
-
-        const slots: string[] = [];
-
-        for (let hour = schedStartHour; hour <= schedEndHour; hour++) {
-            const timeStr = `${String(hour).padStart(2, "0")}:00`;
-            const slotStartMinutes = hour * 60;
-
-            if (isToday && slotStartMinutes < currentMinutes + MINIMUM_ADVANCE) {
-                continue;
-            }
-
-            const slotStartTs = new Date(`${date}T${timeStr}:00-03:00`).getTime();
-            const slotEndTs = slotStartTs + durationMinutes * 60 * 1000;
-
-            const hasConflict = bookedIntervals.some(
-                (interval) => slotStartTs < interval.end && slotEndTs > interval.start
-            );
-
-            if (!hasConflict) {
-                slots.push(timeStr);
-            }
-        }
-
+        const { data: slots, error: slotsError } = await supabase.rpc('available_booking_slots', { p_professional_id: professional_id, p_service_id: service_id, p_date: date });
+        if (slotsError) return { success: false, error: 'Falha ao consultar horários.' };
         return { success: true, data: slots };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
@@ -223,6 +133,7 @@ export async function createBooking(
     input: CreateBookingInput
 ): Promise<ServiceResponse<{ id: string }>> {
     try {
+        if (!await rateLimit('booking', 5, 900)) return { success: false, error: 'Muitas tentativas. Aguarde 15 minutos.' };
         const parsed = createBookingSchema.safeParse(input);
         if (!parsed.success) {
             const firstError = parsed.error.issues[0]?.message ?? "Dados inválidos.";
@@ -232,6 +143,7 @@ export async function createBooking(
         const { unit, professional_id, service_id, date, time, client_name, client_phone, notes } =
             parsed.data;
 
+        if (!await rateLimit('booking-phone', 3, 3600, client_phone.replace(/\D/g, ''))) return { success: false, error: 'Limite de agendamentos atingido. Tente mais tarde.' };
         const supabase = createAdminClient();
 
         const { data: serviceData, error: svcErr } = await supabase
@@ -253,8 +165,8 @@ export async function createBooking(
         }
 
         const now = new Date();
-        if (startsAt.getTime() < now.getTime() - 5 * 60 * 1000) {
-            return { success: false, error: "Não é possível agendar no passado." };
+        if (startsAt.getTime() < now.getTime() + 30 * 60 * 1000) {
+            return { success: false, error: "Agende com pelo menos 30 minutos de antecedência." };
         }
 
         const dateObj = new Date(date + "T12:00:00");
@@ -301,57 +213,35 @@ export async function createBooking(
             return { success: false, error: "Erro ao processar agendamento." };
         }
 
-        // Clona o booking na tabela de leads para integração com Kanban + CallMeBot
+        // Receipt binds this browser to this booking for 30 minutes; IDs alone grant no access.
         try {
-            await supabase.from('leads').insert({
-                id: bookingId,
-                nome: client_name,
-                whatsapp: client_phone,
-                service_name: serviceData.name,
-                professional_id: professional_id,
-                appointment_date: date,
-                appointment_time: time,
-                status_kanban: 'novo',
-                mensagem_interesse: notes ?? ""
-            });
-        } catch (cloneErr) {
-            console.error("[createBooking] Erro ao clonar para leads:", cloneErr);
-        }
-
-        try {
-            const { data: proData } = await supabase
-                .from("professionals")
-                .select("name, location")
-                .eq("id", professional_id)
-                .single();
-
-            const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://spasmooth.com.br";
-            const adminPhone = process.env.CALLMEBOT_PHONE;
-            const apiKey = process.env.CALLMEBOT_APIKEY;
-
-            if (adminPhone && apiKey) {
-                const cleanName = (client_name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanService = (serviceData?.name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanProfessional = (proData?.name || 'Nao especificado').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanLocation = (proData?.location || unit).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-                const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${client_phone}\n*Servico:* ${cleanService}\n*Profissional:* ${cleanProfessional}\n*Local:* ${cleanLocation}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=decline`;
-
-                const encodedMessage = encodeURIComponent(messageText);
-                const url = `https://api.callmebot.com/whatsapp.php?phone=${adminPhone}&text=${encodedMessage}&apikey=${apiKey}`;
-
-                await fetch(url, { method: "GET" }).catch(err => {
-                    console.error("[CallMeBot error]", err);
-                });
-            } else {
-                console.warn("[createBooking] CallMeBot vars missing in environment");
-            }
-        } catch (notifyErr) {
-            console.error("[createBooking notify]", notifyErr);
+            (await cookies()).set('spa_booking', signCapability({ purpose: 'booking', id: bookingId, exp: Date.now() + 30 * 60_000 }, capabilitySecret()), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/', maxAge: 1800 });
+        } catch { console.error('[booking] Receipt could not be issued'); }
+        // Notification delivery is opt-in operational configuration, never a public relay.
+        // Do not include client data in URLs or logs.
+        if (process.env.BOOKING_NOTIFICATIONS_ENABLED === 'true' && process.env.CALLMEBOT_PHONE && process.env.CALLMEBOT_APIKEY) {
+            try {
+                const url = new URL('https://api.callmebot.com/whatsapp.php');
+                url.searchParams.set('phone', process.env.CALLMEBOT_PHONE);
+                url.searchParams.set('apikey', process.env.CALLMEBOT_APIKEY);
+                url.searchParams.set('text', 'Novo agendamento recebido. Acesse o painel administrativo do SpaSmooth para revisar.');
+                await fetch(url, { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+            } catch { console.error('[booking] Notification delivery failed'); }
         }
 
         return { success: true, data: { id: bookingId as string } };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
     }
+}
+
+export async function updateBookingInterest(interest: string): Promise<ServiceResponse> {
+    try {
+        const value = z.string().trim().min(1).max(500).parse(interest);
+        if (!await rateLimit('interest', 5, 900)) return { success: false, error: 'Muitas solicitações. Aguarde.' };
+        const receipt = readCapability((await cookies()).get('spa_booking')?.value, capabilitySecret(), 'booking');
+        if (!receipt || !z.string().uuid().safeParse(receipt.id).success) return { success: false, error: 'Sessão expirada. Faça um novo agendamento.' };
+        const { error } = await createAdminClient().from('leads').update({ mensagem_interesse: value }).eq('id', receipt.id);
+        return error ? { success: false, error: 'Falha ao salvar observação.' } : { success: true };
+    } catch { return { success: false, error: 'Dados inválidos ou serviço indisponível.' }; }
 }

@@ -19,10 +19,10 @@ export const createBookingSchema = z.object({
         .uuid("ID de serviço inválido."),
     date: z
         .string()
-        .regex(/^\d{4}-\d{2}-\d{2}$/, "Data deve estar no formato AAAA-MM-DD."),
+        .pipe(z.iso.date()),
     time: z
         .string()
-        .regex(/^\d{2}:\d{2}$/, "Horário deve estar no formato HH:mm."),
+        .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "Horário inválido."),
     client_name: z
         .string()
         .trim()
@@ -34,6 +34,7 @@ export const createBookingSchema = z.object({
         .min(10, "Telefone deve ter no mínimo 10 caracteres.")
         .max(20, "Telefone deve ter no máximo 20 caracteres.")
         .regex(phoneRegex, "Formato de telefone inválido. Use (DD) XXXXX-XXXX."),
+    privacy_acknowledged: z.literal(true, { error: "Leia e confirme o aviso de privacidade." }),
     notes: z
         .string()
         .trim()
@@ -71,7 +72,7 @@ export type ListBookingsFilter = z.infer<typeof listBookingsFilterSchema>;
 
 export const availableSlotsSchema = z.object({
     professional_id: z.string().uuid("ID de profissional inválido."),
-    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida."),
+    date: z.iso.date(),
     service_id: z.string().uuid("ID de serviço inválido."),
 });
 

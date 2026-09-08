@@ -1,5 +1,5 @@
 import { Nunito } from "next/font/google";
-import { GoogleAnalytics } from '@next/third-parties/google';
+import PrivacyProvider from '@/components/PrivacyProvider';
 import "./globals.css";
 import { LocationProvider } from "@/components/LocationProvider";
 
@@ -75,10 +75,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">
-        <LocationProvider>
+        <PrivacyProvider><LocationProvider>
           {children}
-          {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
-        </LocationProvider>
+        </LocationProvider></PrivacyProvider>
       </body>
     </html>
   );

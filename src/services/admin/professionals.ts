@@ -1,4 +1,5 @@
 "use server";
+import { uuid, professionalSchema } from '@/lib/validations/admin';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
@@ -34,7 +35,7 @@ export async function getProfessionals(): Promise<DataResult<Professional[]>> {
             .order('created_at', { ascending: false });
 
         if (error) {
-            console.error("Supabase Error [getProfessionals]:", error.message);
+            console.error("Supabase Error [getProfessionals]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao buscar profissionais.' };
         }
 
@@ -57,7 +58,7 @@ export async function getActiveProfessionals(): Promise<DataResult<Pick<Professi
             .eq('active', true);
 
         if (error) {
-            console.error("Supabase Error [getActiveProfessionals]:", error.message);
+            console.error("Supabase Error [getActiveProfessionals]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao buscar profissionais ativos.' };
         }
 
@@ -69,6 +70,8 @@ export async function getActiveProfessionals(): Promise<DataResult<Pick<Professi
 
 export async function createProfessional(proData: ProfessionalInput): Promise<ActionResult> {
     try {
+        const parsed = professionalSchema.safeParse(proData); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        proData = { ...parsed.data, photo_url: parsed.data.photo_url ?? '', location_start_date: parsed.data.location_start_date ?? null, location_end_date: parsed.data.location_end_date ?? null };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -86,7 +89,7 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
         const { error } = await supabase.from('professionals').insert([dataToInsert]);
 
         if (error) {
-            console.error("Supabase Error [createProfessional]:", error.message);
+            console.error("Supabase Error [createProfessional]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao cadastrar profissional.' };
         }
 
@@ -98,6 +101,8 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
 
 export async function updateProfessional(id: string, proData: Partial<ProfessionalInput>): Promise<ActionResult> {
     try {
+        const parsed = professionalSchema.partial().safeParse(proData); if (!uuid.safeParse(id).success || !parsed.success) return { success: false, error: 'Dados inválidos.' };
+        proData = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -111,7 +116,7 @@ export async function updateProfessional(id: string, proData: Partial<Profession
         const { error } = await supabase.from('professionals').update(dataToUpdate).eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [updateProfessional]:", error.message);
+            console.error("Supabase Error [updateProfessional]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao atualizar profissional.' };
         }
 
@@ -123,6 +128,7 @@ export async function updateProfessional(id: string, proData: Partial<Profession
 
 export async function toggleProfessionalActive(id: string, currentStatus: boolean): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success || typeof currentStatus !== 'boolean') return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -131,7 +137,7 @@ export async function toggleProfessionalActive(id: string, currentStatus: boolea
         const { error } = await supabase.from('professionals').update({ active: !currentStatus }).eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [toggleProfessionalActive]:", error.message);
+            console.error("Supabase Error [toggleProfessionalActive]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao alterar status.' };
         }
 
@@ -143,6 +149,7 @@ export async function toggleProfessionalActive(id: string, currentStatus: boolea
 
 export async function deleteProfessional(id: string): Promise<ActionResult> {
     try {
+        if (!uuid.safeParse(id).success) return { success: false, error: 'Dados inválidos.' };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
 
@@ -151,7 +158,7 @@ export async function deleteProfessional(id: string): Promise<ActionResult> {
         const { error } = await supabase.from('professionals').delete().eq('id', id);
 
         if (error) {
-            console.error("Supabase Error [deleteProfessional]:", error.message);
+            console.error("Supabase Error [deleteProfessional]:", "DATABASE_OPERATION_FAILED");
             return { success: false, error: 'Falha ao remover profissional.' };
         }
 

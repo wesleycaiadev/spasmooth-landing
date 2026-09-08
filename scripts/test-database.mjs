@@ -1,0 +1,20 @@
+import { PGlite } from '@electric-sql/pglite';
+import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
+import fs from 'node:fs';
+const db = new PGlite({ extensions: { btree_gist } });
+await db.exec(`
+CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role BYPASSRLS;
+GRANT USAGE ON SCHEMA public TO anon,authenticated,service_role;
+CREATE TABLE public.professionals(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text,location text,active boolean DEFAULT true,location_start_date date,location_end_date date,created_at timestamptz DEFAULT now());
+CREATE TABLE public.leads(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),nome text,whatsapp text,service_name text,professional_id uuid REFERENCES professionals(id),appointment_date date,appointment_time text,status_kanban text,mensagem_interesse text,created_at timestamptz DEFAULT now());
+CREATE TABLE public.professional_schedule(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),professional_id text,day_of_week integer,start_time time,end_time time,is_day_off boolean,created_at timestamptz DEFAULT now());
+CREATE TABLE public.site_config(id text PRIMARY KEY,sections_layout jsonb,updated_at timestamptz DEFAULT now());
+CREATE TABLE public.booking_locks(id uuid PRIMARY KEY DEFAULT gen_random_uuid());
+CREATE FUNCTION public.update_lead_interest(p_id uuid,p_interest text) RETURNS void LANGUAGE sql SECURITY DEFINER AS 'UPDATE public.leads SET mensagem_interesse=p_interest WHERE id=p_id';
+`);
+const root = new URL('../', import.meta.url).pathname;
+await db.exec(fs.readFileSync(root+'/sql/001_booking_tables.sql','utf8').split('INSERT INTO public.services (name')[0]);
+await db.exec(fs.readFileSync(root+'/supabase/migrations/20260908100346_security_hardening.sql','utf8'));
+const result = await db.exec(fs.readFileSync(root+'/tests/database-security.sql','utf8'));
+console.log(JSON.stringify(result.filter(r=>r.rows.length).map(r=>r.rows)));
+await db.close();
