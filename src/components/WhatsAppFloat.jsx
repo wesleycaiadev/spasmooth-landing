@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { useLocation } from './LocationProvider';
 
 export default function WhatsAppFloat() {
     const [showBubble, setShowBubble] = useState(false);
-    const [message, setMessage] = useState('Olá! Quero tirar uma dúvida sobre uma experiência SpaSmooTh.');
+    const [message, setMessage] = useState('Olá! Gostaria de ajuda para escolher uma experiência no SpaSmooTh.');
+    const { location } = useLocation();
 
     useEffect(() => {
         // Show bubble after a brief delay
@@ -11,13 +13,13 @@ export default function WhatsAppFloat() {
         const hideTimer = setTimeout(() => setShowBubble(false), 10500);
         try {
             const selected = JSON.parse(sessionStorage.getItem('selected_service'));
-            if (selected?.name) setMessage(`Olá! Quero saber mais sobre ${selected.name}.`);
+            if (selected?.name) setMessage(`Olá! Estou vendo o tratamento ${selected.name} no site do SpaSmooTh e gostaria de saber os horários disponíveis na unidade de ${location}.`);
         } catch { /* The default contextual message is safe. */ }
         return () => {
             clearTimeout(initialDelay);
             clearTimeout(hideTimer);
         };
-    }, []);
+    }, [location]);
 
     return (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2 group">

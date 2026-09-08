@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { ArrowRight, Clock3, ChevronLeft, ChevronRight } from 'lucide-react';
 import { calculateDiscount } from '@/lib/discounts';
+import { getServiceImage } from '@/lib/serviceImages';
 
 export default function FeaturedCarousel({ services = [] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -43,8 +44,7 @@ export default function FeaturedCarousel({ services = [] }) {
 
     const service = services[currentIndex];
     const disc = calculateDiscount(service);
-    const imageByCategory = { combo: '/images/treatments/pedras-quentes.webp', day_spa: '/images/treatments/day-spa.webp', estetica: '/images/treatments/autocuidado.webp', depilacao: '/images/treatments/autocuidado.webp', tantrica: '/images/treatments/bambu.webp' };
-    const image = imageByCategory[service.category] || '/images/treatments/day-spa.webp';
+    const image = getServiceImage(service.slug) || '/images/treatments/day-spa-standard.webp';
 
     return (
         <section

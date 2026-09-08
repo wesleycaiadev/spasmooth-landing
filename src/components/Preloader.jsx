@@ -8,14 +8,10 @@ export default function Preloader() {
 
     useEffect(() => {
         setIsMounted(true);
-        // Remove timeout artificial, esconde preloader assim que o LCP principal acontecer, ou 
-        // logo em seguida da montagem. 
-        // Para uma leveza visual sem bloqueio, podemos esconder de forma rápida:
-        const timer = requestAnimationFrame(() => {
-            setIsVisible(false);
-        });
+        // Mantém a assinatura de chegada perceptível sem atrasar a interação.
+        const timer = window.setTimeout(() => setIsVisible(false), 420);
 
-        return () => cancelAnimationFrame(timer);
+        return () => window.clearTimeout(timer);
     }, []);
 
     if (!isMounted) return null;
@@ -25,10 +21,10 @@ export default function Preloader() {
             {isVisible && (
                 <motion.div
                     key="preloader-container"
-                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-cyan-50"
+                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[var(--spa-cream)]"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: "easeInOut" }}
+                    transition={{ duration: 0.36, ease: "easeInOut" }}
                 >
                     <div className="flex flex-col items-center">
                         {/* Logo SVG Animado */}
@@ -36,11 +32,7 @@ export default function Preloader() {
                             className="relative mb-6"
                             initial={{ scale: 0.5, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            transition={{
-                                duration: 1.2,
-                                ease: [0.34, 1.56, 0.64, 1], // Custom spring-like easing
-                                delay: 0.2
-                            }}
+                            transition={{ duration: 0.28, ease: "easeOut", delay: 0.04 }}
                         >
                             <svg width="100" height="80" viewBox="0 0 100 80" fill="none" stroke="#06b6d4" strokeWidth="3">
                                 <path d="M50 10 C30 30, 10 50, 10 80 H90 C90 50, 70 30, 50 10" />
@@ -55,7 +47,7 @@ export default function Preloader() {
                                 className="text-2xl font-light text-slate-600 tracking-wider mb-2"
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.8, ease: "easeOut", delay: 0.5 }}
+                                transition={{ duration: 0.22, ease: "easeOut", delay: 0.1 }}
                             >
                                 Seja bem vindo ao
                             </motion.h2>
@@ -63,7 +55,7 @@ export default function Preloader() {
                                 className="text-4xl font-bold text-cyan-600 tracking-tight"
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.8, ease: "easeOut", delay: 0.7 }}
+                                transition={{ duration: 0.22, ease: "easeOut", delay: 0.16 }}
                             >
                                 SpaSmooTh
                             </motion.h1>
