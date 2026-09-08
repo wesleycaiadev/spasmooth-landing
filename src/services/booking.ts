@@ -32,12 +32,17 @@ type Professional = {
 
 type Service = {
     id: string;
+    slug?: string;
     name: string;
     duration_minutes: number;
     price: number;
     description: string;
     category: string;
     active: boolean;
+    seo_indexable?: boolean;
+    seo_title?: string;
+    seo_description?: string;
+    seo_content?: any;
 };
 
 const BUSINESS_HOURS: Record<number, { start: number; end: number } | null> = {
@@ -81,7 +86,7 @@ export async function getActiveServices(): Promise<ServiceResponse<Service[]>> {
 
         const { data, error } = await supabase
             .from("services")
-            .select("id, name, duration_minutes, price, description, category, active")
+            .select("id, slug, name, duration_minutes, price, description, category, active")
             .eq("active", true)
             .order("category")
             .order("price");

@@ -20,9 +20,9 @@ export default function Header() {
                             <path d="M50 10 C60 40, 70 60, 70 80" strokeWidth="2" />
                         </svg>
                     </div>
-                    <h1 className="text-2xl font-light text-slate-500 tracking-wide">
+                    <span className="text-2xl font-light text-slate-500 tracking-wide">
                         Spa<span className="font-bold text-slate-700">SmooTh</span>
-                    </h1>
+                    </span>
                     <span className="text-[10px] text-cyan-700 tracking-[0.1em] uppercase mt-1">Spa, Massoterapia & Bronzeamento</span>
                 </button>
 

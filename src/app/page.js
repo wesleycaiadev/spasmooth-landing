@@ -1,5 +1,16 @@
 export const dynamic = 'force-dynamic';
 
+export const metadata = {
+  title: 'SpaSmooth | Spa e Massoterapia em Aracaju, Maceió e Recife',
+  description: 'Spa e massoterapia profissional em Aracaju, Maceió e Recife. Massagem relaxante, terapêutica, day spa e bronzeamento em ambiente de alto padrão. Agende sua sessão.',
+  alternates: { canonical: '/' },
+  openGraph: {
+    title: 'SpaSmooth | Spa e Massoterapia em Aracaju, Maceió e Recife',
+    description: 'Referência em massoterapia e bem-estar em Aracaju, Maceió e Recife. Agende sua sessão e renove suas energias.',
+    url: 'https://spasmooth.com.br',
+  },
+};
+
 import Header from '@/components/Header';
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';

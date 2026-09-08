@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ProfessionalSelector from "./ProfessionalSelector";
 import TimeSlotPicker from "./TimeSlotPicker";
 import { Calendar, Clock, Sparkles, CheckCircle, AlertCircle, ChevronLeft, User, Phone, FileText } from "lucide-react";
@@ -16,7 +16,11 @@ import { PROFESSIONALS as oldProsFallback } from "@/lib/data";
 
 export default function BookingWizard({ initialProfessional = null, hideHeader = false }) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { location: contextLocation, changeLocation } = useLocation();
+
+    const paramUnidade = searchParams?.get("unidade");
+    const paramServico = searchParams?.get("servico");
 
     const [step, setStep] = useState(initialProfessional ? 2 : 1);
     const [isPending, startTransition] = useTransition();
@@ -89,10 +93,37 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
             const result = await getActiveServices();
             if (result.success && result.data) {
                 setServices(result.data);
+                
+                // Pre-select logic if params are present
+                if (paramServico) {
+                    const svc = result.data.find(s => s.slug === paramServico || s.id === paramServico);
+                    if (svc) {
+                        setBooking(prev => ({
+                            ...prev,
+                            service: svc,
+                            service_id: svc.id
+                        }));
+                        setStep(3); // Go directly to Data & Horário
+                    }
+                }
             }
         }
         loadServices();
-    }, []);
+    }, [paramServico]);
+
+    // Pre-select logic for unit
+    useEffect(() => {
+        if (paramUnidade) {
+            const validUnits = ["aracaju", "maceio", "recife", "Aracaju", "Maceió", "Recife"];
+            const normalizedParam = paramUnidade.toLowerCase();
+            const valid = validUnits.find(u => u.toLowerCase() === normalizedParam);
+            if (valid) {
+                const formattedName = valid.toLowerCase() === 'maceio' ? 'Maceió' : valid.toLowerCase() === 'aracaju' ? 'Aracaju' : 'Recife';
+                setBooking(prev => ({ ...prev, location: formattedName }));
+                if (!paramServico) setStep(1);
+            }
+        }
+    }, [paramUnidade, paramServico]);
 
     useEffect(() => {
         async function loadSlots() {

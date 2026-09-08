@@ -1,5 +1,14 @@
 import Link from 'next/link';
-export const metadata = { title: 'Privacidade | SpaSmooth' };
+export const metadata = {
+  title: 'Aviso de Privacidade',
+  description: 'Aviso de privacidade do SpaSmooth. Saiba como tratamos seus dados de agendamento, cookies e serviços externos.',
+  alternates: { canonical: '/privacidade' },
+  openGraph: {
+    title: 'Aviso de Privacidade | SpaSmooth',
+    description: 'Saiba como o SpaSmooth trata seus dados de agendamento, cookies e serviços externos.',
+    url: 'https://spasmooth.com.br/privacidade',
+  },
+};
 export default function PrivacyPage() {
     return <main className="max-w-3xl mx-auto px-6 py-16 space-y-6 text-slate-800">
         <h1 className="text-3xl font-bold">Aviso de privacidade</h1>

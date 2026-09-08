@@ -8,15 +8,16 @@ export default function Preloader() {
 
     useEffect(() => {
         setIsMounted(true);
-        // Tempo total de exibição antes de iniciar a saída
-        const timer = setTimeout(() => {
+        // Remove timeout artificial, esconde preloader assim que o LCP principal acontecer, ou 
+        // logo em seguida da montagem. 
+        // Para uma leveza visual sem bloqueio, podemos esconder de forma rápida:
+        const timer = requestAnimationFrame(() => {
             setIsVisible(false);
-        }, 2200); // Ligeiramente mais rápido p/ LCP
+        });
 
-        return () => clearTimeout(timer);
+        return () => cancelAnimationFrame(timer);
     }, []);
 
-    // Evita erro de hidratação e bloqueio imediato
     if (!isMounted) return null;
 
     return (
