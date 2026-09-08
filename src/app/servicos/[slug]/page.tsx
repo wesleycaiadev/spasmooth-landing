@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Clock } from 'lucide-react';
 
 type Props = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 // Next.js App Router route segment config
@@ -15,7 +15,8 @@ export const revalidate = 3600; // ISR cache for 1 hour
 export const dynamicParams = true; // Allows new slugs to be fetched on demand
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const service = await getServiceBySlug(params.slug);
+  const { slug } = await params;
+  const service = await getServiceBySlug(slug);
   
   if (!service || !service.active || !service.seo_indexable) {
     return {
@@ -45,7 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ServicePage({ params }: Props) {
-  const service = await getServiceBySlug(params.slug);
+  const { slug } = await params;
+  const service = await getServiceBySlug(slug);
 
   if (!service || !service.active || !service.seo_indexable) {
     notFound();
