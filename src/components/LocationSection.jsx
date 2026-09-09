@@ -10,7 +10,7 @@ export default function LocationSection() {
 
     const locationDetails = {
         Aracaju: {
-            address: "Av. Pref. Heráclito Rollemberg, Alziro zarur 155, bairro Farolândia, Aracaju - SE, CEP 49030-060",
+            address: "Av. Pref. Heráclito Rollemberg, Alziro zarur 155, bairro Farolândia, Aracaju - SE, CEP 49030-060.",
             mapsLink: "https://maps.app.goo.gl/F8keaZv4bWuJSz3u8",
             iframeSrc: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125218.42851978255!2d-37.16436662994436!3d-10.93187216447883!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71ab3a34a81b37b%3A0x633454b5dfd41097!2sAracaju%2C%20SE!5e0!3m2!1spt-BR!2sbr!4v1714081033288!5m2!1spt-BR!2sbr",
             iframeTitle: "Mapa do SpaSmooth em Aracaju"
@@ -52,7 +52,7 @@ export default function LocationSection() {
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-slate-800 mb-1">Endereço</h4>
-                                    <p className="text-sm">{activeDetails.address}</p>
+                                    <address className="max-w-md text-sm not-italic leading-relaxed">{activeDetails.address}</address>
                                     <a href={activeDetails.mapsLink} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 font-extrabold text-[var(--spa-blue)] transition-colors hover:text-[var(--spa-ink)]">
                                         <Navigation className="w-4 h-4" />
                                         <span>Abrir no Google Maps</span>

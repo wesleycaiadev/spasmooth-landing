@@ -17,7 +17,7 @@ export default function Hero() {
     return <section className="bg-[var(--spa-cream)] pt-[70px]">
         <div className="relative flex min-h-[calc(100svh-70px-106px)] overflow-hidden bg-[var(--spa-cream)]">
             <div className="spa-hero-photo">
-                <Image src="/images/hero/spasmooth-hero-original.webp" alt="Sala SpaSmooTh preparada para uma sessão de massoterapia" fill preload unoptimized className="object-cover object-[65%_center] lg:object-contain lg:object-right-top" />
+                <Image data-spa-hero-image src="/images/hero/spasmooth-hero-original.webp" alt="Sala SpaSmooTh preparada para uma sessão de massoterapia" fill preload unoptimized className="object-cover object-[65%_center] lg:object-contain lg:object-right-top" />
                 <div className="spa-hero-blend" aria-hidden="true" />
             </div>
             <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:max-w-[60%] lg:px-[clamp(2.5rem,7vw,9rem)] lg:py-14">
