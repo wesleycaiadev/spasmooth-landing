@@ -14,12 +14,13 @@ Todos os assets usam proporção 3:2, fotografia editorial realista, ambiente de
 | Bambu + ventosa + pedras | `bambu-ventosa-pedras-quentes.webp` | três ferramentas organizadas em uma composição coerente |
 | Massagem Nuru | `massagem-nuru.webp` | mãos, óleo/gel e maca em composição elegante, não explícita |
 | Sessão tântrica | `sessao-tantrica.webp` | maca, óleos e luz quente; sensorial, sem erotização |
-| Tailandesa | `tailandesa.webp` | alongamento assistido ou pressão profissional, roupa neutra |
-| Vivência | `vivencia.webp` | ambiente imersivo de velas, óleos e toalhas |
+| Tailandesa | `massagem-tailandesa.webp` | alongamento assistido ou pressão profissional, roupa neutra |
+| Vivência | `vivencia-sensorial.webp` | ambiente imersivo de velas, óleos e toalhas |
 | Apara de braços | `depilacao-bracos.webp` | cuidado estético profissional nos braços, sem exposição inadequada |
 | Apara de abdômen | `depilacao-abdomen.webp` | atendimento estético discreto na região abdominal |
 | Apara de costas | `depilacao-costas.webp` | cuidado estético profissional nas costas |
 | Apara de perna | `depilacao-perna-completa.webp` | cuidado estético profissional nas pernas |
+| Apara de meia perna | `depilacao-meia-perna.webp` | aparador na panturrilha, enquadramento do joelho ao pé |
 | Apara íntima | `depilacao-intima.webp` | ambiente preparado e itens de cuidado; sem pessoa ou área íntima |
 | Apara corpo todo | `depilacao-corpo-todo.webp` | ambiente e instrumentos de cuidado, sem regiões íntimas |
 
@@ -27,4 +28,4 @@ Todos os assets usam proporção 3:2, fotografia editorial realista, ambiente de
 
 `Fotografia editorial realista para site de spa brasileiro premium. [OBJETIVO VISUAL]. Ambiente sofisticado e acolhedor, madeira clara, toalhas off-white, plantas naturais, luz quente e confortável, composição 3:2, textura humana real, sem pessoas olhando para a câmera, sem texto, sem logotipo, sem watermark, sem nudez explícita, sem erotização, sem estética 3D ou banco de imagens.`
 
-Os quatro assets já presentes são provisórios. Cada novo asset selecionado deve substituir apenas o arquivo de mesmo contexto, nunca uma imagem de outro serviço.
+Os 11 assets de apara e terapias sensoriais foram concluídos. Prompts finais e detalhes da seleção em [catalog-image-completion.md](catalog-image-completion.md). Cada arquivo corresponde ao seu contexto de tratamento, sem reaproveitar a fotografia de outro serviço.

@@ -7,6 +7,17 @@ const serviceImages = {
     'relaxante-pedras': '/images/treatments/pedras-quentes.webp',
     'relaxante-ventosa': '/images/treatments/relaxante-ventosa.webp',
     'bambu-ventosa-pedras-quentes': '/images/treatments/bambu-ventosa-pedras-quentes.webp',
+    'depilacao-abdomen': '/images/treatments/depilacao-abdomen.webp',
+    'depilacao-bracos': '/images/treatments/depilacao-bracos.webp',
+    'depilacao-corpo-todo': '/images/treatments/depilacao-corpo-todo.webp',
+    'depilacao-costas': '/images/treatments/depilacao-costas.webp',
+    'depilacao-intima': '/images/treatments/depilacao-intima.webp',
+    'depilacao-meia-perna': '/images/treatments/depilacao-meia-perna.webp',
+    'depilacao-perna-completa': '/images/treatments/depilacao-perna-completa.webp',
+    'massagem-nuru': '/images/treatments/massagem-nuru.webp',
+    'sessao-tantrica': '/images/treatments/sessao-tantrica.webp',
+    'tailandesa': '/images/treatments/massagem-tailandesa.webp',
+    'vivencia': '/images/treatments/vivencia-sensorial.webp',
 };
 
 export function getServiceImage(slug) {
