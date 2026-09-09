@@ -15,10 +15,12 @@ export default function Hero() {
     const { location, isLoadingLocation } = useLocation();
 
     return <section className="bg-[var(--spa-cream)] pt-[70px]">
-        <div className="relative flex min-h-[calc(100svh-70px-106px)] overflow-hidden bg-[#dfd2c0]">
-            <Image src="/images/hero/spasmooth-hero-gradient.webp" alt="Sala SpaSmooTh preparada para uma sessão de massoterapia" fill priority sizes="(min-width: 1024px) 58vw, 100vw" className="object-cover object-[65%_center] lg:object-contain lg:object-right" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(255,253,249,.98) 0%, rgba(255,253,249,.94) 28%, rgba(255,253,249,.68) 47%, rgba(255,253,249,.18) 66%, rgba(255,253,249,0) 82%)' }} aria-hidden="true" />
-            <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:max-w-[56%] lg:px-[clamp(2.5rem,7vw,9rem)] lg:py-14">
+        <div className="relative flex min-h-[calc(100svh-70px-106px)] overflow-hidden bg-[var(--spa-cream)]">
+            <div className="spa-hero-photo">
+                <Image src="/images/hero/spasmooth-hero-original.webp" alt="Sala SpaSmooTh preparada para uma sessão de massoterapia" fill preload unoptimized className="object-cover object-[65%_center] lg:object-contain lg:object-right-top" />
+                <div className="spa-hero-blend" aria-hidden="true" />
+            </div>
+            <div className="relative z-10 flex w-full flex-col justify-center px-6 py-10 sm:px-10 lg:max-w-[60%] lg:px-[clamp(2.5rem,7vw,9rem)] lg:py-14">
                 <p className="spa-eyebrow mb-4">Bem-vindo ao seu momento</p>
                 <h1 className="spa-display max-w-xl text-[2.75rem] leading-[.98] text-[var(--spa-ink)] sm:text-6xl lg:text-[clamp(3.9rem,5vw,5.7rem)]">SpaSmooTh<br /><em className="font-normal text-[var(--spa-blue)]">Massoterapia, Day Spa e Bronzeamento.</em></h1>
                 <p className="mt-5 max-w-lg text-sm leading-relaxed text-slate-600 md:text-base">Redescubra o equilíbrio entre corpo e mente com terapias personalizadas em um ambiente de alto padrão.</p>

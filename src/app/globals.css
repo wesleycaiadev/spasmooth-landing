@@ -33,6 +33,27 @@ button, a, input, textarea, select { -webkit-tap-highlight-color: transparent; }
 .spa-shell { width: min(100% - 2rem, 1200px); margin-inline: auto; }
 .spa-display { font-family: Georgia, 'Times New Roman', serif; letter-spacing: -0.04em; }
 .spa-eyebrow { color: var(--spa-blue); font-size: .7rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+
+.spa-hero-photo { position: absolute; inset: 0; }
+.spa-hero-blend {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, #fffdf8 0%, rgb(255 253 248 / .96) 35%, rgb(255 253 248 / .86) 70%, rgb(255 253 248 / .7) 100%);
+}
+@media (min-width: 1024px) {
+  /* Attach the fade to the actual photo edge, not to the viewport midpoint. */
+  .spa-hero-photo {
+    left: auto;
+    bottom: auto;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    max-width: 100%;
+  }
+  .spa-hero-blend {
+    background: linear-gradient(90deg, #fffdf8 0%, rgb(255 253 248 / .98) 5%, rgb(255 253 248 / .84) 15%, rgb(255 253 248 / .5) 27%, rgb(255 253 248 / .16) 40%, rgb(255 253 248 / 0) 54%);
+  }
+}
 .spa-button-primary { display:inline-flex; align-items:center; justify-content:center; gap:.6rem; min-height:48px; border-radius:12px; background:var(--spa-coral); color:white; padding:.75rem 1.35rem; font-size:.9rem; font-weight:800; box-shadow:0 10px 24px rgb(255 107 44 / .2); transition:transform .2s ease, background .2s ease, box-shadow .2s ease; }
 .spa-button-primary:hover { background:#e9581d; box-shadow:0 14px 28px rgb(255 107 44 / .28); transform:translateY(-1px); }
 .spa-button-secondary { display:inline-flex; align-items:center; justify-content:center; gap:.6rem; min-height:48px; border-radius:12px; border:1px solid var(--spa-blue); color:var(--spa-ink); padding:.75rem 1.35rem; font-size:.9rem; font-weight:800; transition:background .2s ease, color .2s ease, transform .2s ease; }
