@@ -4,8 +4,8 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './Preloader.module.css';
 
-const SESSION_KEY = 'spa_intro_lotus_video_v2';
-const MAX_WAIT_MS = 5200;
+const SESSION_KEY = 'spa_intro_lotus_css_v3';
+const INTRO_DURATION_MS = 3000;
 
 export default function Preloader() {
     const [phase, setPhase] = useState('checking');
@@ -31,7 +31,7 @@ export default function Preloader() {
             } catch { /* The intro still works when session storage is unavailable. */ }
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
             setPhase('playing');
-            exitTimer.current = window.setTimeout(finish, reducedMotion ? 700 : MAX_WAIT_MS);
+            exitTimer.current = window.setTimeout(finish, reducedMotion ? 650 : INTRO_DURATION_MS);
         });
 
         return () => {
@@ -44,29 +44,18 @@ export default function Preloader() {
 
     return (
         <div className={`${styles.overlay} ${phase === 'leaving' ? styles.leaving : ''}`} aria-hidden="true">
-            <div className={styles.stage}>
-                <video
-                    className={styles.video}
-                    autoPlay
-                    muted
-                    playsInline
-                    preload="auto"
-                    poster="/assets/spasmooth-lotus-v2.webp"
-                    onLoadedMetadata={(event) => {
-                        event.currentTarget.playbackRate = 2;
-                        event.currentTarget.play().catch(finish);
-                    }}
-                    onError={(event) => {
-                        event.currentTarget.style.display = 'none';
-                    }}
-                    onEnded={finish}
-                >
-                    <source src="/assets/spasmooth-preloader-v2.mp4" type="video/mp4" />
-                </video>
-                <div className={styles.fallback}>
-                    <Image src="/assets/spasmooth-lotus-v2.webp" alt="" width={720} height={489} priority />
-                    <p>Spa<strong>SmooTh</strong></p>
-                    <span>Massoterapia</span>
+            <div className={`${styles.stage} ${phase !== 'checking' ? styles.playing : ''}`}>
+                <div className={styles.mark}>
+                    <Image className={styles.outline} src="/assets/spasmooth-lotus-outline-v3.png" alt="" fill sizes="(max-width: 640px) 68vw, 360px" priority />
+                    <div className={styles.fillReveal}>
+                        <Image className={styles.filledLogo} src="/assets/spasmooth-lotus-transparent-v3.webp" alt="" fill sizes="(max-width: 640px) 68vw, 360px" priority />
+                    </div>
+                    <span className={styles.lightSweep} />
+                </div>
+                <div className={styles.identity}>
+                    <p className={styles.wordmark}>Spa<strong>SmooTh</strong></p>
+                    <p className={styles.tagline}>Massoterapia · Day Spa · Bronzeamento</p>
+                    <span className={styles.accentLine} />
                 </div>
             </div>
         </div>
