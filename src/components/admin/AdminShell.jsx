@@ -66,7 +66,6 @@ function AdminContent({ children }) {
 }
 
 function NavItem({ href, icon, label }) {
-    const router = useRouter();
     return (
         <Link href={href} className="flex items-center gap-3 px-5 py-3.5 text-slate-500 hover:text-cyan-700 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-transparent rounded-xl transition-all duration-300 group font-medium relative overflow-hidden">
             <span className="relative z-10 group-hover:scale-110 transition-transform duration-300">{icon}</span>
