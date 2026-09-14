@@ -20,12 +20,25 @@ export function requireSameOrigin(request: Request): void {
     if (!isSameOrigin(request.headers.get('origin'), trustedOrigins())) throw new Error('Origem não permitida.');
 }
 
-// Atomic, shared between serverless instances. Failure closes access.
+// Atomic, shared between serverless instances.
+// Fail-open: RPC infrastructure errors (missing table, network) allow the request
+// through so that a broken rate-limit setup does not silently block all visitors.
+// When the RPC succeeds and returns `false`, the limit is enforced normally.
 export async function rateLimit(scope: string, limit: number, seconds: number, identity?: string): Promise<boolean> {
-    const h = await headers();
-    const ip = process.env.VERCEL === '1' ? h.get('x-vercel-forwarded-for') : (process.env.NODE_ENV !== 'production' ? h.get('x-forwarded-for') || 'local' : null);
-    const subject = identity || ip?.split(',')[0]?.trim() || 'unknown';
-    const key = createHmac('sha256', capabilitySecret()).update(`${scope}:${subject}`).digest('hex');
-    const { data, error } = await createAdminClient().rpc('consume_rate_limit', { p_key: key, p_limit: limit, p_window_seconds: seconds });
-    return !error && data === true;
+    try {
+        const h = await headers();
+        const ip = process.env.VERCEL === '1' ? h.get('x-vercel-forwarded-for') : (process.env.NODE_ENV !== 'production' ? h.get('x-forwarded-for') || 'local' : null);
+        const subject = identity || ip?.split(',')[0]?.trim() || 'unknown';
+        const key = createHmac('sha256', capabilitySecret()).update(`${scope}:${subject}`).digest('hex');
+        const { data, error } = await createAdminClient().rpc('consume_rate_limit', { p_key: key, p_limit: limit, p_window_seconds: seconds });
+        if (error) {
+            // Infrastructure error (table missing, RPC broken) — fail open, log for ops
+            console.error('[rateLimit] RPC error (fail-open):', error.code, error.message);
+            return true;
+        }
+        return data === true;
+    } catch (e) {
+        console.error('[rateLimit] unexpected error (fail-open):', e);
+        return true;
+    }
 }
