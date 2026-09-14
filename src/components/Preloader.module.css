@@ -159,8 +159,12 @@
     transform: none;
   }
 
-  .outline,
-  .lightSweep { display: none; }
+  .playing .outline,
+  .playing .lightSweep { display: none; }
+  .playing .fillReveal,
+  .playing .wordmark,
+  .playing .tagline,
+  .playing .accentLine { animation: none; }
   .fillReveal { clip-path: none; opacity: 1; }
   .wordmark,
   .tagline { opacity: 1; transform: none; }

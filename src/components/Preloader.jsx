@@ -1,54 +1,53 @@
 "use client";
 
 import Image from 'next/image';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './Preloader.module.css';
 
-const SESSION_KEY = 'spa_intro_lotus_css_v3';
 const INTRO_DURATION_MS = 3000;
 
 export default function Preloader() {
     const [phase, setPhase] = useState('checking');
-    const exiting = useRef(false);
-    const exitTimer = useRef(null);
-
-    const finish = useCallback(() => {
-        if (exiting.current) return;
-        exiting.current = true;
-        if (exitTimer.current) window.clearTimeout(exitTimer.current);
-        setPhase('leaving');
-        exitTimer.current = window.setTimeout(() => setPhase('hidden'), 500);
-    }, []);
+    const stage = useRef(null);
 
     useEffect(() => {
-        const frame = window.requestAnimationFrame(() => {
-            try {
-                if (sessionStorage.getItem(SESSION_KEY)) {
-                    setPhase('hidden');
-                    return;
-                }
-                sessionStorage.setItem(SESSION_KEY, 'seen');
-            } catch { /* The intro still works when session storage is unavailable. */ }
-            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let active = true;
+        let started = false;
+        const timers = [];
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const later = (callback, delay) => timers.push(window.setTimeout(callback, delay));
+        const start = () => {
+            if (!active || started) return;
+            started = true;
             setPhase('playing');
-            exitTimer.current = window.setTimeout(finish, reducedMotion ? 650 : INTRO_DURATION_MS);
-        });
+            later(() => {
+                if (!active) return;
+                setPhase('leaving');
+                later(() => { if (active) setPhase('hidden'); }, reducedMotion ? 180 : 450);
+            }, reducedMotion ? 650 : INTRO_DURATION_MS);
+        };
+
+        // Run on every home mount, including reloads. Start after the logo is decoded,
+        // with a deadline so a failed image request cannot block the page.
+        const images = Array.from(stage.current?.querySelectorAll('img') ?? []);
+        Promise.allSettled(images.map(image => image.decode())).then(start);
+        later(start, 1200);
 
         return () => {
-            window.cancelAnimationFrame(frame);
-            if (exitTimer.current) window.clearTimeout(exitTimer.current);
+            active = false;
+            timers.forEach(window.clearTimeout);
         };
-    }, [finish]);
+    }, []);
 
     if (phase === 'hidden') return null;
 
     return (
-        <div className={`${styles.overlay} ${phase === 'leaving' ? styles.leaving : ''}`} aria-hidden="true">
-            <div className={`${styles.stage} ${phase !== 'checking' ? styles.playing : ''}`}>
+        <div data-spa-preloader={phase} className={`${styles.overlay} ${phase === 'leaving' ? styles.leaving : ''}`} aria-hidden="true">
+            <div ref={stage} className={`${styles.stage} ${phase !== 'checking' ? styles.playing : ''}`}>
                 <div className={styles.mark}>
-                    <Image className={styles.outline} src="/assets/spasmooth-lotus-outline-v3.png" alt="" fill sizes="(max-width: 640px) 68vw, 360px" priority />
+                    <Image className={styles.outline} src="/assets/spasmooth-lotus-outline-v3.png" alt="" fill sizes="(max-width: 474px) 76vw, 360px" preload unoptimized />
                     <div className={styles.fillReveal}>
-                        <Image className={styles.filledLogo} src="/assets/spasmooth-lotus-transparent-v3.webp" alt="" fill sizes="(max-width: 640px) 68vw, 360px" priority />
+                        <Image className={styles.filledLogo} src="/assets/spasmooth-lotus-transparent-v3.webp" alt="" fill sizes="(max-width: 474px) 76vw, 360px" preload unoptimized />
                     </div>
                     <span className={styles.lightSweep} />
                 </div>
