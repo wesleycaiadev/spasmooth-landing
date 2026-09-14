@@ -1,69 +1,73 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import styles from './Preloader.module.css';
 
-const SESSION_KEY = 'spa_intro_draw_fill_v1';
-const DRAW_AND_FILL_MS = 1800;
-const MAX_WAIT_MS = 2800;
+const SESSION_KEY = 'spa_intro_lotus_video_v2';
+const MAX_WAIT_MS = 5200;
 
 export default function Preloader() {
-    const [phase, setPhase] = useState('hidden');
+    const [phase, setPhase] = useState('checking');
+    const exiting = useRef(false);
+    const exitTimer = useRef(null);
+
+    const finish = useCallback(() => {
+        if (exiting.current) return;
+        exiting.current = true;
+        if (exitTimer.current) window.clearTimeout(exitTimer.current);
+        setPhase('leaving');
+        exitTimer.current = window.setTimeout(() => setPhase('hidden'), 500);
+    }, []);
 
     useEffect(() => {
-        let active = true;
-        let closing = false;
-        const timers = [];
-        const later = (callback, delay) => {
-            const timer = window.setTimeout(callback, delay);
-            timers.push(timer);
-        };
-
         const frame = window.requestAnimationFrame(() => {
             try {
-                if (sessionStorage.getItem(SESSION_KEY)) return;
+                if (sessionStorage.getItem(SESSION_KEY)) {
+                    setPhase('hidden');
+                    return;
+                }
                 sessionStorage.setItem(SESSION_KEY, 'seen');
             } catch { /* The intro still works when session storage is unavailable. */ }
-
             const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            setPhase('drawing');
-
-            const close = () => {
-                if (!active || closing) return;
-                closing = true;
-                setPhase('leaving');
-                later(() => { if (active) setPhase('hidden'); }, reducedMotion ? 150 : 450);
-            };
-
-            // Wait only for the first viewport, with a deadline even if an image fails.
-            const hero = document.querySelector('[data-spa-hero-image]');
-            const imageReady = hero?.decode ? hero.decode().catch(() => {}) : Promise.resolve();
-            const fontsReady = document.fonts?.ready || Promise.resolve();
-            const drawingFinished = new Promise(resolve => later(resolve, reducedMotion ? 180 : DRAW_AND_FILL_MS));
-            Promise.allSettled([drawingFinished, imageReady, fontsReady]).then(close);
-            later(close, reducedMotion ? 350 : MAX_WAIT_MS);
+            setPhase('playing');
+            exitTimer.current = window.setTimeout(finish, reducedMotion ? 700 : MAX_WAIT_MS);
         });
 
         return () => {
-            active = false;
             window.cancelAnimationFrame(frame);
-            timers.forEach(window.clearTimeout);
+            if (exitTimer.current) window.clearTimeout(exitTimer.current);
         };
-    }, []);
+    }, [finish]);
 
     if (phase === 'hidden') return null;
 
     return (
         <div className={`${styles.overlay} ${phase === 'leaving' ? styles.leaving : ''}`} aria-hidden="true">
-            <div className={styles.signature}>
-                <svg className={styles.symbol} width="76" height="88" viewBox="0 0 40 46" fill="none">
-                    <path className={styles.fill} d="M20 3C12.2 11.2 5.5 21.3 5.5 36.5h29C34.5 21.3 27.8 11.2 20 3Z" />
-                    <path className={styles.outline} pathLength="1" d="M20 3C12.2 11.2 5.5 21.3 5.5 36.5h29C34.5 21.3 27.8 11.2 20 3Z" />
-                    <path className={styles.ribs} pathLength="1" d="M20 3v33.5M20 3C15.5 14.2 13.5 25.4 13.5 36.5M20 3c4.5 11.2 6.5 22.4 6.5 33.5" />
-                </svg>
-                <p className={styles.wordmark}>Spa<strong>SmooTh</strong></p>
-                <p className={styles.tagline}>Corpo · Mente · Equilíbrio</p>
-                <span className={styles.line} />
+            <div className={styles.stage}>
+                <video
+                    className={styles.video}
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="auto"
+                    poster="/assets/spasmooth-lotus-v2.webp"
+                    onLoadedMetadata={(event) => {
+                        event.currentTarget.playbackRate = 2;
+                        event.currentTarget.play().catch(finish);
+                    }}
+                    onError={(event) => {
+                        event.currentTarget.style.display = 'none';
+                    }}
+                    onEnded={finish}
+                >
+                    <source src="/assets/spasmooth-preloader-v2.mp4" type="video/mp4" />
+                </video>
+                <div className={styles.fallback}>
+                    <Image src="/assets/spasmooth-lotus-v2.webp" alt="" width={720} height={489} priority />
+                    <p>Spa<strong>SmooTh</strong></p>
+                    <span>Massoterapia</span>
+                </div>
             </div>
         </div>
     );
