@@ -1,6 +1,5 @@
 import { clerkMiddleware } from '@clerk/nextjs/server';
-// Resource-level checks live in the admin layout, every action and every API handler.
 export default clerkMiddleware();
 export const config = {
-  matcher: ['/admin/:path*', '/api/admin/:path*', '/entrar/:path*', '/seguranca/:path*'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };
