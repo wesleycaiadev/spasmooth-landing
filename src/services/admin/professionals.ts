@@ -1,5 +1,6 @@
 "use server";
 import { uuid, professionalSchema } from '@/lib/validations/admin';
+import { revalidatePath, updateTag } from 'next/cache';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
@@ -21,6 +22,11 @@ export type ProfessionalInput = Omit<Professional, 'id' | 'active' | 'created_at
 
 type ActionResult = { success: true } | { success: false; error: string };
 type DataResult<T> = { success: true; data: T } | { success: false; error: string };
+
+function revalidatePublicProfessionals() {
+    updateTag('public-professionals');
+    revalidatePath('/');
+}
 
 export async function getProfessionals(): Promise<DataResult<Professional[]>> {
     try {
@@ -93,6 +99,7 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
             return { success: false, error: 'Falha ao cadastrar profissional.' };
         }
 
+        revalidatePublicProfessionals();
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno do servidor.' };
@@ -120,6 +127,7 @@ export async function updateProfessional(id: string, proData: Partial<Profession
             return { success: false, error: 'Falha ao atualizar profissional.' };
         }
 
+        revalidatePublicProfessionals();
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno do servidor.' };
@@ -141,6 +149,7 @@ export async function toggleProfessionalActive(id: string, currentStatus: boolea
             return { success: false, error: 'Falha ao alterar status.' };
         }
 
+        revalidatePublicProfessionals();
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno do servidor.' };
@@ -162,6 +171,7 @@ export async function deleteProfessional(id: string): Promise<ActionResult> {
             return { success: false, error: 'Falha ao remover profissional.' };
         }
 
+        revalidatePublicProfessionals();
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno do servidor.' };

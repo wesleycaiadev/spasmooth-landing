@@ -1,5 +1,4 @@
-import { getActiveServices } from '@/services/admin/services';
-import { getCategoryLayoutConfig, getFeaturedCarouselConfig } from '@/services/admin/layout';
+import { getCachedPublicHomeCatalog } from '@/services/publicHomeCatalog';
 import FeaturedCarousel from './FeaturedCarousel';
 import ServiceAccordion from './ServiceAccordion';
 
@@ -9,14 +8,10 @@ export default async function Services() {
     let carouselConfig = null;
 
     try {
-        const [dbServices, catRes, carRes] = await Promise.all([
-            getActiveServices(),
-            getCategoryLayoutConfig(),
-            getFeaturedCarouselConfig()
-        ]);
-        services = dbServices || [];
-        categoryOrder = catRes.success ? catRes.data : [];
-        carouselConfig = carRes.success ? carRes.data : { mode: 'promotions', serviceIds: [], maxItems: 3 };
+        const catalog = await getCachedPublicHomeCatalog();
+        services = catalog.services;
+        categoryOrder = catalog.categoryOrder;
+        carouselConfig = catalog.carouselConfig;
     } catch (error) {
         console.error('[Services] Falha ao buscar dados:', error.message);
     }

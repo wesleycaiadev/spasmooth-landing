@@ -1,14 +1,12 @@
 "use server";
 import { layoutSchema, categoryOrderSchema, carouselSchema } from '@/lib/validations/admin';
+import { updateTag, revalidatePath } from 'next/cache';
+import { DEFAULT_LAYOUT, type LayoutSection } from '@/lib/layoutConfig';
 
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
 
-export type LayoutSection = {
-    id: string;
-    label: string;
-    visible: boolean;
-};
+export type { LayoutSection } from '@/lib/layoutConfig';
 
 export type FeaturedCarouselConfig = {
     mode: 'manual' | 'promotions';
@@ -18,15 +16,6 @@ export type FeaturedCarouselConfig = {
 
 export type ActionResult = { success: true } | { success: false; error: string };
 export type DataResult<T> = { success: true; data: T } | { success: false; error: string };
-
-const DEFAULT_LAYOUT: LayoutSection[] = [
-    { id: 'hero', label: 'Banner Principal', visible: true },
-    { id: 'services', label: 'Serviços', visible: true },
-    { id: 'professionals', label: 'Profissionais', visible: true },
-    { id: 'location', label: 'Localização', visible: true },
-    { id: 'testimonials', label: 'Depoimentos', visible: true },
-    { id: 'faq', label: 'Dúvidas Frequentes', visible: true }
-];
 
 const DEFAULT_CATEGORY_ORDER = ['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
 
@@ -82,6 +71,8 @@ export async function updateLayoutConfig(newLayout: LayoutSection[]): Promise<Ac
             return { success: false, error: 'Falha ao salvar configuração de layout.' };
         }
 
+        updateTag('site-config:landing-page');
+        revalidatePath('/');
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno do servidor ao salvar layout.' };
@@ -132,6 +123,8 @@ export async function updateCategoryLayoutConfig(newOrder: string[]): Promise<Ac
             return { success: false, error: 'Falha ao salvar ordem das categorias.' };
         }
 
+        updateTag('public-home-catalog');
+        revalidatePath('/');
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno ao salvar ordem das categorias.' };
@@ -182,6 +175,8 @@ export async function updateFeaturedCarouselConfig(config: FeaturedCarouselConfi
             return { success: false, error: 'Falha ao salvar configuração do carrossel.' };
         }
 
+        updateTag('public-home-catalog');
+        revalidatePath('/');
         return { success: true };
     } catch {
         return { success: false, error: 'Erro interno ao salvar configuração do carrossel.' };
