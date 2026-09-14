@@ -14,7 +14,9 @@ CREATE FUNCTION public.update_lead_interest(p_id uuid,p_interest text) RETURNS v
 `);
 const root = new URL('../', import.meta.url).pathname;
 await db.exec(fs.readFileSync(root+'/sql/001_booking_tables.sql','utf8').split('INSERT INTO public.services (name')[0]);
-await db.exec(fs.readFileSync(root+'/supabase/migrations/20260908100346_security_hardening.sql','utf8'));
+for (const migration of fs.readdirSync(root + '/supabase/migrations').sort()) {
+  await db.exec(fs.readFileSync(root + '/supabase/migrations/' + migration, 'utf8'));
+}
 await db.exec(fs.readFileSync(root+'/sql/008_booking_schedule_admin_source_of_truth.sql','utf8'));
 const result = await db.exec(fs.readFileSync(root+'/tests/database-security.sql','utf8'));
 console.log(JSON.stringify(result.filter(r=>r.rows.length).map(r=>r.rows)));

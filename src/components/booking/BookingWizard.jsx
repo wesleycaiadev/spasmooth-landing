@@ -218,9 +218,9 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
             if (result.success) {
                 setFeedback({
                     type: "success",
-                    message: "Agendamento realizado com sucesso!",
+                    message: "Pedido recebido. Conte-nos seu objetivo para personalizarmos o atendimento.",
                 });
-                setTimeout(() => router.push("/obrigado"), 1500);
+                setTimeout(() => router.push("/interesse"), 1500);
             } else {
                 setFeedback({
                     type: "error",

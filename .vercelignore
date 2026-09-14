@@ -1,0 +1,4 @@
+# Local diagnostic artifacts must never be shipped with the application source.
+scratchpad_test.js
+test-bot.js
+vercel_logs.json

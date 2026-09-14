@@ -12,8 +12,9 @@ export const leadSchema = z.object({
     appointment_time: z.union([time,z.literal('')]).nullable().optional(), mensagem_interesse: optionalText,
     status_kanban: leadStatus.default('novo'), admin_notes: z.string().max(2000).nullable().optional()
 }).strict();
+const localProfessionalImage = /^\/images\/professionals\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.(?:avif|gif|jpe?g|png|webp)$/;
 const imageUrl = z.string().max(2048).refine(value => {
-    if (!value) return true;
+    if (!value || localProfessionalImage.test(value)) return true;
     try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password && (url.hostname === 'images.unsplash.com' || url.hostname === new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://invalid.local').hostname); } catch { return false; }
 }, 'URL de imagem inválida.');
 export const professionalSchema = z.object({ name: z.string().trim().min(2).max(100), specialties: z.array(z.string().trim().max(100)).max(20), photo_url: imageUrl.nullable(), gallery_urls: z.array(imageUrl).max(20), location: z.enum(['Aracaju','Maceió','Recife']), location_start_date: date.nullable(), location_end_date: date.nullable() }).strict();

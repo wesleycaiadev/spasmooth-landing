@@ -165,10 +165,11 @@ export default function KanbanPage() {
 
     const handleDeleteLead = async (e, id) => {
         e.stopPropagation();
-        if (!confirm('Tem certeza que deseja excluir este lead? Esta ação não pode ser desfeita.')) return;
+        if (!confirm('Tem certeza que deseja excluir este lead? Um agendamento associado será cancelado para liberar o horário. Esta ação não pode ser desfeita.')) return;
 
         try {
-            await leadsService.deleteLead(id);
+            const result = await leadsService.deleteLead(id);
+            if (!result.success) throw new Error(result.error);
             setLeads(leads.filter(lead => lead.id !== id));
             if (selectedLead?.id === id) setSelectedLead(null);
         } catch (error) {

@@ -30,6 +30,13 @@ test('signed capabilities expire, reject tampering and are scoped to their purpo
     assert.equal(readCapability('malformed', secret, 'booking', 1000), null);
     assert.equal(readCapability(token.replace(token[0], token[0] === 'e' ? 'x' : 'e'), secret, 'booking', 1000), null);
 });
+test('booking action capabilities are scoped to a single action and expiration', () => {
+    const secret = 'security-test-key-not-a-real-secret-123456789';
+    const token = signCapability({ purpose: 'booking-action', id: validBooking.professional_id, action: 'confirmar', exp: 2000 }, secret);
+    assert.equal(readCapability(token, secret, 'booking-action', 1000)?.action, 'confirmar');
+    assert.equal(readCapability(token, secret, 'booking', 1000), null);
+    assert.equal(readCapability(token, secret, 'booking-action', 2000), null);
+});
 const validBooking = { unit: 'Aracaju', professional_id: '11111111-1111-4111-8111-111111111111', service_id: '22222222-2222-4222-8222-222222222222', date: '2026-09-10', time: '10:00', client_name: 'Cliente Teste', client_phone: '(82) 99999-0000', notes: '', privacy_acknowledged: true };
 test('booking rejects impossible calendar dates, times, missing notice and oversized input', () => {
     assert.equal(createBookingSchema.safeParse(validBooking).success, true);
@@ -41,6 +48,8 @@ test('admin inputs reject mass assignment, invalid prices/URLs and malformed sch
     assert.equal(professionalSchema.safeParse(pro).success, true);
     assert.equal(professionalSchema.safeParse({ ...pro, active: true }).success, false);
     assert.equal(professionalSchema.safeParse({ ...pro, photo_url: 'javascript:alert(1)' }).success, false);
+    assert.equal(professionalSchema.safeParse({ ...pro, photo_url: '/images/professionals/anne/1.jpeg', gallery_urls: ['/images/professionals/anne/1.jpeg'] }).success, true);
+    assert.equal(professionalSchema.safeParse({ ...pro, photo_url: '/images/other/anne.jpeg' }).success, false);
     assert.equal(scheduleSchema.safeParse(Array.from({ length: 7 }, () => ({ professional_id: validBooking.professional_id, day_of_week: 1, start_time: '08:00', end_time: '20:00', is_day_off: false }))).success, false);
     assert.equal(layoutSchema.safeParse([]).success, false);
     assert.equal(carouselSchema.safeParse({ mode: 'manual', serviceIds: [], maxItems: 9999 }).success, false);

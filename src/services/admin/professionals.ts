@@ -23,6 +23,10 @@ export type ProfessionalInput = Omit<Professional, 'id' | 'active' | 'created_at
 type ActionResult = { success: true } | { success: false; error: string };
 type DataResult<T> = { success: true; data: T } | { success: false; error: string };
 
+function validationErrorMessage(error: { issues: Array<{ message: string }> }) {
+    return error.issues[0]?.message || 'Dados inválidos.';
+}
+
 function revalidatePublicProfessionals() {
     updateTag('public-professionals');
     revalidatePath('/');
@@ -76,7 +80,7 @@ export async function getActiveProfessionals(): Promise<DataResult<Pick<Professi
 
 export async function createProfessional(proData: ProfessionalInput): Promise<ActionResult> {
     try {
-        const parsed = professionalSchema.safeParse(proData); if (!parsed.success) { console.error('Create error:', parsed.error); return { success: false, error: 'Dados inválidos.' }; }
+        const parsed = professionalSchema.safeParse(proData); if (!parsed.success) { console.error('Create error:', parsed.error); return { success: false, error: validationErrorMessage(parsed.error) }; }
         proData = { ...parsed.data, photo_url: parsed.data.photo_url ?? '', location_start_date: parsed.data.location_start_date ?? null, location_end_date: parsed.data.location_end_date ?? null };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
@@ -108,7 +112,7 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
 
 export async function updateProfessional(id: string, proData: Partial<ProfessionalInput>): Promise<ActionResult> {
     try {
-        const parsed = professionalSchema.partial().safeParse(proData); if (!uuid.safeParse(id).success || !parsed.success) { console.error('Update error:', !parsed.success ? parsed.error : 'uuid'); return { success: false, error: 'Dados inválidos.' }; }
+        const parsed = professionalSchema.partial().safeParse(proData); if (!uuid.safeParse(id).success || !parsed.success) { console.error('Update error:', !parsed.success ? parsed.error : 'uuid'); return { success: false, error: !parsed.success ? validationErrorMessage(parsed.error) : 'Identificador inválido.' }; }
         proData = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };

@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { rateLimit, capabilitySecret } from "@/lib/security/server";
 import { signCapability, readCapability } from "@/lib/security/policy";
+import { bookingActionUrl, createBookingActionToken } from "@/lib/booking-actions";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import {
@@ -205,31 +206,42 @@ export async function createBooking(
         try {
             (await cookies()).set('spa_booking', signCapability({ purpose: 'booking', id: bookingId, exp: Date.now() + 30 * 60_000 }, capabilitySecret()), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/', maxAge: 1800 });
         } catch { console.error('[booking] Receipt could not be issued'); }
-        // Notification delivery is opt-in operational configuration, never a public relay.
+        // The lead is already durable in `leads` at this point. WhatsApp is an
+        // operational alert, never the source of truth for a customer request.
         // Do not include client data in URLs or logs.
-        if (process.env.BOOKING_NOTIFICATIONS_ENABLED === 'true' && process.env.CALLMEBOT_PHONE && process.env.CALLMEBOT_APIKEY) {
+        const notificationsEnabled = process.env.BOOKING_NOTIFICATIONS_ENABLED === 'true';
+        const callmebotConfigured = Boolean(process.env.CALLMEBOT_PHONE && process.env.CALLMEBOT_APIKEY);
+        if (!notificationsEnabled) {
+            if (process.env.NODE_ENV === 'production') console.error('[booking] Admin notification disabled by configuration');
+        } else if (!callmebotConfigured) {
+            console.error('[booking] Admin notification configuration incomplete');
+        } else {
             try {
                 // Fetch service and professional data for detailed message
                 const { data: serviceData } = await supabase.from('services').select('name').eq('id', service_id).single();
                 const { data: proData } = await supabase.from('professionals').select('name,location').eq('id', professional_id).single();
 
-                const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://spasmooth.com.br";
-                
-                const cleanName = (client_name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanService = (serviceData?.name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanProfessional = (proData?.name || 'Nao especificado').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const cleanLocation = (proData?.location || unit).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const expiresAt = Math.min(Date.now() + 24 * 60 * 60_000, startsAt.getTime());
+                const confirmUrl = bookingActionUrl(createBookingActionToken(bookingId, 'confirmar', expiresAt));
+                const declineUrl = bookingActionUrl(createBookingActionToken(bookingId, 'recusar', expiresAt));
+                const panelUrl = new URL('/admin/bookings', process.env.NEXT_PUBLIC_SITE_URL || 'https://spasmooth.com.br').toString();
+                const observation = notes?.trim() || 'Nenhuma observação informada.';
 
-                const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${client_phone}\n*Servico:* ${cleanService}\n*Profissional:* ${cleanProfessional}\n*Local:* ${cleanLocation}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=decline`;
+                const messageText = `🗓️ *Novo Agendamento*\n👤 *Cliente:* ${client_name}\n📱 *WhatsApp:* ${client_phone}\n💆 *Serviço:* ${serviceData?.name || 'Não informado'}\n\n*Observação:* ${observation}\n\n👩‍⚕️ *Profissional:* ${proData?.name || 'Não especificado'}\n📍 *Local:* ${proData?.location || unit}\n📅 *Data:* ${date}\n🕐 *Horário:* ${time}\n\nUm novo agendamento foi solicitado pelo site. Revise os dados e escolha uma ação abaixo:\n\n✅ *Confirmar agendamento:* ${confirmUrl}\n❌ *Cancelar / Recusar:* ${declineUrl}\n⚙️ *Abrir no painel administrativo:* ${panelUrl}`;
 
                 const url = new URL('https://api.callmebot.com/whatsapp.php');
                 url.searchParams.set('phone', process.env.CALLMEBOT_PHONE);
                 url.searchParams.set('apikey', process.env.CALLMEBOT_APIKEY);
                 url.searchParams.set('text', messageText);
                 
-                await fetch(url.toString(), { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-            } catch (err) { 
-                console.error('[booking] Notification delivery failed', err); 
+                const response = await fetch(url.toString(), { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+                if (!response.ok) {
+                    console.error('[booking] Admin notification rejected', { status: response.status });
+                } else {
+                    console.info('[booking] Admin notification delivered');
+                }
+            } catch {
+                console.error('[booking] Admin notification delivery failed');
             }
         }
 

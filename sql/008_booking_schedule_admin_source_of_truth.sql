@@ -80,7 +80,7 @@ BEGIN
         SELECT 1
         FROM public.bookings
         WHERE professional_id = p_professional_id
-          AND status <> 'cancelado'
+          AND status IN ('pendente', 'confirmado')
           AND tstzrange(starts_at, ends_at, '[)')
             && tstzrange(v_slot, v_slot + make_interval(mins => v_duration), '[)')
       ) THEN

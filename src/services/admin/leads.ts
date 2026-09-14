@@ -78,7 +78,10 @@ export async function deleteLead(id: string): Promise<ActionResult> {
 
         const supabase = createAdminClient();
 
-        const { error } = await supabase.from('leads').delete().eq('id', id);
+        // A lead created by the booking flow has the same ID as its booking.
+        // Cancelling the booking in the same transaction is what releases the
+        // slot; deleting only the lead left an active booking behind.
+        const { error } = await supabase.rpc('admin_delete_lead_and_booking', { p_id: id });
 
         if (error) {
             console.error("Supabase Error [deleteLead]:", "DATABASE_OPERATION_FAILED");

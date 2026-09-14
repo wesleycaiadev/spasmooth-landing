@@ -23,6 +23,7 @@ DO $$ DECLARE v_pro uuid; v_svc uuid; v_id uuid; v_day date; v_slot text; v_star
  v_start := (v_day+v_slot::time) AT TIME ZONE 'America/Maceio';
  v_id:=public.check_and_create_booking('Aracaju',v_pro,v_svc,'SECURITY TEST','82999990000',v_start,v_start+interval '1 hour','');
  IF NOT EXISTS(SELECT 1 FROM public.leads WHERE id=v_id AND appointment_date=v_day AND appointment_time=v_slot AND status_kanban='novo') THEN RAISE EXCEPTION 'BOOKING_SYNC_TEST_FAILED'; END IF;
+ IF v_slot=ANY(public.available_booking_slots(v_pro,v_svc,v_day)) THEN RAISE EXCEPTION 'PENDING_SLOT_NOT_BLOCKED_TEST_FAILED'; END IF;
  BEGIN
    PERFORM public.check_and_create_booking('Aracaju',v_pro,v_svc,'SECURITY TEST','82999990000',v_start,v_start+interval '1 hour','');
    RAISE EXCEPTION 'DUPLICATE_ACCEPTED';
@@ -34,6 +35,17 @@ DO $$ DECLARE v_pro uuid; v_svc uuid; v_id uuid; v_day date; v_slot text; v_star
    RAISE EXCEPTION 'OVERLAP_ACCEPTED';
  EXCEPTION WHEN exclusion_violation THEN NULL;
  END;
+ PERFORM public.admin_set_lead_status(v_id,'cancelado');
+ IF NOT v_slot=ANY(public.available_booking_slots(v_pro,v_svc,v_day)) THEN RAISE EXCEPTION 'CANCELLED_SLOT_NOT_RELEASED_TEST_FAILED'; END IF;
+ v_id:=public.check_and_create_booking('Aracaju',v_pro,v_svc,'SECURITY TEST','82999990000',v_start,v_start+interval '1 hour','');
+ PERFORM public.admin_delete_lead_and_booking(v_id);
+ IF EXISTS(SELECT 1 FROM public.leads WHERE id=v_id) OR NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=v_id AND status='cancelado') THEN RAISE EXCEPTION 'DELETE_BOOKING_SYNC_TEST_FAILED'; END IF;
+ IF NOT v_slot=ANY(public.available_booking_slots(v_pro,v_svc,v_day)) THEN RAISE EXCEPTION 'DELETED_SLOT_NOT_RELEASED_TEST_FAILED'; END IF;
+ v_id:=public.check_and_create_booking('Aracaju',v_pro,v_svc,'SECURITY TEST','82999990000',v_start,v_start+interval '1 hour','');
+ IF public.apply_signed_booking_action(v_id,'confirmar') <> 'applied' THEN RAISE EXCEPTION 'SIGNED_ACTION_APPLY_TEST_FAILED'; END IF;
+ IF public.apply_signed_booking_action(v_id,'confirmar') <> 'already_confirmado' THEN RAISE EXCEPTION 'SIGNED_ACTION_IDEMPOTENCY_TEST_FAILED'; END IF;
+ IF public.apply_signed_booking_action(v_id,'recusar') <> 'already_confirmado' THEN RAISE EXCEPTION 'SIGNED_ACTION_CONFLICT_TEST_FAILED'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=v_id AND status='confirmado' AND confirmed_at IS NOT NULL AND confirmed_by='link_assinado') THEN RAISE EXCEPTION 'SIGNED_ACTION_AUDIT_TEST_FAILED'; END IF;
  PERFORM public.admin_set_lead_status(v_id,'agendado');
  IF NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=v_id AND status='confirmado') THEN RAISE EXCEPTION 'STATUS_SYNC_TEST_FAILED'; END IF;
  PERFORM public.admin_reschedule_lead(v_id,v_day,(v_slot::time+interval '1 hour')::time,v_pro);
@@ -43,4 +55,4 @@ DO $$ DECLARE v_pro uuid; v_svc uuid; v_id uuid; v_day date; v_slot text; v_star
  IF NOT public.consume_rate_limit(repeat('a',64),2,60) THEN RAISE EXCEPTION 'RATE_EXPIRY_TEST_FAILED'; END IF;
 END $$;
 ROLLBACK;
-SELECT 'RLS/grants, rate limit/expiry, slots, duplicate prevention, exclusion constraint, booking sync and rescheduling passed' AS result;
+SELECT 'RLS/grants, rate limits, cancellation/deletion slot release, active-slot blocking, duplicate prevention and rescheduling passed' AS result;
