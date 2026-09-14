@@ -34,9 +34,26 @@ e [disponibilidade de GRU1](https://vercel.com/docs/pricing/regional-pricing/gru
 
 ## Próximas proteções nesta branch
 
-- Remover domínios Clerk de desenvolvimento da CSP de produção, mantendo a
-  instância real `clerk.spasmooth.com.br`.
-- Acrescentar cabeçalhos de isolamento e `/.well-known/security.txt`.
 - Auditar RLS e privilégios do Supabase com credenciais anônimas, sem registrar
   chaves ou dados de clientes em arquivos ou logs.
 - Medir CSP e cache depois de cada deploy antes de apertar a política.
+
+## CSP e relatórios de violação
+
+- Origens de desenvolvimento do Clerk (`*.clerk.dev` e
+  `*.clerk.accounts.dev`) foram removidas da política de produção. A instância
+  `clerk.spasmooth.com.br` e os recursos de produção `*.clerk.com` permanecem
+  permitidos para o acesso administrativo.
+- A política envia relatórios para `/api/csp-report`. O endpoint limita volume,
+  descarta payloads grandes, registra apenas origem e diretiva (sem query
+  strings ou dados pessoais) e reduz duplicatas por instância em 15 minutos.
+- `Cross-Origin-Opener-Policy: same-origin`,
+  `X-Permitted-Cross-Domain-Policies: none` e
+  `/.well-known/security.txt` foram adicionados.
+- `script-src 'unsafe-inline'` **ainda não foi removido**. O App Router injeta
+  scripts inline e um nonce por resposta torna a rota dinâmica, desfazendo o
+  ISR da home. A remoção correta exige hashes estáveis por build ou uma
+  arquitetura que separe as rotas autenticadas dinâmicas das páginas públicas
+  estáticas; ela será validada em preview com o login Clerk antes de entrar em
+  produção. `style-src 'unsafe-inline'` é uma escolha consciente enquanto o
+  Tailwind e estilos inline forem usados.

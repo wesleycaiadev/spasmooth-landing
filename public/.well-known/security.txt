@@ -1,0 +1,5 @@
+Contact: https://wa.me/557991189140
+Policy: https://spasmooth.com.br/privacidade
+Preferred-Languages: pt-BR, en
+Canonical: https://spasmooth.com.br/.well-known/security.txt
+Expires: 2027-09-14T00:00:00.000Z
