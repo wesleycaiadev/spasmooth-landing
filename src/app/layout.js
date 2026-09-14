@@ -67,7 +67,6 @@ export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={nunito.variable}>
       <head>
-        <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}

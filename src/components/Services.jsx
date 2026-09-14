@@ -21,7 +21,8 @@ export default async function Services() {
         console.error('[Services] Falha ao buscar dados:', error.message);
     }
 
-    // Filtragem para o Carrossel
+    // O admin pode escolher destaques. Sem configuração, mostramos apenas uma
+    // amostra dos serviços ativos para a página não ficar sem contexto visual.
     let featuredServices = [];
     if (carouselConfig?.mode === 'manual') {
         featuredServices = services.filter(s => carouselConfig.serviceIds.includes(s.id));
@@ -33,6 +34,7 @@ export default async function Services() {
             return s.prices.some(p => p.discount_percentage > 0);
         }).slice(0, carouselConfig?.maxItems || 3);
     }
+    if (featuredServices.length === 0) featuredServices = services.slice(0, carouselConfig?.maxItems || 3);
 
     // Agrupar por categoria
     const groupedServices = {};
@@ -41,24 +43,20 @@ export default async function Services() {
     }
 
     return (
-        <section id="servicos" className="py-12 md:py-24 bg-[#fafafa] relative overflow-hidden">
-            <div className="container mx-auto px-4 md:px-6 relative z-10">
-                {/* Carrossel de Destaques */}
-                {featuredServices.length > 0 && (
-                    <FeaturedCarousel services={featuredServices} />
-                )}
+        <section id="servicos" className="relative overflow-hidden bg-[var(--spa-mist)] py-16 md:py-24">
+            <div className="spa-shell relative z-10">
+                {featuredServices.length > 0 && <FeaturedCarousel services={featuredServices} />}
 
-                {/* Título da Seção do Cardápio */}
-                <div className="text-center mb-8 md:mb-16 mt-10 md:mt-20 max-w-2xl mx-auto px-2">
-                    <span className="text-cyan-700 font-bold tracking-wider uppercase text-xs mb-2 block">Menu Completo</span>
-                    <h2 className="text-xl md:text-4xl font-serif text-[#4a4a4a] mb-4">Explore nossas Terapias</h2>
-                    <div className="w-16 md:w-24 h-0.5 bg-cyan-200 mx-auto rounded-full"></div>
+                <div className="mb-9 mt-16 grid max-w-3xl gap-4 md:mb-14 md:mt-24">
+                    <span className="spa-eyebrow">Nossos tratamentos</span>
+                    <h2 className="spa-display text-4xl text-[var(--spa-ink)] md:text-5xl">Experiências para cada momento.</h2>
+                    <p className="max-w-xl text-sm leading-relaxed text-slate-600 md:text-base">Escolha uma experiência, veja o tempo previsto e inicie o agendamento quando fizer sentido para você.</p>
                 </div>
 
                 {/* Blocos de Serviços — Accordion no mobile, Grid no desktop */}
                 <ServiceAccordion groupedServices={groupedServices} categoryOrder={categoryOrder} />
 
-                <div className="mt-10 md:mt-20 text-center text-xs font-medium text-slate-400 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-100">
+                <div className="mt-10 rounded-2xl border border-[var(--spa-line)] bg-white p-4 text-center text-xs font-medium text-slate-500 md:mt-16 md:p-6">
                     Informações e valores podem ser ajustados conforme disponibilidade. O pagamento é realizado diretamente no local.
                 </div>
             </div>

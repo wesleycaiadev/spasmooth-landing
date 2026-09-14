@@ -36,7 +36,12 @@ const securityHeaders = isProd
 
 const nextConfig = {
     poweredByHeader: false,
-    experimental: { serverActions: { bodySizeLimit: '64kb' } },
+    experimental: {
+        serverActions: { bodySizeLimit: '64kb' },
+        // The CLI checker in Next 16.3 currently fails to parse TS 6 output in this project.
+        // The compiler API performs the same production type check reliably.
+        useTypeScriptCli: false,
+    },
     images: {
         remotePatterns: [
             {

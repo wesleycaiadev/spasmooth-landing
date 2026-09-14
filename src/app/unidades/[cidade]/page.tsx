@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 type Props = {
-  params: { cidade: string };
+  params: Promise<{ cidade: string }>;
 };
 
 export async function generateStaticParams() {
@@ -18,7 +18,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const unit = getUnitBySlug(params.cidade);
+  const { cidade } = await params;
+  const unit = getUnitBySlug(cidade);
   
   if (!unit || !unit.active || !unit.seo_indexable) {
     return {
@@ -47,8 +48,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function UnitPage({ params }: Props) {
-  const unit = getUnitBySlug(params.cidade);
+export default async function UnitPage({ params }: Props) {
+  const { cidade } = await params;
+  const unit = getUnitBySlug(cidade);
 
   if (!unit || !unit.active || !unit.seo_indexable) {
     notFound();

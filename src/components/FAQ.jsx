@@ -25,25 +25,24 @@ export default function FAQ() {
     ];
 
     return (
-        <section id="faq" className="py-20 bg-[#f8fafc]">
-            <div className="container mx-auto px-6 max-w-3xl">
-                <div className="text-center mb-12 max-w-2xl mx-auto px-4">
-                    <span className="text-cyan-700 font-semibold tracking-wider uppercase text-sm mb-2 block">Dúvidas Frequentes</span>
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-700 mb-4">Ficou alguma questão?</h2>
-                    <div className="w-24 h-1 bg-cyan-200 mx-auto rounded-full"></div>
+        <section id="faq" className="bg-white py-16 md:py-24">
+            <div className="spa-shell max-w-3xl">
+                <div className="mb-10 max-w-2xl">
+                    <span className="spa-eyebrow mb-3 block">Dúvidas frequentes</span>
+                    <h2 className="spa-display text-4xl text-[var(--spa-ink)] md:text-5xl">Tudo claro para o seu momento.</h2>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {faqs.map((faq, index) => (
-                        <div key={index} className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm bg-white faq-item">
+                        <div key={index} className="overflow-hidden rounded-2xl border border-[var(--spa-line)] bg-[var(--spa-cream)]">
                             <button
-                                className="w-full flex justify-between items-center p-6 hover:bg-slate-50 transition-colors text-left font-bold text-slate-700 cursor-pointer"
+                                className="flex min-h-16 w-full items-center justify-between gap-4 p-5 text-left text-sm font-extrabold text-[var(--spa-ink)] transition-colors hover:bg-[var(--spa-sky)]"
                                 onClick={() => toggleFaq(index)}
                             >
                                 {faq.question}
-                                <ChevronDown className={`text-slate-400 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`shrink-0 text-[var(--spa-blue)] transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
                             </button>
-                            <div className={`${openIndex === index ? 'block' : 'hidden'} p-6 bg-slate-50 text-slate-600 border-t border-slate-100`}>
+                            <div className={`${openIndex === index ? 'block' : 'hidden'} border-t border-[var(--spa-line)] p-5 text-sm leading-relaxed text-slate-600`}>
                                 {faq.answer}
                             </div>
                         </div>
