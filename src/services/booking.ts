@@ -209,12 +209,28 @@ export async function createBooking(
         // Do not include client data in URLs or logs.
         if (process.env.BOOKING_NOTIFICATIONS_ENABLED === 'true' && process.env.CALLMEBOT_PHONE && process.env.CALLMEBOT_APIKEY) {
             try {
+                // Fetch service and professional data for detailed message
+                const { data: serviceData } = await supabase.from('services').select('name').eq('id', service_id).single();
+                const { data: proData } = await supabase.from('professionals').select('name,location').eq('id', professional_id).single();
+
+                const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://spasmooth.com.br";
+                
+                const cleanName = (client_name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanService = (serviceData?.name || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanProfessional = (proData?.name || 'Nao especificado').normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const cleanLocation = (proData?.location || unit).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+                const messageText = `*Novo Agendamento*\n\n*Cliente:* ${cleanName}\n*WhatsApp:* ${client_phone}\n*Servico:* ${cleanService}\n*Profissional:* ${cleanProfessional}\n*Local:* ${cleanLocation}\n*Data:* ${date} as ${time}\n\n*Escolha uma acao clicando no link desejado:*\n\n✅ CONFIRMAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=confirm\n\n❌ CANCELAR/RECUSAR:\n${baseUrl}/api/booking/action?token=${bookingId}&action=decline`;
+
                 const url = new URL('https://api.callmebot.com/whatsapp.php');
                 url.searchParams.set('phone', process.env.CALLMEBOT_PHONE);
                 url.searchParams.set('apikey', process.env.CALLMEBOT_APIKEY);
-                url.searchParams.set('text', 'Novo agendamento recebido. Acesse o painel administrativo do SpaSmooth para revisar.');
-                await fetch(url, { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-            } catch { console.error('[booking] Notification delivery failed'); }
+                url.searchParams.set('text', messageText);
+                
+                await fetch(url.toString(), { signal: AbortSignal.timeout(5000), cache: 'no-store' });
+            } catch (err) { 
+                console.error('[booking] Notification delivery failed', err); 
+            }
         }
 
         return { success: true, data: { id: bookingId as string } };
