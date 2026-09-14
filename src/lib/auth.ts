@@ -5,7 +5,7 @@ import { allowedAdmin, readCapability } from '@/lib/security/policy';
 import { capabilitySecret, rateLimit } from '@/lib/security/server';
 
 export type AdminCheckResult = { success: boolean; userId?: string; sessionId?: string; error: string };
-export const ADMIN_COOKIE = process.env.NODE_ENV === 'production' ? '__Host-spa_admin' : 'spa_admin';
+export const ADMIN_COOKIE = 'spa_admin';
 
 export async function verifyAdminIdentity(): Promise<AdminCheckResult> {
     const denied = { success: false, error: 'Acesso negado. Entre com uma conta administradora e autenticação em duas etapas.' };
