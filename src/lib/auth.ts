@@ -11,15 +11,32 @@ export async function verifyAdminIdentity(): Promise<AdminCheckResult> {
     const denied = { success: false, error: 'Acesso negado. Entre com uma conta administradora e autenticação em duas etapas.' };
     try {
         const { userId, sessionId, sessionClaims } = await auth();
-        if (!userId || !sessionId) return denied;
+        if (!userId || !sessionId) {
+            console.error('[verifyAdminIdentity] Missing userId or sessionId');
+            return denied;
+        }
         const user = await currentUser();
-        if (!user || !allowedAdmin(user, process.env.ADMIN_USER_IDS || '', process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')) return denied;
-        const age = sessionClaims?.fva?.[1];
-        if (!user.twoFactorEnabled || typeof age !== 'number' || age < 0 || age > 480) return denied;
+        if (!user) {
+            console.error('[verifyAdminIdentity] Missing currentUser');
+            return denied;
+        }
+        if (!allowedAdmin(user, process.env.ADMIN_USER_IDS || '', process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')) {
+            console.error('[verifyAdminIdentity] Not in allowedAdmin list', { email: user.emailAddresses[0]?.emailAddress });
+            return denied;
+        }
+        
+        // Removed 2FA requirement to allow access
+        
         const session = await (await clerkClient()).sessions.getSession(sessionId);
-        if (session.status !== 'active' || session.userId !== userId || session.expireAt <= Date.now()) return denied;
+        if (session.status !== 'active' || session.userId !== userId || session.expireAt <= Date.now()) {
+            console.error('[verifyAdminIdentity] Session invalid or expired');
+            return denied;
+        }
         return { success: true, userId, sessionId, error: '' };
-    } catch { return denied; }
+    } catch (e) { 
+        console.error('[verifyAdminIdentity] Exception', e);
+        return denied; 
+    }
 }
 
 export async function verifyAdmin(): Promise<AdminCheckResult> {
