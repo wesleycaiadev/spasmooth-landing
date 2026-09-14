@@ -52,7 +52,7 @@ function clientWhatsAppUrl(data: BookingActionPreview): string {
 async function loadBookingActionPreview(id: string, action: BookingAction): Promise<BookingActionPageResult> {
     const { data, error } = await createAdminClient()
         .from('bookings')
-        .select('id,status,client_name,client_phone,unit,starts_at,professionals(name),services(name)')
+        .select('id,status,client_name,client_phone,unit,starts_at,professional_id,service_id')
         .eq('id', id)
         .maybeSingle();
 
@@ -60,8 +60,14 @@ async function loadBookingActionPreview(id: string, action: BookingAction): Prom
 
     const row = data as unknown as {
         id: string; status: string; client_name: string; client_phone: string; unit: string; starts_at: string;
-        professionals: { name: string }[] | null; services: { name: string }[] | null;
+        professional_id: string; service_id: string;
     };
+    const supabase = createAdminClient();
+    const [{ data: professional }, { data: service }] = await Promise.all([
+        supabase.from('professionals').select('name').eq('id', row.professional_id).maybeSingle(),
+        supabase.from('services').select('name').eq('id', row.service_id).maybeSingle(),
+    ]);
+
     return {
         success: true,
         data: {
@@ -70,8 +76,8 @@ async function loadBookingActionPreview(id: string, action: BookingAction): Prom
             status: row.status,
             clientName: row.client_name,
             clientPhone: row.client_phone,
-            serviceName: row.services?.[0]?.name || 'Serviço não informado',
-            professionalName: row.professionals?.[0]?.name || 'Profissional não informado',
+            serviceName: service?.name || 'Serviço não informado',
+            professionalName: professional?.name || 'Profissional não informado',
             unit: row.unit,
             startsAt: row.starts_at,
         },
