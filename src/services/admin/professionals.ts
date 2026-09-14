@@ -76,7 +76,7 @@ export async function getActiveProfessionals(): Promise<DataResult<Pick<Professi
 
 export async function createProfessional(proData: ProfessionalInput): Promise<ActionResult> {
     try {
-        const parsed = professionalSchema.safeParse(proData); if (!parsed.success) return { success: false, error: 'Dados inválidos.' };
+        const parsed = professionalSchema.safeParse(proData); if (!parsed.success) { console.error('Create error:', parsed.error); return { success: false, error: 'Dados inválidos.' }; }
         proData = { ...parsed.data, photo_url: parsed.data.photo_url ?? '', location_start_date: parsed.data.location_start_date ?? null, location_end_date: parsed.data.location_end_date ?? null };
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };
@@ -108,7 +108,7 @@ export async function createProfessional(proData: ProfessionalInput): Promise<Ac
 
 export async function updateProfessional(id: string, proData: Partial<ProfessionalInput>): Promise<ActionResult> {
     try {
-        const parsed = professionalSchema.partial().safeParse(proData); if (!uuid.safeParse(id).success || !parsed.success) return { success: false, error: 'Dados inválidos.' };
+        const parsed = professionalSchema.partial().safeParse(proData); if (!uuid.safeParse(id).success || !parsed.success) { console.error('Update error:', !parsed.success ? parsed.error : 'uuid'); return { success: false, error: 'Dados inválidos.' }; }
         proData = parsed.data;
         const adminCheck = await verifyAdmin();
         if (!adminCheck.success) return { success: false, error: adminCheck.error };

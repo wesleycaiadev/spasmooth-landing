@@ -69,7 +69,7 @@ export default function ProfessionalsPage() {
             closeForm();
             fetchPros();
         } catch (error) {
-            alert('Erro ao salvar profissional');
+            alert(`Erro ao salvar profissional: ${error.message}`);
             console.error(error);
         }
     };
