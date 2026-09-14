@@ -1,7 +1,7 @@
 "use server";
 import { uuid, category as categorySchema } from '@/lib/validations/admin';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, updateTag } from 'next/cache';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import { verifyAdmin } from '@/lib/auth';
 import { createServiceSchema, updateServiceSchema } from '@/lib/validations/service';
@@ -19,6 +19,11 @@ export type Service = {
 };
 
 type ActionResult = { success: true } | { success: false; error: string };
+
+function revalidatePublicCatalog() {
+    updateTag('public-home-catalog');
+    revalidatePath('/');
+}
 
 export async function getServices(): Promise<Service[]> {
     const adminCheck = await verifyAdmin();
@@ -77,7 +82,7 @@ export async function createService(input: CreateServiceInput): Promise<ActionRe
             return { success: false, error: 'Falha ao criar serviço.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -109,7 +114,7 @@ export async function updateService(id: string, input: UpdateServiceInput): Prom
             return { success: false, error: 'Falha ao atualizar serviço.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -139,7 +144,7 @@ export async function updateServicePrice(id: string, price: number): Promise<Act
             return { success: false, error: 'Falha ao atualizar preço.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -165,7 +170,7 @@ export async function toggleServiceActive(id: string, currentStatus: boolean): P
             return { success: false, error: 'Falha ao alterar status.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -191,7 +196,7 @@ export async function deleteService(id: string): Promise<ActionResult> {
             return { success: false, error: 'Falha ao remover serviço.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -233,7 +238,7 @@ export async function applyDiscountToCategory(category: string, percent: number)
             return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -269,7 +274,7 @@ export async function clearCategoryDiscount(category: string): Promise<ActionRes
             return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -298,7 +303,7 @@ export async function updateServiceDiscount(id: string, percent: number, active:
             return { success: false, error: 'Falha ao salvar descontos.' };
         }
 
-        revalidatePath('/');
+        revalidatePublicCatalog();
         revalidatePath('/admin/services');
         return { success: true };
     } catch (err) {
@@ -306,5 +311,3 @@ export async function updateServiceDiscount(id: string, percent: number, active:
         return { success: false, error: 'Erro inesperado ao atualizar desconto.' };
     }
 }
-
-

@@ -1,4 +1,4 @@
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export const metadata = {
   title: 'SpaSmooth | Spa e Massoterapia em Aracaju, Maceió e Recife',
@@ -22,7 +22,7 @@ import Footer from '@/components/Footer';
 import Preloader from '@/components/Preloader';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import FloatingSubleaseButton from '@/components/FloatingSubleaseButton';
-import { getLayoutConfig } from '@/services/admin/layout';
+import { getCachedPublicLayoutConfig } from '@/services/publicLayout';
 
 // Mapeamento de componentes por ID configurado no admin
 const SECTION_COMPONENTS = {
@@ -35,7 +35,7 @@ const SECTION_COMPONENTS = {
 };
 
 export default async function Home() {
-  const layoutRes = await getLayoutConfig();
+  const layoutRes = await getCachedPublicLayoutConfig();
   const sections = layoutRes.success ? layoutRes.data : [];
 
   return (
