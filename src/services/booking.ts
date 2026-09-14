@@ -11,8 +11,6 @@ import {
     type CreateBookingInput,
     type AvailableSlotsInput,
 } from "@/lib/validations/booking";
-import { getCachedPublicProfessionals } from "./publicProfessionals";
-import { getCachedPublicHomeCatalog } from "./publicHomeCatalog";
 
 type ServiceResponse<T = unknown> = {
     success: boolean;
@@ -52,8 +50,20 @@ export async function getActiveProfessionals(
 ): Promise<ServiceResponse<Professional[]>> {
     try {
         if (!["Aracaju", "Maceió", "Recife"].includes(unit)) return { success: false, error: "Unidade inválida." };
-        
-        const data = await getCachedPublicProfessionals(unit);
+        const supabase = createAdminClient();
+
+        const { data, error } = await supabase
+            .from("professionals")
+            .select("id,name,photo_url,gallery_urls,specialties,location,location_start_date,location_end_date,active")
+            .eq("active", true)
+            .eq("location", unit)
+            .order("name");
+
+        if (error) {
+            console.error("[getActiveProfessionals]", error.code, error.message);
+            return { success: false, error: "Erro ao buscar profissionais." };
+        }
+
         return { success: true, data: data as Professional[] };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
@@ -62,12 +72,26 @@ export async function getActiveProfessionals(
 
 export async function getActiveServices(): Promise<ServiceResponse<Service[]>> {
     try {
-        const catalog = await getCachedPublicHomeCatalog();
-        return { success: true, data: catalog.services as Service[] };
+        const supabase = createAdminClient();
+
+        const { data, error } = await supabase
+            .from("services")
+            .select("id, slug, name, duration_minutes, price, description, category, active")
+            .eq("active", true)
+            .order("category")
+            .order("price");
+
+        if (error) {
+            console.error("[getActiveServices]", error.code, error.message);
+            return { success: false, error: "Erro ao buscar serviços." };
+        }
+
+        return { success: true, data: data as Service[] };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
     }
 }
+
 
 export async function getAvailableSlots(
     input: AvailableSlotsInput
