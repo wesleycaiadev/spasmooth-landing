@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
-import { allowedAdmin, isSameOrigin, signCapability, readCapability } from '../src/lib/security/policy';
+import { allowedAdmin, hasVerifiedSecondFactor, isSameOrigin, signCapability, readCapability } from '../src/lib/security/policy';
+import { configuredAdminEmails } from '../src/lib/security/admin-config';
+import { serializeJsonLd } from '../src/lib/security/json-ld';
+import { readRequestBody, RequestBodyError } from '../src/lib/security/request-body';
 import { sanitizeImage, MAX_UPLOAD_BYTES } from '../src/lib/security/upload';
 import { createBookingSchema } from '../src/lib/validations/booking';
 import { professionalSchema, leadSchema, scheduleSchema, layoutSchema, carouselSchema } from '../src/lib/validations/admin';
@@ -13,6 +16,60 @@ test('empty allowlist denies authenticated users; verified primary email or expl
     assert.equal(allowedAdmin(user, 'user_test', ''), true);
     assert.equal(allowedAdmin({ ...user, emailAddresses: [{ ...user.emailAddresses[0], verification: { status: 'unverified' } }] }, '', 'admin@example.com'), false);
     assert.equal(allowedAdmin({ ...user, primaryEmailAddressId: 'other' }, '', 'admin@example.com'), false);
+});
+
+test('approved administrator requires a verified primary email; both environment lists remain usable', () => {
+    const emails = configuredAdminEmails('admin@example.com', 'legacy@example.com');
+    const approved = { ...user, emailAddresses: [{ ...user.emailAddresses[0], emailAddress: 'Layararenata123@gmail.com' }] };
+    assert.equal(allowedAdmin(approved, '', emails), true);
+    assert.equal(allowedAdmin({ ...approved, primaryEmailAddressId: 'another' }, '', emails), false);
+    assert.equal(allowedAdmin({ ...approved, emailAddresses: [{ ...approved.emailAddresses[0], verification: { status: 'unverified' } }] }, '', emails), false);
+    assert.equal(allowedAdmin(user, '', emails), true);
+    assert.equal(allowedAdmin({ ...user, emailAddresses: [{ ...user.emailAddresses[0], emailAddress: 'legacy@example.com' }] }, '', emails), true);
+    assert.equal(allowedAdmin({ ...user, emailAddresses: [{ ...user.emailAddresses[0], emailAddress: 'layararenata123@gmail.com.evil.test' }] }, '', emails), false);
+});
+
+test('MFA requires enrollment and valid first/second factor verification in the current signed session', () => {
+    assert.equal(hasVerifiedSecondFactor(true, [0, 0]), true);
+    assert.equal(hasVerifiedSecondFactor(true, [15, 12]), true);
+    assert.equal(hasVerifiedSecondFactor(false, [0, 0]), false);
+    for (const value of [null, undefined, [], [0], [0, -1], [-1, 0], [0, '0'], [0, NaN], [0, Infinity], [0, 0.5], [0, 0, 0], { 0: 0, 1: 0 }]) {
+        assert.equal(hasVerifiedSecondFactor(true, value), false);
+    }
+});
+
+test('JSON-LD cannot terminate its HTML script element and preserves data after parsing', () => {
+    const content = { name: '</script><script>dummyMarker()</script>', description: '<!-- <img src=x> & Spa São Paulo' };
+    const serialized = serializeJsonLd(content);
+    assert.equal(serialized.includes('<'), false);
+    assert.deepEqual(JSON.parse(serialized), content);
+});
+
+function streamedRequest(parts: string[], headers: Record<string, string> = {}, onCancel = () => {}) {
+    const encoder = new TextEncoder();
+    let index = 0;
+    const body = new ReadableStream<Uint8Array>({
+        pull(controller) {
+            if (index === parts.length) controller.close();
+            else controller.enqueue(encoder.encode(parts[index++]));
+        },
+        cancel: onCancel,
+    });
+    return new Request('http://fixture.local', { method: 'POST', body, headers, duplex: 'half' } as RequestInit);
+}
+
+test('request body bound applies to actual stream bytes with absent or understated Content-Length', async () => {
+    assert.equal((await readRequestBody(streamedRequest(['12', '34']), 4)).toString(), '1234');
+    assert.equal((await readRequestBody(streamedRequest(['á']), 2)).length, 2);
+    assert.equal((await readRequestBody(streamedRequest(Array(4096).fill('x')), 4096)).toString(), 'x'.repeat(4096));
+    for (const headers of [{}, { 'content-length': '1' }]) {
+        let cancelled = false;
+        await assert.rejects(readRequestBody(streamedRequest(['12', '345', '678'], headers, () => { cancelled = true; }), 4), error => error instanceof RequestBodyError && error.status === 413);
+        assert.equal(cancelled, true);
+    }
+    await assert.rejects(readRequestBody(streamedRequest(['á']), 1), error => error instanceof RequestBodyError && error.status === 413);
+    await assert.rejects(readRequestBody(streamedRequest(['x'], { 'content-length': '999' }), 4), error => error instanceof RequestBodyError && error.status === 413);
+    await assert.rejects(readRequestBody(streamedRequest(['x'], { 'content-length': 'invalid' }), 4), error => error instanceof RequestBodyError && error.status === 400);
 });
 test('CORS/CSRF deny missing, null, lookalike and foreign origins', () => {
     const allowed = ['https://spasmooth.com.br'];

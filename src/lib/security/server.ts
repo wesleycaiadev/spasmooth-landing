@@ -21,9 +21,8 @@ export function requireSameOrigin(request: Request): void {
 }
 
 // Atomic, shared between serverless instances.
-// Fail-open: RPC infrastructure errors (missing table, network) allow the request
-// through so that a broken rate-limit setup does not silently block all visitors.
-// When the RPC succeeds and returns `false`, the limit is enforced normally.
+// A broken limiter must not silently remove booking or administrative quotas.
+// Infrastructure failures throw so callers return an unavailable-service error.
 export async function rateLimit(scope: string, limit: number, seconds: number, identity?: string): Promise<boolean> {
     try {
         const h = await headers();
@@ -31,14 +30,10 @@ export async function rateLimit(scope: string, limit: number, seconds: number, i
         const subject = identity || ip?.split(',')[0]?.trim() || 'unknown';
         const key = createHmac('sha256', capabilitySecret()).update(`${scope}:${subject}`).digest('hex');
         const { data, error } = await createAdminClient().rpc('consume_rate_limit', { p_key: key, p_limit: limit, p_window_seconds: seconds });
-        if (error) {
-            // Infrastructure error (table missing, RPC broken) — fail open, log for ops
-            console.error('[rateLimit] RPC error (fail-open):', error.code, error.message);
-            return true;
-        }
-        return data === true;
-    } catch (e) {
-        console.error('[rateLimit] unexpected error (fail-open):', e);
-        return true;
+        if (error || typeof data !== 'boolean') throw new Error('RATE_LIMIT_UNAVAILABLE');
+        return data;
+    } catch {
+        console.error('[rateLimit] Shared limiter unavailable');
+        throw new Error('Serviço de proteção temporariamente indisponível.');
     }
 }

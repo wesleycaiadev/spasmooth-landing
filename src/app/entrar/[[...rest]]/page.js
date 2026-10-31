@@ -7,11 +7,13 @@ export default function EntrarPage() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   async function openAdmin() {
+    if (busy) return;
+    setError('');
     setBusy(true);
     try {
       const response = await fetch('/api/admin/session', { method: 'POST' });
       const result = await response.json();
-      if (!response.ok) { setError(result.error); return; }
+      if (!response.ok) { setError(typeof result.error === 'string' ? result.error : 'Não foi possível autorizar o acesso. Tente novamente.'); return; }
       window.location.assign('/admin/kanban');
     } catch { setError('Não foi possível abrir a sessão. Tente novamente.'); } finally { setBusy(false); }
   }
@@ -25,7 +27,7 @@ export default function EntrarPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 gap-4">
         <h1 className="text-2xl font-bold text-green-800">Você já está logado!</h1>
-        <p className="text-green-600">Usuário: {user.primaryEmailAddress.emailAddress}</p>
+        <p className="text-green-600">Usuário: {user?.primaryEmailAddress?.emailAddress || 'Conta sem e-mail principal'}</p>
         {error && <p role="alert" className="text-red-700 max-w-md">{error}</p>}
         <Link href="/seguranca" className="underline">Configurar autenticação em duas etapas</Link>
         <div className="flex gap-4">

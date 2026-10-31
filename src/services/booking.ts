@@ -44,6 +44,9 @@ type Service = {
     seo_title?: string;
     seo_description?: string;
     seo_content?: any;
+    reference_price?: number | null;
+    session_count?: number;
+    validity_days?: number | null;
 };
 
 export async function getActiveProfessionals(
@@ -77,7 +80,7 @@ export async function getActiveServices(): Promise<ServiceResponse<Service[]>> {
 
         const { data, error } = await supabase
             .from("services")
-            .select("id, slug, name, duration_minutes, price, description, category, active")
+            .select("id, slug, name, duration_minutes, price, description, category, active, discount_percent, discount_active, reference_price, session_count, validity_days")
             .eq("active", true)
             .order("category")
             .order("price");

@@ -10,12 +10,15 @@ import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/s
 export type Service = {
     id: string;
     name: string;
-    category: 'combo' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
+    category: 'mensal' | 'combo' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
     price: number;
     duration_minutes: number;
     description: string;
     active: boolean;
     created_at: string;
+    reference_price?: number | null;
+    session_count?: number;
+    validity_days?: number | null;
 };
 
 type ActionResult = { success: true } | { success: false; error: string };

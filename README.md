@@ -60,3 +60,10 @@ npm run lint
 ## Segurança
 
 Não versione arquivos `.env`, credenciais, tokens ou dados de clientes. Operações administrativas e acesso ao Supabase usam apenas o servidor.
+
+A autorização explícita de administradores está em `src/lib/security/admin-config.ts`,
+com listas adicionais em `ADMIN_EMAILS`, `ADMIN_EMAIL` e `ADMIN_USER_IDS`.
+O acesso por e-mail exige endereço principal verificado; todos os administradores
+precisam de MFA comprovado na sessão. Consulte a
+[revisão de 31/10/2026](docs/SECURITY-REVIEW-2026-10-31.md) para as alterações,
+limitações de validação e ordem de aplicação da migração antes do deploy.

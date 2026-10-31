@@ -5,6 +5,7 @@ import LocationSection from '@/components/LocationSection';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { serializeJsonLd } from '@/lib/security/json-ld';
 
 type Props = {
   params: Promise<{ cidade: string }>;
@@ -123,11 +124,11 @@ export default async function UnitPage({ params }: Props) {
       <Header />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(daySpaSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(daySpaSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
       
       {/* Breadcrumb UI */}

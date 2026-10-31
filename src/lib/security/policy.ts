@@ -1,5 +1,10 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
+export function hasVerifiedSecondFactor(enabled: boolean, factorAge: unknown): boolean {
+    return enabled === true && Array.isArray(factorAge) && factorAge.length === 2
+        && factorAge.every(age => Number.isSafeInteger(age) && age >= 0);
+}
+
 export function allowedAdmin(user: { id: string; primaryEmailAddressId: string | null; emailAddresses: { id: string; emailAddress: string; verification: { status: string } | null }[] }, ids: string, emails: string): boolean {
     const list = (value: string) => value.split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
     if (list(ids).includes(user.id)) return true;

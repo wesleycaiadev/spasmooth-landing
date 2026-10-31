@@ -1,7 +1,8 @@
 import 'server-only';
 import { auth, currentUser, clerkClient } from '@clerk/nextjs/server';
 import { cookies } from 'next/headers';
-import { allowedAdmin, readCapability } from '@/lib/security/policy';
+import { allowedAdmin, hasVerifiedSecondFactor, readCapability } from '@/lib/security/policy';
+import { configuredAdminEmails } from '@/lib/security/admin-config';
 import { capabilitySecret, rateLimit } from '@/lib/security/server';
 
 export type AdminCheckResult = { success: boolean; userId?: string; sessionId?: string; error: string };
@@ -16,25 +17,29 @@ export async function verifyAdminIdentity(): Promise<AdminCheckResult> {
             return denied;
         }
         const user = await currentUser();
-        if (!user) {
-            console.error('[verifyAdminIdentity] Missing currentUser');
+        if (!user || user.id !== userId || user.banned || user.locked) {
+            console.error('[verifyAdminIdentity] User unavailable');
             return denied;
         }
-        if (!allowedAdmin(user, process.env.ADMIN_USER_IDS || '', process.env.ADMIN_EMAILS || process.env.ADMIN_EMAIL || '')) {
-            console.error('[verifyAdminIdentity] Not in allowedAdmin list', { email: user.emailAddresses[0]?.emailAddress });
+        if (!allowedAdmin(user, process.env.ADMIN_USER_IDS || '', configuredAdminEmails(process.env.ADMIN_EMAILS, process.env.ADMIN_EMAIL))) {
+            console.error('[verifyAdminIdentity] Identity not authorized');
             return denied;
         }
         
-        // Removed 2FA requirement to allow access
+        // Enrollment alone is insufficient: the signed session must also prove
+        // that both factors were verified. Missing claims and -1 deny access.
+        if (!hasVerifiedSecondFactor(user.twoFactorEnabled, sessionClaims?.fva)) {
+            return { success: false, error: 'Ative a autenticação em duas etapas em Segurança da conta e entre novamente usando o segundo fator.' };
+        }
         
         const session = await (await clerkClient()).sessions.getSession(sessionId);
-        if (session.status !== 'active' || session.userId !== userId || session.expireAt <= Date.now()) {
+        if (session.id !== sessionId || session.status !== 'active' || session.userId !== userId || !Number.isFinite(session.expireAt) || session.expireAt <= Date.now()) {
             console.error('[verifyAdminIdentity] Session invalid or expired');
             return denied;
         }
         return { success: true, userId, sessionId, error: '' };
-    } catch (e) { 
-        console.error('[verifyAdminIdentity] Exception', e);
+    } catch {
+        console.error('[verifyAdminIdentity] Identity verification unavailable');
         return denied; 
     }
 }

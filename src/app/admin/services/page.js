@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
+    mensal: { label: 'Combos Mensais', icon: Package, color: 'cyan' },
     combo: { label: 'Combos & Promoções', icon: Package, color: 'emerald' },
     day_spa: { label: 'Day Spa', icon: Flower2, color: 'blue' },
     estetica: { label: 'Estética', icon: HeartHandshake, color: 'pink' },
@@ -53,6 +54,9 @@ export default function ServicesPage() {
         price: '',
         duration_minutes: '',
         description: '',
+        reference_price: '',
+        session_count: '1',
+        validity_days: '',
     });
 
     const showToast = useCallback((message, type = 'success') => {
@@ -79,7 +83,7 @@ export default function ServicesPage() {
 
     const filteredServices = services.filter(s => {
         const matchesTab = activeTab === 'outros' 
-            ? !['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
+            ? !['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
             : s.category === activeTab;
             
         if (!matchesTab) return false;
@@ -94,7 +98,7 @@ export default function ServicesPage() {
     });
 
     const resetForm = () => {
-        setFormData({ name: '', category: 'combo', price: '', duration_minutes: '', description: '' });
+        setFormData({ name: '', category: 'combo', price: '', duration_minutes: '', description: '', reference_price: '', session_count: '1', validity_days: '' });
         setEditingId(null);
         setIsFormOpen(false);
     };
@@ -107,6 +111,9 @@ export default function ServicesPage() {
             price: parseFloat(formData.price),
             duration_minutes: parseInt(formData.duration_minutes, 10),
             description: formData.description.trim(),
+            reference_price: formData.reference_price === '' ? null : Number(formData.reference_price),
+            session_count: Number(formData.session_count) || 1,
+            validity_days: formData.validity_days === '' ? null : Number(formData.validity_days),
         };
 
         if (!payload.name || isNaN(payload.price) || isNaN(payload.duration_minutes)) {
@@ -135,6 +142,9 @@ export default function ServicesPage() {
             price: String(svc.price),
             duration_minutes: String(svc.duration_minutes),
             description: svc.description || '',
+            reference_price: svc.reference_price == null ? '' : String(svc.reference_price),
+            session_count: String(svc.session_count || 1),
+            validity_days: svc.validity_days == null ? '' : String(svc.validity_days),
         });
         setEditingId(svc.id);
         setIsFormOpen(true);
@@ -237,12 +247,13 @@ export default function ServicesPage() {
     };
 
     const counts = {
+        mensal: services.filter(s => s.category === 'mensal').length,
         combo: services.filter(s => s.category === 'combo').length,
         day_spa: services.filter(s => s.category === 'day_spa').length,
         estetica: services.filter(s => s.category === 'estetica').length,
         depilacao: services.filter(s => s.category === 'depilacao').length,
         tantrica: services.filter(s => s.category === 'tantrica').length,
-        outros: services.filter(s => !['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)).length,
+        outros: services.filter(s => !['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)).length,
     };
 
     return (
@@ -439,12 +450,13 @@ export default function ServicesPage() {
                                 value={formData.category}
                                 onChange={e => setFormData({ ...formData, category: e.target.value })}
                             >
+                                <option value="mensal">Combos Mensais</option>
                                 <option value="combo">Combos & Promoções</option>
                                 <option value="day_spa">Day Spa</option>
                                 <option value="estetica">Estética</option>
                                 <option value="depilacao">Depilação</option>
                                 <option value="tantrica">Tântricas</option>
-                                {!['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(formData.category) && (
+                                {!['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(formData.category) && (
                                     <option value={formData.category}>Categoria Antiga ({formData.category})</option>
                                 )}
                             </select>
@@ -469,7 +481,7 @@ export default function ServicesPage() {
 
                         <div className="space-y-2">
                             <label htmlFor="service-duration" className="text-xs font-bold text-slate-500 uppercase ml-1">
-                                Duração (minutos) *
+                                Duração por atendimento (minutos) *
                             </label>
                             <input
                                 id="service-duration"
@@ -483,6 +495,9 @@ export default function ServicesPage() {
                             />
                         </div>
 
+                        <div className="space-y-2"><label htmlFor="service-reference-price" className="text-xs font-bold text-slate-500 uppercase ml-1">Preço anterior / de referência (R$)</label><input id="service-reference-price" type="number" min="0" step="0.01" value={formData.reference_price} onChange={e => setFormData({ ...formData, reference_price: e.target.value })} placeholder="Ex: 1200,00" className="w-full rounded-xl border border-slate-200 px-4 py-3" /><p className="text-xs text-slate-500">O campo Preço é o valor cobrado pelo pacote completo.</p></div>
+                        <div className="space-y-2"><label htmlFor="service-session-count" className="text-xs font-bold text-slate-500 uppercase ml-1">Quantidade de sessões</label><input id="service-session-count" type="number" min="1" max="100" required value={formData.session_count} onChange={e => setFormData({ ...formData, session_count: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3" /></div>
+                        <div className="space-y-2"><label htmlFor="service-validity" className="text-xs font-bold text-slate-500 uppercase ml-1">Validade do pacote (dias)</label><input id="service-validity" type="number" min="1" max="365" value={formData.validity_days} onChange={e => setFormData({ ...formData, validity_days: e.target.value })} placeholder="Ex: 30" className="w-full rounded-xl border border-slate-200 px-4 py-3" /></div>
                         <div className="md:col-span-2 space-y-2">
                             <label htmlFor="service-description" className="text-xs font-bold text-slate-500 uppercase ml-1">
                                 Descrição (Opcional)

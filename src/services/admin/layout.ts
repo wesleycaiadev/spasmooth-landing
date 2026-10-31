@@ -17,7 +17,7 @@ export type FeaturedCarouselConfig = {
 export type ActionResult = { success: true } | { success: false; error: string };
 export type DataResult<T> = { success: true; data: T } | { success: false; error: string };
 
-const DEFAULT_CATEGORY_ORDER = ['combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
+const DEFAULT_CATEGORY_ORDER = ['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
 
 const DEFAULT_CAROUSEL_CONFIG: FeaturedCarouselConfig = {
     mode: 'promotions',

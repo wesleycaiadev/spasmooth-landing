@@ -1,4 +1,10 @@
 const serviceImages = {
+    'combo-desacelera': '/images/treatments/combo-desacelera.webp',
+    'combo-leveza': '/images/treatments/combo-leveza.webp',
+    'combo-recupera': '/images/treatments/combo-recupera.webp',
+    'combo-contorno-cuidado': '/images/treatments/combo-contorno-cuidado.webp',
+    'mensal-modeladora-10-sessoes': '/images/treatments/mensal-modeladora.webp',
+    'mensal-sueca-4-sessoes': '/images/treatments/mensal-sueca.webp',
     'day-spa-standard': '/images/treatments/day-spa-standard.webp',
     'drenagem-linfatica': '/images/treatments/drenagem-linfatica.webp',
     'massagem-desportiva': '/images/treatments/massagem-desportiva.webp',
@@ -25,6 +31,7 @@ export function getServiceImage(slug) {
 }
 
 export const categoryLabels = {
+    mensal: 'Combo mensal',
     combo: 'Combo de massagem',
     day_spa: 'Day Spa',
     estetica: 'Estética',

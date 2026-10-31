@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/security/server';
+import { readRequestBody, RequestBodyError } from '@/lib/security/request-body';
 
 const DEDUPLICATION_WINDOW_MS = 15 * 60 * 1000;
+const MAX_REPORT_FINGERPRINTS = 1000;
 const seenReports = new Map<string, number>();
 
 function safeOrigin(value: unknown): string {
@@ -23,11 +25,9 @@ function removeExpiredReports(now: number) {
 
 export async function POST(request: Request) {
     try {
-        const contentLength = Number(request.headers.get('content-length') ?? 0);
-        if (contentLength > 16_384) return new NextResponse(null, { status: 413 });
         if (!await rateLimit('csp-report', 30, 300)) return new NextResponse(null, { status: 429 });
 
-        const payload = await request.json();
+        const payload = JSON.parse((await readRequestBody(request, 16_384)).toString('utf8'));
         const report = payload?.['csp-report'] ?? payload?.body ?? payload;
         const summary = {
             documentOrigin: safeOrigin(report?.['document-uri'] ?? payload?.url),
@@ -39,10 +39,15 @@ export async function POST(request: Request) {
         removeExpiredReports(now);
 
         if (!seenReports.has(fingerprint)) {
+            if (seenReports.size >= MAX_REPORT_FINGERPRINTS) {
+                const oldest = seenReports.keys().next().value;
+                if (oldest !== undefined) seenReports.delete(oldest);
+            }
             seenReports.set(fingerprint, now + DEDUPLICATION_WINDOW_MS);
             console.warn('[csp-report]', summary);
         }
-    } catch {
+    } catch (error) {
+        if (error instanceof RequestBodyError) return new NextResponse(null, { status: error.status });
         // CSP reports are advisory. Never reflect report data or affect the visitor response.
     }
 

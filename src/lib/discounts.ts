@@ -20,12 +20,14 @@ export function calculateDiscount(service: {
     price: number;
     discount_percent?: number | null;
     discount_active?: boolean | null;
+    reference_price?: number | null;
 }): DiscountCalculation {
-    const originalPrice = Number(service.price) || 0;
-    const discountPercent = Number(service.discount_percent) || 0;
+    const currentPrice = Number(service.price) || 0;
+    const originalPrice = Math.max(currentPrice, Number(service.reference_price) || 0);
+    const discountPercent = Math.min(100, Math.max(0, Number(service.discount_percent) || 0));
     const isActive = Boolean(service.discount_active) && discountPercent > 0;
 
-    if (!isActive) {
+    if (!isActive && originalPrice === currentPrice) {
         return {
             hasDiscount: false,
             originalPrice,
@@ -38,13 +40,15 @@ export function calculateDiscount(service: {
         };
     }
 
-    const savingsAmount = (originalPrice * discountPercent) / 100;
-    const finalPrice = Math.max(0, originalPrice - savingsAmount);
+    // Monthly packages store the exact selling price (800 / 300), avoiding a
+    // rounded percentage turning 1200 -> 800 into an incorrect R$ 800,04.
+    const finalPrice = Math.round(Math.max(0, currentPrice * (1 - (isActive ? discountPercent : 0) / 100)) * 100) / 100;
+    const savingsAmount = originalPrice - finalPrice;
 
     return {
         hasDiscount: true,
         originalPrice,
-        discountPercent,
+        discountPercent: originalPrice > 0 ? (savingsAmount / originalPrice) * 100 : 0,
         finalPrice,
         formattedOriginalPrice: formatCurrency(originalPrice),
         formattedFinalPrice: formatCurrency(finalPrice),

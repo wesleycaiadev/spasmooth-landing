@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { serializeJsonLd } from '@/lib/security/json-ld';
 
 export const metadata: Metadata = {
   title: 'Nossas Unidades - SpaSmooTh',
@@ -39,7 +40,7 @@ export default function UnidadesIndexPage() {
       <Header />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbSchema) }}
       />
       
       {/* Breadcrumb UI */}

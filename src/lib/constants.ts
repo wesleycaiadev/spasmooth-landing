@@ -18,6 +18,7 @@ export const LEAD_KANBAN_STATUSES = [
 export type LeadKanbanStatus = (typeof LEAD_KANBAN_STATUSES)[number];
 
 export const SERVICE_CATEGORIES = [
+    'mensal',
     'combo',
     'day_spa',
     'estetica',

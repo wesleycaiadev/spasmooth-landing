@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabaseAdmin';
 import { requireSameOrigin, rateLimit } from '@/lib/security/server';
 import { sanitizeImage, MAX_UPLOAD_BYTES } from '@/lib/security/upload';
 import { z } from 'zod';
+import { readRequestBody, RequestBodyError } from '@/lib/security/request-body';
 export const runtime = 'nodejs';
 const BUCKET = 'professional-photos';
 
@@ -17,15 +18,17 @@ async function guard(request) {
 export async function POST(request) {
     try {
         const denied = await guard(request); if (denied) return denied;
-        const length = Number(request.headers.get('content-length'));
-        if (!Number.isSafeInteger(length) || length <= 0 || length > MAX_UPLOAD_BYTES + 65536) return NextResponse.json({ error: 'Arquivo excede o limite de 4 MB ou tamanho ausente.' }, { status: 413 });
         let buffer;
         try {
-            const form = await request.formData();
+            const body = await readRequestBody(request, MAX_UPLOAD_BYTES + 65536);
+            const form = await new Response(body, { headers: { 'Content-Type': request.headers.get('content-type') || '' } }).formData();
             const file = form.get('file');
             if (!file || typeof file === 'string' || file.size > MAX_UPLOAD_BYTES) throw new Error();
             buffer = await sanitizeImage(Buffer.from(await file.arrayBuffer()), file.type);
-        } catch { return NextResponse.json({ error: 'Imagem inválida. Use JPEG, PNG ou WebP estático de até 4 MB.' }, { status: 400 }); }
+        } catch (error) {
+            if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status });
+            return NextResponse.json({ error: 'Imagem inválida. Use JPEG, PNG ou WebP estático de até 4 MB.' }, { status: 400 });
+        }
         const fileName = `${crypto.randomUUID()}.webp`;
         const db = createAdminClient();
         const { error } = await db.storage.from(BUCKET).upload(fileName, buffer, { contentType: 'image/webp', upsert: false });
@@ -36,11 +39,10 @@ export async function POST(request) {
 export async function DELETE(request) {
     try {
         const denied = await guard(request); if (denied) return denied;
-        const length = Number(request.headers.get('content-length'));
-        if (length > 4096) return NextResponse.json({ error: 'Dados excedem o limite.' }, { status: 413 });
         let target;
         try {
-            const input = z.object({ fileName: z.string().max(255).optional(), url: z.string().max(2048).optional() }).strict().parse(await request.json());
+            const body = await readRequestBody(request, 4096);
+            const input = z.object({ fileName: z.string().max(255).optional(), url: z.string().max(2048).optional() }).strict().parse(JSON.parse(body.toString('utf8')));
             target = input.fileName;
             if (input.url) {
                 const url = new URL(input.url);
@@ -49,7 +51,10 @@ export async function DELETE(request) {
                 target = decodeURIComponent(url.pathname.slice(prefix.length));
             }
             if (!target || !/^[a-zA-Z0-9_-][a-zA-Z0-9_. -]{0,250}\.(?:jpe?g|png|webp)$/.test(target) || target.includes('..')) throw new Error();
-        } catch { return NextResponse.json({ error: 'Arquivo inválido.' }, { status: 400 }); }
+        } catch (error) {
+            if (error instanceof RequestBodyError) return NextResponse.json({ error: error.message }, { status: error.status });
+            return NextResponse.json({ error: 'Arquivo inválido.' }, { status: 400 });
+        }
         const { error } = await createAdminClient().storage.from(BUCKET).remove([target]);
         return error ? NextResponse.json({ error: 'Falha ao remover imagem.' }, { status: 500 }) : NextResponse.json({ success: true });
     } catch { return NextResponse.json({ error: 'Serviço indisponível.' }, { status: 503 }); }

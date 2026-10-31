@@ -28,6 +28,9 @@ export type Service = {
     created_at: string;
     discount_percent?: number | null;
     discount_active?: boolean | null;
+    reference_price?: number | null;
+    session_count?: number;
+    validity_days?: number | null;
 };
 
 export type ServiceInput = Omit<Service, 'id' | 'active' | 'created_at'>;

@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 
-const SERVICE_CATEGORIES = ["combo", "day_spa", "estetica", "tantrica", "depilacao"] as const;
+import { SERVICE_CATEGORIES } from '@/lib/constants';
 
 export const createServiceSchema = z.object({
     name: z
@@ -11,7 +11,7 @@ export const createServiceSchema = z.object({
         .max(100, { error: "Nome deve ter no máximo 100 caracteres." })
         .transform(v => v.trim()),
     category: z.enum(SERVICE_CATEGORIES, {
-        error: "Categoria inválida. Use 'combo', 'day_spa', 'estetica', 'tantrica' ou 'depilacao'.",
+        error: "Categoria de serviço inválida.",
     }),
     price: z
         .number({ error: "Preço deve ser um número." })
@@ -36,11 +36,21 @@ export const createServiceSchema = z.object({
         .boolean()
         .optional()
         .default(false),
+    reference_price: z.number().min(0).max(100000).nullable().optional(),
+    session_count: z.number().int().min(1).max(100).optional().default(1),
+    validity_days: z.number().int().min(1).max(365).nullable().optional(),
 });
 
 export type CreateServiceInput = z.infer<typeof createServiceSchema>;
 
-export const updateServiceSchema = createServiceSchema.partial();
+// Updates must not inject create-time defaults: editing the duration must
+// preserve an existing discount, description and monthly session count.
+export const updateServiceSchema = createServiceSchema.partial().extend({
+    description: createServiceSchema.shape.description.removeDefault().optional(),
+    discount_percent: createServiceSchema.shape.discount_percent.removeDefault().optional(),
+    discount_active: createServiceSchema.shape.discount_active.removeDefault().optional(),
+    session_count: createServiceSchema.shape.session_count.removeDefault().optional(),
+});
 
 export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
 

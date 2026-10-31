@@ -1,14 +1,63 @@
 -- Run only against an isolated test database with the migration applied.
 BEGIN;
+CREATE ROLE security_public_only;
+GRANT USAGE ON SCHEMA public TO security_public_only;
+SET LOCAL ROLE security_public_only;
+DO $$ BEGIN
+ IF has_function_privilege(current_user,'public.consume_rate_limit(text,integer,integer)','EXECUTE')
+ OR has_function_privilege(current_user,'public.cleanup_rate_limit_entries()','EXECUTE')
+ THEN RAISE EXCEPTION 'PUBLIC_RATE_LIMIT_EXECUTE_TEST_FAILED'; END IF;
+ IF to_regclass('public.rate_limit_entries') IS NOT NULL THEN
+   IF has_table_privilege(current_user,'public.rate_limit_entries','SELECT,INSERT,UPDATE,DELETE')
+   THEN RAISE EXCEPTION 'PUBLIC_LEGACY_RATE_TABLE_TEST_FAILED'; END IF;
+ END IF;
+END $$;
 SET LOCAL ROLE anon;
 DO $$ BEGIN
  IF has_table_privilege(current_user,'public.leads','SELECT') OR has_table_privilege(current_user,'public.bookings','INSERT') OR has_function_privilege(current_user,'public.update_lead_interest(uuid,text)','EXECUTE') THEN RAISE EXCEPTION 'ANON_PRIVILEGE_TEST_FAILED'; END IF;
+ IF has_table_privilege(current_user,'public.security_rate_limits','SELECT,INSERT,UPDATE,DELETE')
+ OR has_function_privilege(current_user,'public.consume_rate_limit(text,integer,integer)','EXECUTE')
+ OR has_function_privilege(current_user,'public.cleanup_rate_limit_entries()','EXECUTE')
+ THEN RAISE EXCEPTION 'ANON_RATE_LIMIT_PRIVILEGE_TEST_FAILED'; END IF;
+ IF to_regclass('public.rate_limit_entries') IS NOT NULL THEN
+   IF has_table_privilege(current_user,'public.rate_limit_entries','SELECT,INSERT,UPDATE,DELETE')
+   THEN RAISE EXCEPTION 'ANON_LEGACY_RATE_TABLE_TEST_FAILED'; END IF;
+ END IF;
 END $$;
 SET LOCAL ROLE authenticated;
 DO $$ BEGIN
  IF has_table_privilege(current_user,'public.leads','SELECT') OR has_table_privilege(current_user,'public.professionals','UPDATE') OR has_function_privilege(current_user,'public.check_and_create_booking(text,uuid,uuid,text,text,timestamptz,timestamptz,text)','EXECUTE') THEN RAISE EXCEPTION 'AUTHENTICATED_PRIVILEGE_TEST_FAILED'; END IF;
+ IF has_table_privilege(current_user,'public.security_rate_limits','SELECT,INSERT,UPDATE,DELETE')
+ OR has_function_privilege(current_user,'public.consume_rate_limit(text,integer,integer)','EXECUTE')
+ OR has_function_privilege(current_user,'public.cleanup_rate_limit_entries()','EXECUTE')
+ THEN RAISE EXCEPTION 'AUTHENTICATED_RATE_LIMIT_PRIVILEGE_TEST_FAILED'; END IF;
+ IF to_regclass('public.rate_limit_entries') IS NOT NULL THEN
+   IF has_table_privilege(current_user,'public.rate_limit_entries','SELECT,INSERT,UPDATE,DELETE')
+   THEN RAISE EXCEPTION 'AUTHENTICATED_LEGACY_RATE_TABLE_TEST_FAILED'; END IF;
+ END IF;
 END $$;
 SET LOCAL ROLE service_role;
+DO $$ DECLARE v_key text; v_limit integer; v_window integer;
+BEGIN
+ FOR v_key, v_limit, v_window IN SELECT * FROM (VALUES
+   (NULL::text, 1, 60), ('invalid', 1, 60), (repeat('b',64), NULL::integer, 60),
+   (repeat('b',64), 0, 60), (repeat('b',64), 1001, 60),
+   (repeat('b',64), 1, NULL::integer), (repeat('b',64), 1, 0), (repeat('b',64), 1, 86401)
+ ) AS invalid_inputs(key, max_hits, window_seconds) LOOP
+   BEGIN
+     PERFORM public.consume_rate_limit(v_key, v_limit, v_window);
+     RAISE EXCEPTION 'INVALID_RATE_INPUT_ACCEPTED';
+   EXCEPTION WHEN OTHERS THEN
+     IF SQLERRM <> 'INVALID_RATE_LIMIT' THEN RAISE; END IF;
+   END;
+ END LOOP;
+ INSERT INTO public.security_rate_limits(key,hits,expires_at) VALUES
+   (repeat('c',64),1,now()-interval '1 minute'), (repeat('d',64),1,now()+interval '1 minute');
+ PERFORM public.cleanup_rate_limit_entries();
+ IF EXISTS (SELECT 1 FROM public.security_rate_limits WHERE key=repeat('c',64))
+ OR NOT EXISTS (SELECT 1 FROM public.security_rate_limits WHERE key=repeat('d',64))
+ THEN RAISE EXCEPTION 'RATE_CLEANUP_TEST_FAILED'; END IF;
+END $$;
 DO $$ DECLARE v_pro uuid; v_svc uuid; v_id uuid; v_day date; v_slot text; v_start timestamptz; BEGIN
  IF NOT public.consume_rate_limit(repeat('a',64),2,60) OR NOT public.consume_rate_limit(repeat('a',64),2,60) OR public.consume_rate_limit(repeat('a',64),2,60) THEN RAISE EXCEPTION 'RATE_LIMIT_TEST_FAILED'; END IF;
  INSERT INTO public.professionals(name,location,active) VALUES('SECURITY TRANSACTION TEST','Aracaju',true) RETURNING id INTO v_pro;

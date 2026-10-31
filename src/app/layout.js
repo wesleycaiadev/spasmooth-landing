@@ -2,6 +2,7 @@ import { Nunito } from "next/font/google";
 import PrivacyProvider from '@/components/PrivacyProvider';
 import "./globals.css";
 import { LocationProvider } from "@/components/LocationProvider";
+import { serializeJsonLd } from '@/lib/security/json-ld';
 
 const nunito = Nunito({ subsets: ["latin"], variable: '--font-nunito' });
 
@@ -69,7 +70,7 @@ export default function RootLayout({ children }) {
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(schemaData) }}
         />
       </head>
       <body className="text-slate-600 bg-white selection:bg-cyan-100 selection:text-cyan-800 font-nunito">

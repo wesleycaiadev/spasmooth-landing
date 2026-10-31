@@ -12,10 +12,12 @@ export default function ServiceBookingCard({ treatment }) {
     const disc = calculateDiscount(treatment);
     const originalPrice = treatment.price ? `R$ ${Number(treatment.price).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : (treatment.durations?.[0]?.price || 'Sob consulta');
     const price = disc.hasDiscount ? disc.formattedFinalPrice : originalPrice;
-    const duration = treatment.duration_minutes ? `${treatment.duration_minutes} min` : (treatment.durations?.[0]?.time || '');
+    const isMonthly = treatment.category === 'mensal';
+    const duration = treatment.duration_minutes ? `${treatment.duration_minutes} min${isMonthly ? ' / sessão' : ''}` : (treatment.durations?.[0]?.time || '');
 
     const handleBooking = () => {
         sessionStorage.setItem('selected_service', JSON.stringify({ id: treatment.id, name: treatment.name, defaultOption: { time: duration, price } }));
+        window.dispatchEvent(new CustomEvent('spa:select-service', { detail: { id: treatment.id } }));
         const wizard = document.getElementById('profissionais');
         if (wizard) wizard.scrollIntoView({ behavior: 'smooth' });
         else window.location.href = '/#profissionais';
@@ -29,7 +31,8 @@ export default function ServiceBookingCard({ treatment }) {
             <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[.12em] text-[var(--spa-blue)]">{categoryLabels[treatment.category] || 'Experiência SpaSmooTh'}</p>
             <div className="flex items-start justify-between gap-3"><h3 className="spa-display text-xl leading-tight text-[var(--spa-ink)]">{treatment.name}</h3><span className="shrink-0 text-right text-xs font-extrabold text-[var(--spa-ink)]">{duration}</span></div>
             <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-slate-600">{treatment.description}</p>
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-[var(--spa-line)] pt-4"><div>{disc.hasDiscount && <span className="mr-2 text-xs text-slate-400 line-through">{disc.formattedOriginalPrice}</span>}<span className="text-base font-extrabold text-[var(--spa-ink)]">{price}</span></div><button type="button" onClick={handleBooking} className="inline-flex min-h-10 items-center gap-1 text-xs font-extrabold text-[var(--spa-blue)] hover:text-[var(--spa-ink)]">Reservar <ArrowRight size={15} aria-hidden="true" /></button></div>
+            {isMonthly && <div className="mt-3 flex flex-wrap gap-2 text-xs font-extrabold text-cyan-800"><span className="rounded-full bg-cyan-50 px-3 py-1.5">{treatment.session_count} sessões</span><span className="rounded-full bg-amber-50 px-3 py-1.5 text-amber-800">Válido por {treatment.validity_days} dias</span></div>}
+            <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-[var(--spa-line)] pt-4"><div className="mt-4">{disc.hasDiscount && <span className="mr-2 text-xs text-slate-400 line-through">{disc.formattedOriginalPrice}</span>}<span className="text-lg font-extrabold text-[var(--spa-ink)]">{price}</span>{isMonthly && <p className="mt-1 text-[11px] text-slate-500">Pacote completo · {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(disc.finalPrice / treatment.session_count)} por sessão</p>}</div><button type="button" onClick={handleBooking} className="inline-flex min-h-10 items-center gap-1 text-xs font-extrabold text-[var(--spa-blue)] hover:text-[var(--spa-ink)]">{isMonthly ? 'Agendar 1ª sessão' : 'Reservar'} <ArrowRight size={15} aria-hidden="true" /></button></div>
         </div>
     </article>;
 }

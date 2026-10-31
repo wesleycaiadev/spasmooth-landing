@@ -13,6 +13,7 @@ import {
     createBooking,
 } from "@/services/booking";
 import { PROFESSIONALS as oldProsFallback } from "@/lib/data";
+import { calculateDiscount } from '@/lib/discounts';
 
 export default function BookingWizard({ initialProfessional = null, hideHeader = false }) {
     const router = useRouter();
@@ -110,6 +111,17 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         }
         loadServices();
     }, [paramServico]);
+
+    // Pre-select logic for unit
+    useEffect(() => {
+        const selectService = event => {
+            const service = services.find(item => item.id === event.detail?.id);
+            if (!service) return;
+            setBooking(prev => ({ ...prev, service, service_id: service.id, date: '', time: '' }));
+        };
+        window.addEventListener('spa:select-service', selectService);
+        return () => window.removeEventListener('spa:select-service', selectService);
+    }, [services]);
 
     // Pre-select logic for unit
     useEffect(() => {
@@ -422,12 +434,10 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                                 <span>{booking.service?.name}</span>
                                 {" · "}
                                 <span className="font-bold">
-                                    {booking.service?.duration_minutes}min — R${" "}
-                                    {Number(booking.service?.price).toLocaleString("pt-BR", {
-                                        minimumFractionDigits: 2,
-                                    })}
+                                    {booking.service?.duration_minutes} min{booking.service?.category === 'mensal' ? ' por sessão' : ''} — {calculateDiscount(booking.service || { price: 0 }).formattedFinalPrice}
                                 </span>
                             </p>
+                            {booking.service?.category === 'mensal' && <p className="mt-2 text-xs leading-relaxed text-cyan-900">Pacote completo de {booking.service.session_count} sessões, válido por {booking.service.validity_days} dias. Este agendamento reserva apenas uma sessão; combine as próximas datas com a equipe.</p>}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -647,10 +657,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 }
 
 function ServiceCard({ service, isSelected, onSelect }) {
-    const priceFormatted = Number(service.price).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-    });
+    const priceFormatted = calculateDiscount(service).formattedFinalPrice;
 
     return (
         <button
@@ -670,8 +677,9 @@ function ServiceCard({ service, isSelected, onSelect }) {
                     </p>
                 </div>
                 <div className="text-right shrink-0">
-                    <div className="text-[10px] text-slate-400 font-medium">{service.duration_minutes}min</div>
+                    <div className="text-[10px] text-slate-400 font-medium">{service.duration_minutes} min{service.category === 'mensal' ? ' / sessão' : ''}</div>
                     <div className="font-bold text-slate-700 text-xs">{priceFormatted}</div>
+                    {service.category === 'mensal' && <div className="text-[10px] font-medium text-cyan-700">{service.session_count} sessões · {service.validity_days} dias</div>}
                 </div>
             </div>
             {isSelected && (

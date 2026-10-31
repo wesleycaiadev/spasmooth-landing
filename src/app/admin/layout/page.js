@@ -15,6 +15,7 @@ export default function LayoutAdminPage() {
     const [saved, setSaved] = useState(false);
 
     const CATEGORY_LABELS = {
+        mensal: 'Combos Mensais',
         combo: 'Combos de Massagem',
         day_spa: 'Pacotes Day Spa',
         estetica: 'Estética e Cuidados Avulsos',
@@ -37,7 +38,8 @@ export default function LayoutAdminPage() {
             ]);
 
             if (layoutRes.success) setSections(layoutRes.data);
-            if (catRes.success) setCategoryOrder(catRes.data);
+            // Monthly offers have their own featured section above this list.
+            if (catRes.success) setCategoryOrder(catRes.data.filter(category => category !== 'mensal'));
             if (carRes.success) setCarouselConfig(carRes.data);
             setAllServices(servicesRes || []);
         } catch (error) {
