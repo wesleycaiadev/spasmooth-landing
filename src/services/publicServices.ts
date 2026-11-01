@@ -15,6 +15,9 @@ export type PublicService = {
   seo_title: string | null;
   seo_description: string | null;
   seo_content: Record<string, any> | null;
+  reference_price?: number | null;
+  session_count?: number;
+  validity_days?: number | null;
 };
 
 // Next.js React cache ensures deduping per-request
@@ -22,7 +25,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<PublicServic
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from('services')
-    .select('id, name, slug, duration_minutes, price, description, category, active, seo_indexable, seo_title, seo_description, seo_content')
+    .select('id, name, slug, duration_minutes, price, description, category, active, seo_indexable, seo_title, seo_description, seo_content, reference_price, session_count, validity_days')
     .eq('slug', slug)
     .single();
 

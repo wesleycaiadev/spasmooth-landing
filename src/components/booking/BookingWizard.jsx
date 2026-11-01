@@ -106,6 +106,23 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                         }));
                         setStep(3); // Go directly to Data & Horário
                     }
+                } else if (typeof window !== 'undefined') {
+                    try {
+                        const stored = sessionStorage.getItem('selected_service');
+                        if (stored) {
+                            const parsed = JSON.parse(stored);
+                            if (parsed?.id) {
+                                const svc = result.data.find(s => s.id === parsed.id || s.slug === parsed.id);
+                                if (svc) {
+                                    setBooking(prev => ({
+                                        ...prev,
+                                        service: svc,
+                                        service_id: svc.id
+                                    }));
+                                }
+                            }
+                        }
+                    } catch {}
                 }
             }
         }
@@ -117,7 +134,12 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         const selectService = event => {
             const service = services.find(item => item.id === event.detail?.id);
             if (!service) return;
-            setBooking(prev => ({ ...prev, service, service_id: service.id, date: '', time: '' }));
+            setBooking(prev => {
+                if (prev.professional_id) {
+                    setStep(3);
+                }
+                return { ...prev, service, service_id: service.id, date: '', time: '' };
+            });
         };
         window.addEventListener('spa:select-service', selectService);
         return () => window.removeEventListener('spa:select-service', selectService);
@@ -177,16 +199,14 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
     };
 
     const handleSelectProfessional = (pro) => {
-        setBooking({
-            ...booking,
+        setBooking(prev => ({
+            ...prev,
             professional_id: pro.id,
             professional: pro,
-            service: null,
-            service_id: null,
             date: "",
             time: "",
-        });
-        setStep(2);
+        }));
+        setStep(booking.service_id ? 3 : 2);
     };
 
     const handleSelectService = (svc) => {
@@ -261,6 +281,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
         }
     }
 
+    const mensal = services.filter((s) => s.category === "mensal");
     const combos = services.filter((s) => s.category === "combo");
     const daySpa = services.filter((s) => s.category === "day_spa");
     const estetica = services.filter((s) => s.category === "estetica");
@@ -345,9 +366,22 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                             </label>
 
                             <div className="space-y-6">
-                                {combos.length > 0 && (
+                                {mensal.length > 0 && (
                                     <div>
                                         <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider">
+                                            Combos Mensais
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {mensal.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {combos.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
                                             Combos de Massagem
                                         </h3>
                                         <div className="space-y-3">
