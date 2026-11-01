@@ -63,7 +63,8 @@ Não versione arquivos `.env`, credenciais, tokens ou dados de clientes. Operaç
 
 A autorização explícita de administradores está em `src/lib/security/admin-config.ts`,
 com listas adicionais em `ADMIN_EMAILS`, `ADMIN_EMAIL` e `ADMIN_USER_IDS`.
-O acesso por e-mail exige endereço principal verificado; todos os administradores
-precisam de MFA comprovado na sessão. Consulte a
+O acesso por e-mail exige endereço principal verificado e sessão Clerk ativa.
+A aplicação não exige MFA; recursos adicionais de segurança são opcionais conforme
+a configuração da conta Clerk. Consulte a
 [revisão de 31/10/2026](docs/SECURITY-REVIEW-2026-10-31.md) para as alterações,
 limitações de validação e ordem de aplicação da migração antes do deploy.

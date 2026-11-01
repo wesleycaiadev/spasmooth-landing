@@ -24,6 +24,10 @@ try {
   await db.exec(read('sql', '008_booking_schedule_admin_source_of_truth.sql'));
   await db.exec(read('supabase', 'migrations', '20261031170000_new_combos.sql'));
   const offersResult = await db.exec(read('tests', 'catalog-offers.sql'));
+  // Reapplying catalog SQL must preserve edits made in the Admin afterwards.
+  await db.exec("BEGIN; UPDATE public.services SET duration_minutes=60,price=175 WHERE slug='combo-desacelera';");
+  await db.exec(read('supabase', 'migrations', '20261031170000_new_combos.sql'));
+  await db.exec("DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM public.services WHERE slug='combo-desacelera' AND duration_minutes=60 AND price=175) THEN RAISE EXCEPTION 'ADMIN_EDIT_OVERWRITTEN'; END IF; END $$; ROLLBACK;");
   const canonicalResult = await db.exec(read('tests', 'database-security.sql'));
   // Model the old installer and permissive inherited ACLs, then repair them.
   await db.exec(`
@@ -36,6 +40,7 @@ try {
   await db.exec(read('sql', '009_rate_limit.sql'));
   await db.exec(read('sql', '009_rate_limit.sql'));
   const result = await db.exec(read('tests', 'database-security.sql'));
+  await db.exec(read('tests', 'catalog-offers.sql'));
   console.log(JSON.stringify({ offers: offersResult.filter(r=>r.rows.length).map(r=>r.rows), canonical: canonicalResult.filter(r=>r.rows.length).map(r=>r.rows), compatibility: result.filter(r=>r.rows.length).map(r=>r.rows) }));
 } finally {
   await db.close();

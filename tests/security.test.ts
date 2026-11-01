@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import sharp from 'sharp';
-import { allowedAdmin, hasVerifiedSecondFactor, isSameOrigin, signCapability, readCapability } from '../src/lib/security/policy';
+import { allowedAdmin, isSameOrigin, signCapability, readCapability } from '../src/lib/security/policy';
 import { configuredAdminEmails } from '../src/lib/security/admin-config';
 import { serializeJsonLd } from '../src/lib/security/json-ld';
 import { readRequestBody, RequestBodyError } from '../src/lib/security/request-body';
@@ -27,15 +27,6 @@ test('approved administrator requires a verified primary email; both environment
     assert.equal(allowedAdmin(user, '', emails), true);
     assert.equal(allowedAdmin({ ...user, emailAddresses: [{ ...user.emailAddresses[0], emailAddress: 'legacy@example.com' }] }, '', emails), true);
     assert.equal(allowedAdmin({ ...user, emailAddresses: [{ ...user.emailAddresses[0], emailAddress: 'layararenata123@gmail.com.evil.test' }] }, '', emails), false);
-});
-
-test('MFA requires enrollment and valid first/second factor verification in the current signed session', () => {
-    assert.equal(hasVerifiedSecondFactor(true, [0, 0]), true);
-    assert.equal(hasVerifiedSecondFactor(true, [15, 12]), true);
-    assert.equal(hasVerifiedSecondFactor(false, [0, 0]), false);
-    for (const value of [null, undefined, [], [0], [0, -1], [-1, 0], [0, '0'], [0, NaN], [0, Infinity], [0, 0.5], [0, 0, 0], { 0: 0, 1: 0 }]) {
-        assert.equal(hasVerifiedSecondFactor(true, value), false);
-    }
 });
 
 test('JSON-LD cannot terminate its HTML script element and preserves data after parsing', () => {

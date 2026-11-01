@@ -29,7 +29,7 @@ export default function EntrarPage() {
         <h1 className="text-2xl font-bold text-green-800">Você já está logado!</h1>
         <p className="text-green-600">Usuário: {user?.primaryEmailAddress?.emailAddress || 'Conta sem e-mail principal'}</p>
         {error && <p role="alert" className="text-red-700 max-w-md">{error}</p>}
-        <Link href="/seguranca" className="underline">Configurar autenticação em duas etapas</Link>
+        <Link href="/seguranca" className="underline">Gerenciar segurança da conta</Link>
         <div className="flex gap-4">
           <button onClick={openAdmin} disabled={busy} className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700">
             {busy ? 'Verificando...' : 'Ir para o Painel Admin'}

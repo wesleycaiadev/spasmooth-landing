@@ -1,5 +1,13 @@
 # Revisão de segurança e correções — 31/10/2026
 
+**Atualização posterior solicitada pelo proprietário:** a obrigatoriedade de MFA
+foi retirada da aplicação para permitir o acesso com o plano atual do Clerk.
+Continuam obrigatórios o login Clerk, a lista de administradores no servidor,
+o e-mail principal verificado para autorização por e-mail, a conta não bloqueada
+ou banida e a sessão ativa vinculada ao usuário. Cookie assinado, checagem de
+origem, limites de requisições e permissões SQL foram preservados. As menções
+a MFA obrigatório abaixo descrevem a revisão histórica anterior a essa decisão.
+
 Relatório preparado antes do commit, sem deploy, aplicação de SQL em produção ou alteração
 de contas externas. Fonte inicial: `fc5466c5338ef816755e16a2869d2d0d88ea4516`.
 
