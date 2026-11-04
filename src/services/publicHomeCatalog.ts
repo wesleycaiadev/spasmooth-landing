@@ -22,7 +22,7 @@ export type PublicHomeCatalog = {
     carouselConfig: FeaturedCarouselConfig;
 };
 
-const DEFAULT_CATEGORY_ORDER = ['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
+const DEFAULT_CATEGORY_ORDER = ['mensal', 'combo', 'bronzeamento', 'day_spa', 'estetica', 'depilacao', 'tantrica'];
 const DEFAULT_CAROUSEL_CONFIG: FeaturedCarouselConfig = {
     mode: 'promotions',
     serviceIds: [],

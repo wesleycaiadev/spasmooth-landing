@@ -10,7 +10,7 @@ import type { CreateServiceInput, UpdateServiceInput } from '@/lib/validations/s
 export type Service = {
     id: string;
     name: string;
-    category: 'mensal' | 'combo' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
+    category: 'mensal' | 'combo' | 'bronzeamento' | 'day_spa' | 'estetica' | 'tantrica' | 'depilacao';
     price: number;
     duration_minutes: number;
     description: string;

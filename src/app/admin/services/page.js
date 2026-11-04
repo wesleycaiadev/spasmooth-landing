@@ -6,12 +6,13 @@ import { calculateDiscount } from '@/lib/discounts';
 import {
     Package, Plus, Trash2, Pencil, Check, X, Eye, EyeOff,
     Scissors, Sparkles, Clock, DollarSign, AlertCircle, CheckCircle2, Flame, Flower2, HeartHandshake,
-    Tag, Percent, Zap, Search
+    Tag, Percent, Zap, Search, Sun
 } from 'lucide-react';
 
 const CATEGORY_LABELS = {
     mensal: { label: 'Combos Mensais', icon: Package, color: 'cyan' },
     combo: { label: 'Combos & Promoções', icon: Package, color: 'emerald' },
+    bronzeamento: { label: 'Bronzeamento', icon: Sun, color: 'amber' },
     day_spa: { label: 'Day Spa', icon: Flower2, color: 'blue' },
     estetica: { label: 'Estética', icon: HeartHandshake, color: 'pink' },
     depilacao: { label: 'Depilação', icon: Scissors, color: 'violet' },
@@ -83,7 +84,7 @@ export default function ServicesPage() {
 
     const filteredServices = services.filter(s => {
         const matchesTab = activeTab === 'outros' 
-            ? !['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
+            ? !['mensal', 'combo', 'bronzeamento', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)
             : s.category === activeTab;
             
         if (!matchesTab) return false;
@@ -249,11 +250,12 @@ export default function ServicesPage() {
     const counts = {
         mensal: services.filter(s => s.category === 'mensal').length,
         combo: services.filter(s => s.category === 'combo').length,
+        bronzeamento: services.filter(s => s.category === 'bronzeamento').length,
         day_spa: services.filter(s => s.category === 'day_spa').length,
         estetica: services.filter(s => s.category === 'estetica').length,
         depilacao: services.filter(s => s.category === 'depilacao').length,
         tantrica: services.filter(s => s.category === 'tantrica').length,
-        outros: services.filter(s => !['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)).length,
+        outros: services.filter(s => !['mensal', 'combo', 'bronzeamento', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(s.category)).length,
     };
 
     return (
@@ -351,6 +353,7 @@ export default function ServicesPage() {
                                 >
                                     <option value="all">🔥 TODOS OS SERVIÇOS (Catálogo Completo)</option>
                                     <option value="combo">Combos & Promoções</option>
+                                    <option value="bronzeamento">Bronzeamento (Lay Bronze)</option>
                                     <option value="day_spa">Day Spa</option>
                                     <option value="estetica">Estética</option>
                                     <option value="depilacao">Depilação</option>
@@ -452,11 +455,12 @@ export default function ServicesPage() {
                             >
                                 <option value="mensal">Combos Mensais</option>
                                 <option value="combo">Combos & Promoções</option>
+                                <option value="bronzeamento">Bronzeamento (Lay Bronze)</option>
                                 <option value="day_spa">Day Spa</option>
                                 <option value="estetica">Estética</option>
                                 <option value="depilacao">Depilação</option>
                                 <option value="tantrica">Tântricas</option>
-                                {!['mensal', 'combo', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(formData.category) && (
+                                {!['mensal', 'combo', 'bronzeamento', 'day_spa', 'estetica', 'depilacao', 'tantrica'].includes(formData.category) && (
                                     <option value={formData.category}>Categoria Antiga ({formData.category})</option>
                                 )}
                             </select>

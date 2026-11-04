@@ -47,3 +47,31 @@ test('all six offers have distinct local WebP treatment assets', () => {
         assert.ok(fs.statSync(path.join(process.cwd(), 'public', image)).size > 0);
     }
 });
+
+test('all eight bronze offers have local WebP treatment assets and valid schemas', () => {
+    const bronzeSlugs = [
+        'bronze-gelado-lgbt',
+        'bronze-gelado-masculino',
+        'bronze-gelado-marquinha',
+        'bronze-gelado-corpo-todo',
+        'realce-bronze-jato-superior',
+        'banho-de-lua-clareador',
+        'descoloracao-de-pelos',
+        'clareamento-de-areas'
+    ];
+    for (const slug of bronzeSlugs) {
+        const image = getServiceImage(slug);
+        assert.ok(image?.endsWith('.webp'));
+        assert.ok(fs.statSync(path.join(process.cwd(), 'public', image)).size > 0);
+    }
+    const sampleBronze = {
+        name: 'Bronze Gelado Masculino',
+        category: 'bronzeamento',
+        price: 200,
+        duration_minutes: 45,
+        description: 'Bronzeamento a jato com acabamento uniforme e sem sol.'
+    };
+    const parsed = createServiceSchema.parse(sampleBronze);
+    assert.equal(parsed.category, 'bronzeamento');
+    assert.equal(parsed.price, 200);
+});

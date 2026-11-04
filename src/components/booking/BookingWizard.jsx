@@ -283,6 +283,7 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
 
     const mensal = services.filter((s) => s.category === "mensal");
     const combos = services.filter((s) => s.category === "combo");
+    const bronzeamento = services.filter((s) => s.category === "bronzeamento");
     const daySpa = services.filter((s) => s.category === "day_spa");
     const estetica = services.filter((s) => s.category === "estetica");
     const tantrica = services.filter((s) => s.category === "tantrica");
@@ -386,6 +387,19 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                                         </h3>
                                         <div className="space-y-3">
                                             {combos.map((svc) => (
+                                                <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {bronzeamento.length > 0 && (
+                                    <div>
+                                        <h3 className="font-bold text-slate-700 mb-2 border-b border-cyan-100 pb-1.5 text-[11px] md:text-xs uppercase tracking-wider mt-4">
+                                            Lay Bronze · Bronzeamento
+                                        </h3>
+                                        <div className="space-y-3">
+                                            {bronzeamento.map((svc) => (
                                                 <ServiceCard key={svc.id} service={svc} isSelected={booking.service_id === svc.id} onSelect={() => handleSelectService(svc)} />
                                             ))}
                                         </div>

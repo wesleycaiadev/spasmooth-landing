@@ -17,6 +17,7 @@ export default function LayoutAdminPage() {
     const CATEGORY_LABELS = {
         mensal: 'Combos Mensais',
         combo: 'Combos de Massagem',
+        bronzeamento: 'Lay Bronze (Bronzeamento)',
         day_spa: 'Pacotes Day Spa',
         estetica: 'Estética e Cuidados Avulsos',
         depilacao: 'Depilação Suave',

@@ -1,11 +1,11 @@
 "use client";
 
 import Image from 'next/image';
-import { ArrowRight, Sparkles, Layers, Palette, Flame, Scissors } from 'lucide-react';
+import { ArrowRight, Sparkles, Layers, Palette, Flame, Scissors, Sun } from 'lucide-react';
 import { calculateDiscount } from '@/lib/discounts';
 import { categoryLabels, getServiceImage } from '@/lib/serviceImages';
 
-const iconMap = { combo: Layers, day_spa: Sparkles, estetica: Palette, tantrica: Flame, depilacao: Scissors };
+const iconMap = { combo: Layers, bronzeamento: Sun, day_spa: Sparkles, estetica: Palette, tantrica: Flame, depilacao: Scissors };
 
 export default function ServiceBookingCard({ treatment }) {
     const Icon = iconMap[treatment.category] || Sparkles;

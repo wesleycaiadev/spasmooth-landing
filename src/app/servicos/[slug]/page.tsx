@@ -143,7 +143,7 @@ export default async function ServicePage({ params }: Props) {
                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
                <div className="relative z-10">
                  <div className="uppercase tracking-wider text-cyan-100 text-sm font-semibold mb-3">
-                   {service.category === 'massage' ? 'Massagem' : service.category === 'waxing' ? 'Depilação' : service.category === 'combo' ? 'Combo Especial' : service.category === 'mensal' ? 'Combo Mensal' : service.category === 'estetica' ? 'Estética' : 'Spa'}
+                   {service.category === 'massage' ? 'Massagem' : service.category === 'waxing' ? 'Depilação' : service.category === 'combo' ? 'Combo Especial' : service.category === 'mensal' ? 'Combo Mensal' : service.category === 'bronzeamento' ? 'Lay Bronze · Bronzeamento' : service.category === 'estetica' ? 'Estética' : 'Spa'}
                  </div>
                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-light mb-6">
                    {service.name} em Aracaju
