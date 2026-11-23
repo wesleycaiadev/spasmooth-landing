@@ -57,6 +57,8 @@ const privateFormHeaders = [
 
 const nextConfig = {
     poweredByHeader: false,
+    // Server Action arguments can contain intake answers and booking contact details.
+    logging: { serverFunctions: false },
     experimental: {
         serverActions: { bodySizeLimit: '64kb' },
         // The CLI checker in Next 16.3 currently fails to parse TS 6 output in this project.
