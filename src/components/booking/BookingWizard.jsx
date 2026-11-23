@@ -252,7 +252,12 @@ export default function BookingWizard({ initialProfessional = null, hideHeader =
                     type: "success",
                     message: "Pedido recebido. Conte-nos seu objetivo para personalizarmos o atendimento.",
                 });
-                setTimeout(() => router.push("/interesse"), 1500);
+                setTimeout(() => {
+                    // Load a new document so scripts from the booking page do not carry over.
+                    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                    if (result.data?.anamnesis) window.location.assign("/interesse");
+                    else router.push("/interesse");
+                }, 1500);
             } else {
                 setFeedback({
                     type: "error",

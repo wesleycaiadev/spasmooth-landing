@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { usePathname } from 'next/navigation';
 import { BarChart3, Cookie, Map, Settings2, ShieldCheck, X } from 'lucide-react';
 import BrandMark from './BrandMark';
 
@@ -10,6 +11,8 @@ const KEY = 'spa_privacy_v1';
 export const usePrivacy = () => useContext(Context);
 
 export default function PrivacyProvider({ children }) {
+    const pathname = usePathname();
+    const privateForm = pathname === '/interesse' || pathname?.startsWith('/admin/bookings/anamnese/');
     const [choice, setChoice] = useState(null);
     const [open, setOpen] = useState(false);
     const [view, setView] = useState('notice');
@@ -60,7 +63,7 @@ export default function PrivacyProvider({ children }) {
 
     return <Context.Provider value={{ maps: choice?.maps === true }}>
         {children}
-        {choice?.analytics === true && process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+        {!privateForm && choice?.analytics === true && process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
         {open && <div className="fixed inset-0 z-[100] flex items-end bg-[rgb(6_59_100_/_0.35)] p-3 backdrop-blur-sm sm:items-center sm:justify-center" role="presentation">
             <section role="dialog" aria-modal="true" aria-labelledby="privacy-title" className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-white/70 bg-white shadow-2xl">
                 <div className="border-b border-[var(--spa-line)] px-6 py-5"><div className="flex items-start justify-between gap-3"><div><BrandMark compact /><div className="mt-4 flex gap-3"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--spa-sky)] text-[var(--spa-blue)]"><Cookie size={20} aria-hidden="true" /></div><div><p className="spa-eyebrow">Sua escolha</p><h2 id="privacy-title" className="spa-display mt-1 text-2xl text-[var(--spa-ink)]">{view === 'preferences' ? 'Preferências de cookies' : 'Seu bem-estar também é digital.'}</h2></div></div></div><button type="button" aria-label="Fechar preferências" onClick={closeDialog} className="grid h-10 w-10 place-items-center rounded-xl text-slate-500 hover:bg-slate-100"><X size={20} aria-hidden="true" /></button></div></div>

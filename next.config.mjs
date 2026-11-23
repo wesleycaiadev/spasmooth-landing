@@ -42,6 +42,19 @@ const securityHeaders = isProd
     ? [...baseHeaders, ...prodOnlyHeaders]
     : baseHeaders;
 
+const privateFormHeaders = [
+    { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+    { key: 'Referrer-Policy', value: 'no-referrer' },
+    { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+    ...(isProd ? prodOnlyHeaders
+        .filter(header => header.key === 'Content-Security-Policy')
+        .map(header => ({
+            ...header,
+            value: header.value.replace(/ https:\/\/(?:www\.google-analytics\.com|region1\.google-analytics\.com|www\.googletagmanager\.com)/g, '')
+                .replace(/; report-to csp-endpoint; report-uri \/api\/csp-report/, ''),
+        })) : []),
+];
+
 const nextConfig = {
     poweredByHeader: false,
     experimental: {
@@ -74,6 +87,8 @@ const nextConfig = {
                 source: '/(.*)',
                 headers: securityHeaders,
             },
+            { source: '/interesse', headers: privateFormHeaders },
+            { source: '/admin/bookings/anamnese/:path*', headers: privateFormHeaders },
             {
                 source: '/agendamento/acao/:path*',
                 headers: [

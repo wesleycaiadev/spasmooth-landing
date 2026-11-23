@@ -1,5 +1,6 @@
 import { PGlite } from '@electric-sql/pglite';
 import { btree_gist } from '@electric-sql/pglite/contrib/btree_gist';
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +19,8 @@ try {
   const root = fileURLToPath(new URL('../', import.meta.url));
   const read = (...parts) => fs.readFileSync(path.join(root, ...parts), 'utf8');
   await db.exec(read('sql', '001_booking_tables.sql').split('INSERT INTO public.services (name')[0]);
+  // The legacy SEO setup precedes the catalog migrations in the installed schema.
+  await db.exec('ALTER TABLE public.services ADD COLUMN seo_indexable boolean DEFAULT false;');
   for (const migration of fs.readdirSync(path.join(root, 'supabase', 'migrations')).sort()) {
     await db.exec(read('supabase', 'migrations', migration));
   }
@@ -29,6 +32,29 @@ try {
   await db.exec(read('supabase', 'migrations', '20261031170000_new_combos.sql'));
   await db.exec("DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM public.services WHERE slug='combo-desacelera' AND duration_minutes=60 AND price=175) THEN RAISE EXCEPTION 'ADMIN_EDIT_OVERWRITTEN'; END IF; END $$; ROLLBACK;");
   const canonicalResult = await db.exec(read('tests', 'database-security.sql'));
+  const anamnesisResult = await db.exec(read('tests', 'booking-anamnesis.sql'));
+  await db.exec(`
+    BEGIN;
+    SET LOCAL ROLE service_role;
+    WITH pro AS (
+      INSERT INTO public.professionals(name, location, active) VALUES ('Worker Fixture', 'Aracaju', true) RETURNING id
+    ), booking AS (
+      INSERT INTO public.bookings(unit, professional_id, service_id, client_name, client_phone, starts_at, ends_at, status)
+      SELECT 'Aracaju', pro.id, s.id, 'Pessoa Teste', '82999990000', now() + interval '1 day',
+             now() + interval '1 day 45 minutes', 'pendente'
+      FROM pro CROSS JOIN public.services s WHERE s.slug = 'combo-desacelera' RETURNING id
+    ), intake AS (
+      INSERT INTO public.booking_anamneses(booking_id, questionnaire_version, service_category, deadline_at)
+      SELECT id, 'spa-1', 'combo', now() FROM booking RETURNING booking_id
+    )
+    INSERT INTO public.booking_notification_outbox(booking_id, available_at) SELECT booking_id, now() FROM intake;
+  `);
+  const claims = await Promise.all([
+    db.query('SELECT public.claim_booking_notification() AS claim'),
+    db.query('SELECT public.claim_booking_notification() AS claim'),
+  ]);
+  assert.equal(claims.filter(result => result.rows[0].claim !== null).length, 1, 'Overlapping worker calls must obtain one claim');
+  await db.exec('ROLLBACK');
   // Model the old installer and permissive inherited ACLs, then repair them.
   await db.exec(`
   CREATE TABLE public.rate_limit_entries(key text PRIMARY KEY,tokens integer,window_start timestamptz,window_seconds integer);
@@ -41,7 +67,7 @@ try {
   await db.exec(read('sql', '009_rate_limit.sql'));
   const result = await db.exec(read('tests', 'database-security.sql'));
   await db.exec(read('tests', 'catalog-offers.sql'));
-  console.log(JSON.stringify({ offers: offersResult.filter(r=>r.rows.length).map(r=>r.rows), canonical: canonicalResult.filter(r=>r.rows.length).map(r=>r.rows), compatibility: result.filter(r=>r.rows.length).map(r=>r.rows) }));
+  console.log(JSON.stringify({ offers: offersResult.filter(r=>r.rows.length).map(r=>r.rows), canonical: canonicalResult.filter(r=>r.rows.length).map(r=>r.rows), anamnesis: anamnesisResult.filter(r=>r.rows.length).map(r=>r.rows), compatibility: result.filter(r=>r.rows.length).map(r=>r.rows) }));
 } finally {
   await db.close();
 }

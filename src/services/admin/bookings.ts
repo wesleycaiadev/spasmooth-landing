@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import { verifyAdmin } from "@/lib/auth";
+import { anamnesisEnabled } from "@/lib/anamnesis/config";
 import {
     updateBookingStatusSchema,
     listBookingsFilterSchema,
@@ -29,6 +30,7 @@ export type BookingRow = {
     notes: string;
     professionals: { name: string; location: string } | null;
     services: { name: string; duration_minutes: number; price: number } | null;
+    has_anamnesis?: boolean;
 };
 
 // verifyAdmin importado de @/lib/auth
@@ -85,7 +87,19 @@ export async function listBookings(
             return { success: false, error: "Erro ao buscar agendamentos." };
         }
 
-        return { success: true, data: data as BookingRow[] };
+        const rows = data as BookingRow[];
+        if (anamnesisEnabled() && rows.length) {
+            const { data: forms, error: formsError } = await supabase.from('booking_anamneses')
+                .select('booking_id')
+                .in('booking_id', rows.map(row => row.id));
+            if (formsError) {
+                console.error('[listBookings] Anamnesis availability could not be loaded');
+            } else {
+                const ids = new Set(forms.map(form => form.booking_id));
+                for (const row of rows) row.has_anamnesis = ids.has(row.id);
+            }
+        }
+        return { success: true, data: rows };
     } catch (e: any) {
         console.error("[listBookings exception]:", "OPERATION_FAILED");
         return { success: false, error: "Erro interno do servidor." };

@@ -3,7 +3,9 @@
 import { cookies } from "next/headers";
 import { rateLimit, capabilitySecret } from "@/lib/security/server";
 import { signCapability, readCapability } from "@/lib/security/policy";
-import { bookingActionUrl, createBookingActionToken } from "@/lib/booking-actions";
+import { anamnesisEnabled, notificationDelay } from "@/lib/anamnesis/config";
+import { questionnaireVersion } from "@/lib/anamnesis/questionnaire";
+import { callMeBotConfigured, notificationsEnabled, sendImmediateBookingNotification } from "@/services/booking-notifications";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabaseAdmin";
 import {
@@ -131,7 +133,7 @@ export async function getAvailableSlots(
 
 export async function createBooking(
     input: CreateBookingInput
-): Promise<ServiceResponse<{ id: string }>> {
+): Promise<ServiceResponse<{ id: string; anamnesis: boolean }>> {
     try {
         if (!await rateLimit('booking', 5, 900)) return { success: false, error: 'Muitas tentativas. Aguarde 15 minutos.' };
         const parsed = createBookingSchema.safeParse(input);
@@ -169,9 +171,8 @@ export async function createBooking(
             return { success: false, error: "Agende com pelo menos 30 minutos de antecedência." };
         }
 
-        const { data: bookingId, error: rpcError } = await supabase.rpc(
-            "check_and_create_booking",
-            {
+        const anamnesis = anamnesisEnabled();
+        const bookingParams = {
                 p_unit: unit,
                 p_professional_id: professional_id,
                 p_service_id: service_id,
@@ -180,8 +181,15 @@ export async function createBooking(
                 p_starts_at: startsAt.toISOString(),
                 p_ends_at: endsAt.toISOString(),
                 p_notes: notes ?? "",
-            }
-        );
+        };
+        const { data: bookingId, error: rpcError } = anamnesis
+            ? await supabase.rpc('create_booking_with_anamnesis', {
+                ...bookingParams,
+                p_questionnaire_version: questionnaireVersion,
+                p_delay_seconds: notificationDelay(),
+                p_notify: notificationsEnabled(),
+            })
+            : await supabase.rpc('check_and_create_booking', bookingParams);
 
         if (rpcError) {
             const msg = rpcError.message ?? "";
@@ -207,48 +215,23 @@ export async function createBooking(
 
         // Receipt binds this browser to this booking for 30 minutes; IDs alone grant no access.
         try {
-            (await cookies()).set('spa_booking', signCapability({ purpose: 'booking', id: bookingId, exp: Date.now() + 30 * 60_000 }, capabilitySecret()), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/', maxAge: 1800 });
+            (await cookies()).set('spa_booking', signCapability({ purpose: anamnesis ? 'booking-anamnesis' : 'booking', id: bookingId, exp: Date.now() + 30 * 60_000 }, capabilitySecret()), { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/', maxAge: 1800 });
         } catch { console.error('[booking] Receipt could not be issued'); }
-        // The lead is already durable in `leads` at this point. WhatsApp is an
-        // operational alert, never the source of truth for a customer request.
-        // Do not include client data in URLs or logs.
-        const notificationsEnabled = process.env.BOOKING_NOTIFICATIONS_ENABLED === 'true';
-        const callmebotConfigured = Boolean(process.env.CALLMEBOT_PHONE && process.env.CALLMEBOT_APIKEY);
-        if (!notificationsEnabled) {
-            if (process.env.NODE_ENV === 'production') console.error('[booking] Admin notification disabled by configuration');
-        } else if (!callmebotConfigured) {
-            console.error('[booking] Admin notification configuration incomplete');
-        } else {
+        if (!anamnesis && notificationsEnabled() && callMeBotConfigured()) {
             try {
-                // Fetch service and professional data for detailed message
-                const { data: serviceData } = await supabase.from('services').select('name').eq('id', service_id).single();
                 const { data: proData } = await supabase.from('professionals').select('name,location').eq('id', professional_id).single();
-
-                const expiresAt = Math.min(Date.now() + 24 * 60 * 60_000, startsAt.getTime());
-                const confirmUrl = bookingActionUrl(createBookingActionToken(bookingId, 'confirmar', expiresAt));
-                const declineUrl = bookingActionUrl(createBookingActionToken(bookingId, 'recusar', expiresAt));
-                const panelUrl = new URL('/admin/bookings', process.env.NEXT_PUBLIC_SITE_URL || 'https://spasmooth.com.br').toString();
-                const observation = notes?.trim() || 'Nenhuma observação informada.';
-
-                const messageText = `🗓️ *Novo Agendamento*\n👤 *Cliente:* ${client_name}\n📱 *WhatsApp:* ${client_phone}\n💆 *Serviço:* ${serviceData?.name || 'Não informado'}\n\n*Observação:* ${observation}\n\n👩‍⚕️ *Profissional:* ${proData?.name || 'Não especificado'}\n📍 *Local:* ${proData?.location || unit}\n📅 *Data:* ${date}\n🕐 *Horário:* ${time}\n\nUm novo agendamento foi solicitado pelo site. Revise os dados e escolha uma ação abaixo:\n\n✅ *Confirmar agendamento:* ${confirmUrl}\n❌ *Cancelar / Recusar:* ${declineUrl}\n⚙️ *Abrir no painel administrativo:* ${panelUrl}`;
-
-                const url = new URL('https://api.callmebot.com/whatsapp.php');
-                url.searchParams.set('phone', process.env.CALLMEBOT_PHONE);
-                url.searchParams.set('apikey', process.env.CALLMEBOT_APIKEY);
-                url.searchParams.set('text', messageText);
-                
-                const response = await fetch(url.toString(), { signal: AbortSignal.timeout(5000), cache: 'no-store' });
-                if (!response.ok) {
-                    console.error('[booking] Admin notification rejected', { status: response.status });
-                } else {
-                    console.info('[booking] Admin notification delivered');
-                }
+                await sendImmediateBookingNotification({
+                    id: bookingId, startsAt: startsAt.toISOString(), clientName: client_name, clientPhone: client_phone,
+                    serviceName: serviceData.name, professionalName: proData?.name, unit: proData?.location || unit, date, time,
+                });
             } catch {
                 console.error('[booking] Admin notification delivery failed');
             }
+        } else if (!anamnesis && process.env.NODE_ENV === 'production') {
+            console.error('[booking] Admin notification unavailable by configuration');
         }
 
-        return { success: true, data: { id: bookingId as string } };
+        return { success: true, data: { id: bookingId as string, anamnesis } };
     } catch {
         return { success: false, error: "Erro interno do servidor." };
     }
