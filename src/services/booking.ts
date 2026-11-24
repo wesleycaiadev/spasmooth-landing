@@ -3,8 +3,7 @@
 import { cookies } from "next/headers";
 import { rateLimit, capabilitySecret } from "@/lib/security/server";
 import { signCapability, readCapability } from "@/lib/security/policy";
-import { anamnesisEnabled, notificationDelay } from "@/lib/anamnesis/config";
-import { questionnaireVersion } from "@/lib/anamnesis/questionnaire";
+import { activeQuestionnaireVersion, anamnesisEnabled, notificationDelay } from "@/lib/anamnesis/config";
 import { callMeBotConfigured, notificationsEnabled, sendImmediateBookingNotification } from "@/services/booking-notifications";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabaseAdmin";
@@ -185,7 +184,7 @@ export async function createBooking(
         const { data: bookingId, error: rpcError } = anamnesis
             ? await supabase.rpc('create_booking_with_anamnesis', {
                 ...bookingParams,
-                p_questionnaire_version: questionnaireVersion,
+                p_questionnaire_version: activeQuestionnaireVersion(),
                 p_delay_seconds: notificationDelay(),
                 p_notify: notificationsEnabled(),
             })

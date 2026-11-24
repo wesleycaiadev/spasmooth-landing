@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation';
 import BodyMap from '@/components/anamnesis/BodyMap';
 import ReviewButton from '@/components/anamnesis/ReviewButton';
-import { bodyKinds, bodyRegions, getQuestionnaire, goals } from '@/lib/anamnesis/questionnaire';
+import { bodyKinds, detailedBodyRegions, legacyBodyRegions, sensations } from '@/lib/anamnesis/body-regions';
+import { getQuestionnaire, goals, reviewReasons } from '@/lib/anamnesis/questionnaire';
 import { readAdminAnamnesis } from '@/services/admin/anamnesis';
 
 const statuses = {
@@ -25,14 +26,15 @@ const dateFormat = new Intl.DateTimeFormat('pt-BR', {
 
 export default async function AnamnesisPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const { data, unavailable } = await readAdminAnamnesis(id);
+    const { data, unavailable, restricted } = await readAdminAnamnesis(id);
     if (unavailable) return <p role="alert">A ficha está temporariamente indisponível.</p>;
+    if (restricted) return <p>A ficha clínica está disponível para a profissional autorizada.</p>;
     if (!data) notFound();
 
     const questionnaire = getQuestionnaire({ category: data.service_category, slug: data.service_slug }, data.questionnaire_version);
     const submission = data.submission;
-    const attention = submission?.answers.attention === 'discuss';
-    const hasMarkedRegions = submission?.regions.some(area => area.kind !== 'preference');
+    const reasons = questionnaire && submission ? reviewReasons(questionnaire, submission) : [];
+    const regions = questionnaire?.regions ?? { ...legacyBodyRegions, ...detailedBodyRegions };
 
     return (
         <div className="mx-auto max-w-3xl space-y-6 text-slate-700">
@@ -56,11 +58,10 @@ export default async function AnamnesisPage({ params }: { params: Promise<{ id: 
             {submission && (
                 <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-5">
                     <h2 className="text-lg font-bold">Respostas</h2>
-                    {(attention || hasMarkedRegions) && (
+                    {reasons.length > 0 && (
                         <div className="rounded-xl bg-amber-50 p-4 text-amber-950">
                             <h3 className="font-bold">Pontos para avaliação profissional</h3>
-                            {attention && <p>A cliente pediu para conversar sobre cuidados ou restrições.</p>}
-                            {hasMarkedRegions && <p>Há regiões de desconforto ou que a cliente deseja evitar.</p>}
+                            <ul className="ml-5 list-disc">{reasons.map(reason => <li key={reason}>{reason}</li>)}</ul>
                         </div>
                     )}
                     {submission.goals.length > 0 && (
@@ -78,14 +79,18 @@ export default async function AnamnesisPage({ params }: { params: Promise<{ id: 
                     {submission.regions.length > 0 && (
                         <div>
                             <h3 className="mb-3 font-semibold">Mapa corporal</h3>
-                            <BodyMap areas={submission.regions} />
+                            <BodyMap areas={submission.regions} detailed={questionnaire?.clinical} />
                             <ul className="ml-5 mt-4 list-disc">
-                                {submission.regions.map(({ region, kind, intensity }) => (
-                                    <li key={`${region}:${kind}`}>{bodyKinds[kind]} · {bodyRegions[region]}{intensity ? ` · intensidade ${intensity}/5` : ''}</li>
+                                {submission.regions.map(({ region, kind, intensity, sensations: selectedSensations }) => (
+                                    <li key={`${region}:${kind}`}>{bodyKinds[kind]} · {regions[region] ?? region}
+                                        {intensity !== undefined && ` · intensidade ${intensity}/${questionnaire?.intensity.max ?? 5}`}
+                                        {selectedSensations?.length > 0 && ` · ${selectedSensations.map(value => sensations[value]).join(', ')}`}
+                                    </li>
                                 ))}
                             </ul>
                         </div>
                     )}
+                    {questionnaire?.clinical && <p className="text-sm">A avaliação de edema e cacifo, quando pertinente, é feita presencialmente pela profissional habilitada.</p>}
                     <p className="text-sm">Consentimento registrado no preenchimento · Aviso {submission.privacyVersion} · Questionário {data.questionnaire_version}</p>
                     {(data.status === 'needs_review' || data.status === 'completed') && <ReviewButton id={id} />}
                 </section>

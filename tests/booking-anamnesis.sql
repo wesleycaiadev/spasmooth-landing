@@ -33,6 +33,7 @@ DECLARE
   v_claim jsonb;
   v_report jsonb;
   v_submission jsonb := '{"consent":true,"privacyVersion":"spa-aviso-1","goals":["tension"],"answers":{"pressure":"light"},"regions":[{"region":"back-lower","kind":"discomfort","intensity":3}]}';
+  v_clinical jsonb := '{"consent":true,"privacyVersion":"spa-aviso-2","goals":["self_care"],"answers":{"medications":"discuss"},"regions":[{"region":"back-lower-left","kind":"discomfort","intensity":0},{"region":"back-lower-right","kind":"discomfort","intensity":10,"sensations":["tingling"]},{"region":"back-lower-right","kind":"avoid"}]}';
 BEGIN
   IF extract(dow FROM v_day) = 0 THEN v_day := v_day + 1; END IF;
   INSERT INTO public.professionals(name, location, active) VALUES ('Fixture Anamnese', 'Aracaju', true) RETURNING id INTO v_pro;
@@ -48,11 +49,17 @@ BEGIN
     v_start := v_start + interval '1 hour';
     v_ids := array_append(v_ids, public.create_booking_with_anamnesis(
       'Aracaju', v_pro, v_service, 'Pessoa Teste', '82999990000', v_start, v_start + interval '45 minutes', 'OBSERVACAO_RESTRITA',
-      'spa-1', 300, i < 6));
+      CASE WHEN i = 6 THEN 'spa-2' ELSE 'spa-1' END, 300, i < 6));
   END LOOP;
   IF NOT EXISTS (SELECT 1 FROM public.leads WHERE id = v_ids[1] AND status_kanban = 'novo')
     OR EXISTS (SELECT 1 FROM public.booking_notification_outbox WHERE booking_id = v_ids[6])
   THEN RAISE EXCEPTION 'NEW_BOOKING_SYNC_OR_NOTIFICATION_FLAG_FAILED'; END IF;
+  IF public.save_booking_anamnesis(v_ids[6], 'spa-1', v_submission, false)
+    OR NOT public.save_booking_anamnesis(v_ids[6], 'spa-2', v_clinical, true)
+  THEN RAISE EXCEPTION 'CLINICAL_VERSION_SUBMISSION_FAILED'; END IF;
+  v_report := public.read_booking_anamnesis(v_ids[6], 'user_test');
+  IF v_report->'submission' IS DISTINCT FROM v_clinical OR v_report->>'status' IS DISTINCT FROM 'needs_review'
+  THEN RAISE EXCEPTION 'CLINICAL_VALUES_OR_REVIEW_NOT_PERSISTED'; END IF;
   IF (SELECT deadline_at - available_at FROM public.booking_anamneses a JOIN public.booking_notification_outbox n USING (booking_id) WHERE booking_id = v_ids[1])
     IS DISTINCT FROM interval '0 seconds'
     OR public.claim_booking_notification(v_ids[1]) IS NOT NULL

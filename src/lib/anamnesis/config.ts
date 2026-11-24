@@ -1,4 +1,20 @@
 import 'server-only';
+import { clinicalQuestionnaireVersion, questionnaireVersion } from './questionnaire';
+
+function clinicalReviewers() {
+    return (process.env.BOOKING_ANAMNESIS_CLINICAL_REVIEWERS ?? '').split(/[\n,]+/).map(id => id.trim()).filter(id => /^user_[a-z0-9_]+$/i.test(id));
+}
+
+export function activeQuestionnaireVersion() {
+    return process.env.BOOKING_ANAMNESIS_APPROVED_VERSION === clinicalQuestionnaireVersion && clinicalReviewers().length
+        ? clinicalQuestionnaireVersion
+        : questionnaireVersion;
+}
+
+export function mayAccessQuestionnaire(version: string, adminId: string | undefined) {
+    return version === questionnaireVersion
+        || (version === clinicalQuestionnaireVersion && Boolean(adminId && clinicalReviewers().includes(adminId)));
+}
 
 function boundedInteger(value: string | undefined, min: number, max: number, fallback: number) {
     const number = Number(value);

@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from 'react';
 import { saveAnamnesis } from '@/services/anamnesis';
-import { bodyKinds, bodyRegions, type BodyKind, type BodyRegion, type BodySelection, type Questionnaire } from '@/lib/anamnesis/questionnaire';
+import { bodyKinds, sensations, type BodyKind, type BodyRegion } from '@/lib/anamnesis/body-regions';
+import { questionIsVisible, type BodySelection, type Questionnaire } from '@/lib/anamnesis/questionnaire';
 import BodyMap from './BodyMap';
 
 export default function IntakeForm({ questionnaire, binding }: { questionnaire: Questionnaire; binding: string }) {
@@ -18,6 +19,35 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
         setRegions(previous => previous.some(area => area.region === region && area.kind === kind)
             ? previous.filter(area => area.region !== region || area.kind !== kind)
             : [...previous, { region, kind }]);
+    }
+
+    function updateQuestion(id: string, value: string) {
+        setAnswers(previous => {
+            const next = { ...previous };
+            if (value) next[id] = value;
+            else delete next[id];
+            for (const question of questionnaire.questions) {
+                if (!questionIsVisible(question, next)) delete next[question.id];
+            }
+            return next;
+        });
+    }
+
+    function updateDiscomfort(region: BodyRegion, update: (area: BodySelection) => BodySelection) {
+        setRegions(previous => previous.map(area => area.region === region && area.kind === 'discomfort' ? update(area) : area));
+    }
+
+    function renderQuestions(group?: 'health' | 'private') {
+        return questionnaire.questions.filter(question => question.group === group && questionIsVisible(question, answers)).map(question => (
+            <label key={question.id} className="block space-y-2">
+                <span className="block font-bold text-[var(--spa-ink)]">{question.label}</span>
+                <select className="w-full rounded-xl border border-slate-300 bg-white p-3" value={answers[question.id] ?? ''}
+                    onChange={event => updateQuestion(question.id, event.target.value)}>
+                    <option value="">Prefiro deixar em branco</option>
+                    {question.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+            </label>
+        ));
     }
 
     async function save(intent: 'complete' | 'skip', event?: FormEvent) {
@@ -55,23 +85,25 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
                     ))}
                 </fieldset>
 
-                {questionnaire.questions.map(question => (
-                    <label key={question.id} className="block space-y-2">
-                        <span className="block font-bold text-[var(--spa-ink)]">{question.label}</span>
-                        <select className="w-full rounded-xl border border-slate-300 bg-white p-3" value={answers[question.id] ?? ''} onChange={event => {
-                            const value = event.target.value;
-                            setAnswers(previous => {
-                                const next = { ...previous };
-                                if (value) next[question.id] = value;
-                                else delete next[question.id];
-                                return next;
-                            });
-                        }}>
-                            <option value="">Prefiro deixar em branco</option>
-                            {question.options.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-                        </select>
-                    </label>
-                ))}
+                {renderQuestions()}
+                {questionnaire.questions.some(question => question.group === 'health') && (
+                    <details className="rounded-xl border border-slate-200 p-4">
+                        <summary className="cursor-pointer font-bold text-[var(--spa-ink)]">Histórico de saúde e cuidados (opcional)</summary>
+                        <div className="mt-4 space-y-4">
+                            <p className="text-sm">Responda o que fizer sentido para o atendimento. Você pode conversar sobre detalhes diretamente com a profissional.</p>
+                            {renderQuestions('health')}
+                        </div>
+                    </details>
+                )}
+                {questionnaire.questions.some(question => question.group === 'private') && (
+                    <details className="rounded-xl border border-slate-200 p-4">
+                        <summary className="cursor-pointer font-bold text-[var(--spa-ink)]">Assuntos pessoais (opcional)</summary>
+                        <div className="mt-4 space-y-4">
+                            <p className="text-sm">Use este espaço se quiser conversar em particular sobre conforto, posição ou área de contato neste procedimento.</p>
+                            {renderQuestions('private')}
+                        </div>
+                    </details>
+                )}
 
                 {questionnaire.showMap && (
                     <details className="rounded-xl border border-slate-200 p-4">
@@ -83,11 +115,12 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
                                 {Object.entries(bodyKinds).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
                             </select>
                         </label>
-                        <BodyMap areas={regions} kind={kind} onToggle={busy ? undefined : toggleRegion} />
+                        {questionnaire.clinical && <p className="mb-3 text-sm">Esquerda e direita são os lados do seu corpo.</p>}
+                        <BodyMap areas={regions} detailed={questionnaire.clinical} kind={kind} onToggle={busy ? undefined : toggleRegion} />
                         <details className="my-4">
                             <summary className="cursor-pointer font-semibold">Selecionar regiões por nome</summary>
                             <div className="mt-2 grid gap-x-3 sm:grid-cols-2">
-                                {(Object.entries(bodyRegions) as [BodyRegion, string][]).map(([id, label]) => (
+                                {Object.entries(questionnaire.regions).map(([id, label]) => (
                                     <label key={id} className="flex min-h-11 items-center gap-2">
                                         <input type="checkbox" checked={regions.some(area => area.region === id && area.kind === kind)} onChange={() => toggleRegion(id)} />
                                         {label}
@@ -97,23 +130,49 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
                         </details>
                         {regions.length > 0 && (
                             <ul aria-label="Regiões selecionadas" className="space-y-2">
-                                {regions.map(({ region, kind, intensity }) => (
+                                {regions.map(({ region, kind, intensity, sensations: selectedSensations }) => (
                                     <li key={`${region}:${kind}`} className="rounded-lg bg-slate-50 px-3 py-2 text-sm">
                                         <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <span>{bodyRegions[region]} · {bodyKinds[kind]}</span>
-                                            <button type="button" aria-label={`Remover ${bodyKinds[kind]} em ${bodyRegions[region]}`} className="min-h-11 px-2 underline" onClick={() => setRegions(previous => previous.filter(area => area.region !== region || area.kind !== kind))}>Remover</button>
+                                            <span>{questionnaire.regions[region]} · {bodyKinds[kind]}</span>
+                                            <button type="button" aria-label={`Remover ${bodyKinds[kind]} em ${questionnaire.regions[region]}`} className="min-h-11 px-2 underline" onClick={() => setRegions(previous => previous.filter(area => area.region !== region || area.kind !== kind))}>Remover</button>
                                         </div>
                                         {kind === 'discomfort' && (
-                                            <label className="flex items-center gap-2">
+                                            <label className="flex flex-wrap items-center gap-2">
                                                 <span>Intensidade (opcional)</span>
-                                                <select aria-label={`Intensidade em ${bodyRegions[region]}`} value={intensity ?? ''} className="rounded border border-slate-300 bg-white p-2" onChange={event => {
+                                                <select aria-label={`Intensidade em ${questionnaire.regions[region]}`} value={intensity ?? ''} className="max-w-full rounded border border-slate-300 bg-white p-2" onChange={event => {
                                                     const value = event.target.value;
-                                                    setRegions(previous => previous.map(area => area.region === region && area.kind === 'discomfort' ? { ...area, intensity: value ? Number(value) : undefined } : area));
+                                                    updateDiscomfort(region, area => ({ ...area, intensity: value ? Number(value) : undefined }));
                                                 }}>
                                                     <option value="">Em branco</option>
-                                                    {[1, 2, 3, 4, 5].map(value => <option key={value} value={value}>{value}</option>)}
+                                                    {Array.from({ length: questionnaire.intensity.max - questionnaire.intensity.min + 1 }, (_, index) => {
+                                                        const value = questionnaire.intensity.min + index;
+                                                        const label = questionnaire.clinical && value === 0 ? '0 · sem desconforto'
+                                                            : questionnaire.clinical && value === 10 ? '10 · maior desconforto imaginável' : value;
+                                                        return <option key={value} value={value}>{label}</option>;
+                                                    })}
                                                 </select>
                                             </label>
+                                        )}
+                                        {kind === 'discomfort' && questionnaire.clinical && (
+                                            <fieldset className="mt-3">
+                                                <legend className="font-semibold">Como é a sensação nesta região? (opcional)</legend>
+                                                <div className="grid sm:grid-cols-2">
+                                                    {Object.keys(sensations).map((id: keyof typeof sensations) => (
+                                                        <label key={id} className="flex min-h-10 items-center gap-2">
+                                                            <input type="checkbox" checked={selectedSensations?.includes(id) ?? false}
+                                                                onChange={event => {
+                                                                    const checked = event.target.checked;
+                                                                    updateDiscomfort(region, area => {
+                                                                        const previous = area.sensations ?? [];
+                                                                        const next = checked ? [...previous, id] : previous.filter(value => value !== id);
+                                                                        return { ...area, sensations: next.length ? next : undefined };
+                                                                    });
+                                                                }} />
+                                                            {sensations[id]}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </fieldset>
                                         )}
                                     </li>
                                 ))}
@@ -123,7 +182,9 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
                 )}
 
                 <div className="space-y-3 rounded-xl bg-[var(--spa-mist)] p-4">
-                    <p id="intake-privacy" className="text-sm">Usamos suas respostas, inclusive informações que possam indicar desconforto, para preparar o atendimento e permitir avaliação pela equipe autorizada. O preenchimento é opcional. O consentimento desta ficha vale para essa finalidade. <a href="/privacidade" target="_blank" rel="noreferrer" className="font-bold underline">Aviso de privacidade</a></p>
+                    <p id="intake-privacy" className="text-sm">{questionnaire.clinical
+                        ? 'Usamos as respostas que você escolher fornecer, inclusive informações de saúde, para preparar este atendimento e permitir revisão pela profissional autorizada. Você pode pular a ficha e seguir para o agradecimento.'
+                        : 'Usamos suas respostas, inclusive informações que possam indicar desconforto, para preparar o atendimento e permitir avaliação pela equipe autorizada. O preenchimento é opcional. O consentimento desta ficha vale para essa finalidade.'} <a href="/privacidade" target="_blank" rel="noreferrer" className="font-bold underline">Aviso de privacidade</a></p>
                     <label className="flex items-start gap-3 text-sm font-semibold">
                         <input type="checkbox" checked={consent} required aria-describedby="intake-privacy" className="mt-1" onChange={event => setConsent(event.target.checked)} />
                         Concordo com o tratamento das respostas da ficha para preparar meu atendimento.

@@ -21,6 +21,8 @@ O CallMeBot documenta uma chamada GET para envio. A aplicação diferencia aceit
 
 ## Privacidade e ativação
 
+A [proposta clínica `spa-2`](ANAMNESE-REVISAO-CLINICA.md) reúne o questionário ampliado e suas regras condicionais. A emissão de novas fichas clínicas depende da aprovação da versão e da configuração das profissionais designadas.
+
 As tabelas têm RLS e as funções e tabelas concedem acesso à aplicação no servidor. As páginas da ficha usam `no-store`, `noindex`, `no-referrer` e ficam fora do Google Analytics. Os mapas e respostas estruturadas são descartados após o prazo de retenção configurado, inicialmente 30 dias após o envio. A auditoria de eventos, com ator administrativo quando aplicável, tem retenção inicial de 90 dias. Os estados operacionais e de descarte permanecem vinculados à reserva. Valide os prazos e o ciclo de expiração de backups com a política do SpaSmooth.
 
 As perguntas iniciais são de preferência e de encaminhamento à revisão. A configuração versionada em `src/lib/anamnesis/questionnaire.ts` deve receber a aprovação da profissional responsável antes de incluir perguntas clínicas. Valide o aviso e a base legal com a equipe responsável pela LGPD antes de coletar dados reais. O consentimento da ficha tem finalidade própria e é independente das escolhas de marketing e da autorização do procedimento. [ANPD](https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-orientativo-sobre-seguranca-da-informacao-para-agentes-de-tratamento-de-pequeno-porte) · [OWASP ASVS](https://asvs.owasp.org/) · [Supabase](https://supabase.com/docs/guides/api/securing-your-api) · [Clerk](https://clerk.com/docs/guides/secure/protect-content) · [Next.js](https://nextjs.org/docs/app/guides/data-security)

@@ -2,6 +2,7 @@
 
 import { z } from 'zod';
 import { verifyAdmin } from '@/lib/auth';
+import { mayAccessQuestionnaire } from '@/lib/anamnesis/config';
 import { isIntakeMutationAllowed } from '@/lib/anamnesis/server';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 import type { IntakeSubmission } from '@/lib/anamnesis/questionnaire';
@@ -24,12 +25,22 @@ type AnamnesisReport = {
     notification_status: 'queued' | 'sending' | 'accepted' | 'unknown' | 'failed' | null;
 };
 
-export async function readAdminAnamnesis(id: string): Promise<{ data: AnamnesisReport | null; unavailable?: boolean }> {
+async function readFormVersion(db: ReturnType<typeof createAdminClient>, id: string) {
+    const { data, error } = await db.from('booking_anamneses').select('questionnaire_version').eq('booking_id', id).maybeSingle();
+    if (error) throw new Error('Anamnesis version unavailable');
+    return data?.questionnaire_version as string | undefined;
+}
+
+export async function readAdminAnamnesis(id: string): Promise<{ data: AnamnesisReport | null; unavailable?: boolean; restricted?: boolean }> {
     try {
         if (!z.uuid().safeParse(id).success) return { data: null };
         const admin = await verifyAdmin();
         if (!admin.success) return { data: null };
-        const { data, error } = await createAdminClient().rpc('read_booking_anamnesis', {
+        const db = createAdminClient();
+        const version = await readFormVersion(db, id);
+        if (!version) return { data: null };
+        if (!mayAccessQuestionnaire(version, admin.userId)) return { data: null, restricted: true };
+        const { data, error } = await db.rpc('read_booking_anamnesis', {
             p_booking_id: id, p_actor: admin.userId,
         });
         return error ? { data: null, unavailable: true } : { data };
@@ -43,7 +54,10 @@ export async function reviewAdminAnamnesis(id: string) {
         if (!z.uuid().safeParse(id).success || !await isIntakeMutationAllowed()) return false;
         const admin = await verifyAdmin();
         if (!admin.success) return false;
-        const { data, error } = await createAdminClient().rpc('review_booking_anamnesis', {
+        const db = createAdminClient();
+        const version = await readFormVersion(db, id);
+        if (!version || !mayAccessQuestionnaire(version, admin.userId)) return false;
+        const { data, error } = await db.rpc('review_booking_anamnesis', {
             p_booking_id: id, p_actor: admin.userId,
         });
         return !error && data === true;

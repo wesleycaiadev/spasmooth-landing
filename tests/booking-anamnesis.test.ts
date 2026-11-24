@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { getQuestionnaire, parseSubmission, questionnaireVersion } from '../src/lib/anamnesis/questionnaire';
+import { clinicalQuestionnaireVersion, getQuestionnaire, parseSubmission, questionnaireVersion, questionIsVisible, reviewReasons } from '../src/lib/anamnesis/questionnaire';
+import { detailedFigures } from '../src/lib/anamnesis/body-regions';
 import { matchesFormBinding, readAnamnesisReceipt } from '../src/lib/anamnesis/receipt';
 import { signCapability } from '../src/lib/security/policy';
 import { bookingNotificationMessage, getNotificationResult } from '../src/lib/booking-notification-message';
@@ -48,6 +49,73 @@ test('map stores the side, region, marking and optional intensity and rejects fo
     assert.equal(parseSubmission({ ...submission, goals: [], answers: {}, regions: [] }, massage), null);
     assert.equal(parseSubmission({ ...submission, goals: [], answers: {}, regions: submission.regions }, makeQuestionnaire('depilacao')), null);
     assert.equal(parseSubmission({ ...submission, goals: [], answers: {}, regions: [{ region: 'front-arms', kind: 'preference' }] }, massage)?.needsReview, false);
+});
+
+test('clinical intake scopes health questions by service and requires explicit disclosure choices', () => {
+    const massage = getQuestionnaire({ category: 'massage', slug: null }, clinicalQuestionnaireVersion);
+    const waxing = getQuestionnaire({ category: 'depilacao', slug: null }, clinicalQuestionnaireVersion);
+    const drainage = getQuestionnaire({ category: 'estetica', slug: 'drenagem-linfatica' }, clinicalQuestionnaireVersion);
+    const combo = getQuestionnaire({ category: 'combo', slug: 'combo-contorno-cuidado' }, clinicalQuestionnaireVersion);
+    assert.ok(massage && waxing && drainage && combo);
+    const ids = (form: typeof massage) => form.questions.map(question => question.id);
+    for (const id of ['medications', 'surgeries', 'implants', 'oncology', 'thrombosis', 'allergies']) assert.ok(ids(massage).includes(id));
+    assert.equal(ids(massage).includes('pregnancy'), false);
+    assert.deepEqual(ids(waxing), ['experience', 'skin', 'allergies', 'product_allergy', 'attention']);
+    assert.deepEqual(drainage.questions.filter(question => question.requires?.question === 'private_topics').map(q => q.id), ['pregnancy']);
+    const iud = combo.questions.find(question => question.id === 'iud');
+    assert.ok(iud);
+    assert.equal(questionIsVisible(iud, {}), false);
+    assert.equal(questionIsVisible(iud, { private_topics: 'none' }), false);
+    assert.equal(questionIsVisible(iud, { private_topics: 'discuss' }), true);
+
+    const empty = { consent: true, goals: [], regions: [] };
+    assert.equal(parseSubmission({ ...empty, answers: { pregnancy: 'yes' } }, drainage), null);
+    assert.equal(parseSubmission({ ...empty, answers: { iud: 'yes', private_topics: 'none' } }, combo), null);
+    assert.equal(parseSubmission({ ...empty, answers: { private_topics: 'discuss' } }, combo), null);
+    assert.equal(parseSubmission({ ...empty, answers: { activity_type: 'strength', activity: 'no' } }, massage), null);
+    assert.equal(parseSubmission({ ...empty, answers: { edema: 'yes' } }, massage), null);
+    assert.equal(parseSubmission({ ...empty, answers: { cacifo: 'yes' } }, massage), null);
+    const parsed = parseSubmission({ ...empty, answers: { iud: 'discuss', private_topics: 'discuss', oncology: 'unsure' } }, combo);
+    assert.ok(parsed?.needsReview);
+    assert.deepEqual(parsed.submission.answers, { iud: 'discuss', oncology: 'unsure' });
+    assert.equal(reviewReasons(combo, parsed.submission).length, 2);
+    assert.equal(parseSubmission({ ...empty, answers: { activity: 'yes', activity_type: 'strength', oncology: 'no' } }, massage)?.needsReview, false);
+});
+
+test('clinical body map keeps stable sides, allows 0–10 and records sensations independently per region', () => {
+    const form = getQuestionnaire({ category: 'massage', slug: null }, clinicalQuestionnaireVersion);
+    assert.ok(form);
+    const [front, back] = detailedFigures;
+    assert.equal(front.regions.find(({ id }) => id === 'front-hand-left')?.mirror, true);
+    assert.equal(back.regions.find(({ id }) => id === 'back-hand-left')?.mirror, false);
+    assert.equal(new Set(detailedFigures.flatMap(figure => figure.regions.map(region => region.id))).size, Object.keys(form.regions).length);
+
+    const complete = {
+        consent: true, goals: ['self_care'], answers: {},
+        regions: [
+            { region: 'back-lower-left', kind: 'discomfort', intensity: 0 },
+            { region: 'back-lower-right', kind: 'discomfort', intensity: 10, sensations: ['burning', 'tingling'] },
+            { region: 'back-lower-right', kind: 'avoid' },
+            { region: 'front-knee-left', kind: 'preference' },
+        ],
+    };
+    const result = parseSubmission(complete, form);
+    assert.deepEqual(result?.submission.regions, complete.regions);
+    assert.deepEqual(result?.needsReview, true);
+    for (const region of [
+        { region: 'back-lower-left', kind: 'discomfort', intensity: 11 },
+        { region: 'back-lower-left', kind: 'discomfort', intensity: -1 },
+        { region: 'back-lower-left', kind: 'avoid', sensations: ['burning'] },
+        { region: 'back-lower-left', kind: 'discomfort', sensations: ['burning', 'burning'] },
+        { region: 'back-lower', kind: 'discomfort' },
+        { region: 'constructor', kind: 'preference' },
+    ]) assert.equal(parseSubmission({ ...complete, regions: [region] }, form), null);
+    assert.equal(parseSubmission({
+        ...complete, regions: [{ region: 'back-lower', kind: 'discomfort', intensity: 10 }],
+    }, makeQuestionnaire('massage')), null);
+    assert.equal(parseSubmission({
+        ...complete, regions: [{ region: 'back-lower', kind: 'discomfort', sensations: ['burning'] }],
+    }, makeQuestionnaire('massage')), null);
 });
 
 test('receipt requires a valid signature and purpose, with form binding unique to the booking', () => {
