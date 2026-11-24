@@ -2,13 +2,10 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { clinicalQuestionnaireVersion, getQuestionnaire, parseSubmission, questionnaireVersion, questionIsVisible, reviewReasons } from '../src/lib/anamnesis/questionnaire';
 import { detailedFigures } from '../src/lib/anamnesis/body-regions';
-import { createAnamnesisReturn, decodeAnamnesisCode, encodeAnamnesisCode, readAnamnesisReturn } from '../src/lib/anamnesis/short-link';
+import { anamnesisPdfPath, createAnamnesisReturn, decodeAnamnesisCode, encodeAnamnesisCode, readAnamnesisReturn } from '../src/lib/anamnesis/short-link';
 import { matchesFormBinding, readAnamnesisReceipt } from '../src/lib/anamnesis/receipt';
 import { signCapability } from '../src/lib/security/policy';
 import { bookingNotificationMessage, getNotificationResult } from '../src/lib/booking-notification-message';
-import { createAnamnesisPdfToken, readAnamnesisPdfToken, anamnesisPdfUrl } from '../src/lib/anamnesis/pdf-token';
-
-process.env.APP_SESSION_SECRET = 'test-secret-at-least-32-characters-for-testing-only-123456';
 
 const makeQuestionnaire = (category: string, slug: string | null = null) => {
     const result = getQuestionnaire({ category, slug }, questionnaireVersion);
@@ -155,16 +152,16 @@ test('notification only includes booking fields, action links and an optional in
     const links = { confirm: 'https://example.test/confirm', decline: 'https://example.test/decline', panel: 'https://example.test/admin' };
     const legacy = bookingNotificationMessage(booking, links);
     assert.doesNotMatch(legacy, /Anamnese|OBSERVACAO_RESTRITA|back-lower|pressure/);
-    const intakeLink = 'https://example.test/f/' + encodeAnamnesisCode('a14226f1-d33c-4b2f-9f84-0dd3acf004dc');
     const pdfLink = 'https://example.test/f/' + encodeAnamnesisCode('a14226f1-d33c-4b2f-9f84-0dd3acf004dc') + '/pdf';
-    const completed = bookingNotificationMessage({ ...booking, intakeCompleted: true }, { ...links, intake: intakeLink, pdf: pdfLink });
-    for (const url of [links.confirm, links.decline, links.panel, intakeLink, pdfLink]) assert.ok(completed.includes(url));
-    assert.match(completed, /Anamnese:\* Preenchida/);
-    assert.match(completed, /PDF da Anamnese:\* https:\/\/example\.test\/f\//);
+    const completed = bookingNotificationMessage({ ...booking, intakeCompleted: true }, { ...links, pdf: pdfLink });
+    assert.ok(completed.includes(`Anamnese:* Preenchida\n📄 *Abrir PDF da anamnese*\n${pdfLink}`));
+    assert.ok(completed.indexOf(links.confirm) > completed.indexOf(pdfLink));
+    assert.ok(completed.indexOf(links.decline) > completed.indexOf(links.confirm));
     assert.doesNotMatch(completed, /OBSERVACAO_RESTRITA|back-lower|pressure/);
     const uncompleted = bookingNotificationMessage({ ...booking, intakeCompleted: false }, { ...links, pdf: pdfLink });
     assert.match(uncompleted, /Anamnese:\* Não preenchida/);
-    assert.doesNotMatch(uncompleted, /PDF da Anamnese/);
+    assert.ok(uncompleted.includes(links.panel));
+    assert.ok(!uncompleted.includes(pdfLink));
 });
 
 test('a short ficha link encodes an identifier without authorizing a session or redirecting off-site', () => {
@@ -184,16 +181,18 @@ test('a short ficha link encodes an identifier without authorizing a session or 
     assert.equal(readAnamnesisReturn(signCapability({ purpose: 'admin', id, exp: Date.now() + 60_000 }, secret), secret), null);
 });
 
-test('anamnesis PDF signed capability tokens allow access and reject expired or forged tokens', () => {
+test('a signed PDF return points to the original booking and rejects unrecognized destinations', () => {
     const id = 'a14226f1-d33c-4b2f-9f84-0dd3acf004dc';
-    const token = createAnamnesisPdfToken(id);
-    assert.ok(token);
-    assert.equal(readAnamnesisPdfToken(token), id);
-    assert.equal(readAnamnesisPdfToken(token + 'invalid'), null);
-    assert.equal(readAnamnesisPdfToken(undefined), null);
-    assert.equal(readAnamnesisPdfToken('not-a-token'), null);
-    const url = anamnesisPdfUrl(token);
-    assert.ok(url.includes('/api/anamnese-pdf/'));
+    const secret = 'test-secret-for-anamnesis-short-link';
+    const token = createAnamnesisReturn(id, secret, 'pdf');
+    assert.equal(readAnamnesisReturn(token, secret), anamnesisPdfPath(id, true));
+    assert.equal(readAnamnesisReturn(token + 'invalid', secret), null);
+    assert.equal(readAnamnesisReturn(signCapability({
+        purpose: 'anamnesis-return', id, destination: 'https://example.test/', exp: Date.now() + 60_000,
+    }, secret), secret), null);
+    assert.equal(readAnamnesisReturn(signCapability({
+        purpose: 'anamnesis-return', id, exp: Date.now() + 60_000,
+    }, secret), secret), `/admin/bookings/anamnese/${id}`);
 });
 
 test('provider failures distinguish bounded retry, rejection, acceptance and unknown outcomes', async () => {

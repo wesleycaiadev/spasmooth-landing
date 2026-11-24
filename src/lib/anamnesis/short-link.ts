@@ -10,6 +10,14 @@ export function anamnesisPanelPath(id: string) {
     return `/admin/bookings/anamnese/${bookingId.parse(id)}`;
 }
 
+export function anamnesisPdfPath(id: string, afterLogin = false) {
+    return `${anamnesisPanelPath(id)}/pdf?origem=whatsapp${afterLogin ? '&retorno=1' : ''}`;
+}
+
+export function anamnesisPdfLoginPath(id: string) {
+    return `/entrar?ficha=${encodeAnamnesisCode(id)}`;
+}
+
 export function encodeAnamnesisCode(id: string) {
     return Buffer.from(bookingId.parse(id).replace(/-/g, ''), 'hex').toString('base64url');
 }
@@ -23,15 +31,22 @@ export function decodeAnamnesisCode(code: string) {
     return result.success ? result.data : null;
 }
 
-export function createAnamnesisReturn(id: string, secret: string) {
+export function createAnamnesisReturn(id: string, secret: string, destination: 'panel' | 'pdf' = 'panel') {
     return signCapability({
         purpose: 'anamnesis-return',
         id: bookingId.parse(id),
+        destination,
         exp: Date.now() + ANAMNESIS_RETURN_MAX_AGE * 1000,
     }, secret);
 }
 
 export function readAnamnesisReturn(token: string | undefined, secret: string) {
-    const result = bookingId.safeParse(readCapability(token, secret, 'anamnesis-return')?.id);
-    return result.success ? anamnesisPanelPath(result.data) : null;
+    const capability = readCapability(token, secret, 'anamnesis-return');
+    const id = bookingId.safeParse(capability?.id);
+    if (!id.success) return null;
+    if (capability?.destination === 'pdf') return anamnesisPdfPath(id.data, true);
+    // Older cookies only carried the booking ID and returned to the panel.
+    return capability?.destination === undefined || capability.destination === 'panel'
+        ? anamnesisPanelPath(id.data)
+        : null;
 }

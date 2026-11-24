@@ -43,11 +43,16 @@ export async function getAdminAnamnesisSummary(id: string): Promise<AdminAnamnes
     }
 }
 
-export async function readAdminAnamnesis(id: string): Promise<{ data: AnamnesisReport | null; unavailable?: boolean; restricted?: boolean }> {
+export async function readAdminAnamnesis(id: string): Promise<{
+    data: AnamnesisReport | null;
+    unavailable?: boolean;
+    restricted?: boolean;
+    requiresSession?: boolean;
+}> {
     try {
         if (!z.uuid().safeParse(id).success) return { data: null };
         const admin = await verifyAdmin();
-        if (!admin.success) return { data: null };
+        if (!admin.success) return { data: null, requiresSession: true };
         const db = createAdminClient();
         const summary = await readFormSummary(db, id);
         if (!summary) return { data: null };

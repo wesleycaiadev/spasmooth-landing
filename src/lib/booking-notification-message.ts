@@ -11,27 +11,21 @@ export type BookingNotification = {
 
 export function bookingNotificationMessage(
     booking: BookingNotification,
-    links: { confirm: string; decline: string; panel: string; intake?: string; pdf?: string },
+    links: { confirm: string; decline: string; panel: string; pdf?: string },
 ) {
     const line = (value: string) => value.replace(/[\u0000-\u001f\u007f*_~`]/g, ' ').trim();
-    const pdfLine = booking.intakeCompleted && links.pdf ? `\n📄 *PDF da Anamnese:* ${links.pdf}` : '';
+    const pdf = booking.intakeCompleted ? links.pdf : undefined;
+    const pdfLine = pdf ? `\n📄 *Abrir PDF da anamnese*\n${pdf}` : '';
     const intake = booking.intakeCompleted === undefined ? '' :
         `📝 *Anamnese:* ${booking.intakeCompleted ? 'Preenchida' : 'Não preenchida'}${pdfLine}\n`;
     return `🗓️ *Novo Agendamento*
-👤 *Cliente:* ${line(booking.clientName)}
-📱 *WhatsApp:* ${line(booking.clientPhone)}
-💆 *Serviço:* ${line(booking.serviceName || 'Não informado')}
-
-👩‍⚕️ *Profissional:* ${line(booking.professionalName || 'Não especificado')}
-📍 *Local:* ${line(booking.unit)}
-📅 *Data:* ${booking.date}
-🕐 *Horário:* ${booking.time}
+👤 ${line(booking.clientName)} · ${line(booking.clientPhone)}
+💆 ${line(booking.serviceName || 'Serviço não informado')}
+📍 ${line(booking.professionalName || 'Profissional a definir')} · ${line(booking.unit)}
+📅 ${booking.date} às ${booking.time}
 ${intake}
-Um novo agendamento foi solicitado pelo site. Revise os dados e escolha uma ação abaixo:
-
-✅ *Confirmar agendamento:* ${links.confirm}
-❌ *Cancelar / Recusar:* ${links.decline}
-⚙️ *Abrir no painel administrativo:* ${links.panel}${links.intake ? `\n📋 *Ficha de anamnese:* ${links.intake}` : ''}`;
+✅ *Confirmar:* ${links.confirm}
+❌ *Cancelar / Recusar:* ${links.decline}${pdf ? '' : `\n⚙️ *Painel:* ${links.panel}`}`;
 }
 
 type NotificationResult = { status: 'accepted' | 'retry' | 'failed' | 'unknown'; reason: string };

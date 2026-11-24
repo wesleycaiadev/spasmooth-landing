@@ -92,7 +92,7 @@ const nextConfig = {
             { source: '/interesse', headers: privateFormHeaders },
             { source: '/admin/bookings/anamnese/:path*', headers: privateFormHeaders },
             {
-                source: '/f/:code',
+                source: '/f/:code/:path*',
                 headers: [
                     { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
                     { key: 'Referrer-Policy', value: 'no-referrer' },
