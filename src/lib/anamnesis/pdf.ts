@@ -7,6 +7,24 @@ import { anamnesisStatuses, formatAnamnesisDate, getAnamnesisDetails, type Anamn
 
 type Details = NonNullable<ReturnType<typeof getAnamnesisDetails>>;
 
+export const anamnesisPdfPrivateHeaders = {
+    'Cache-Control': 'private, no-store, max-age=0',
+    'Referrer-Policy': 'no-referrer',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive',
+};
+
+export async function anamnesisPdfResponse(report: AnamnesisReport, details: Details, disposition: 'inline' | 'attachment') {
+    const file = await createAnamnesisPdf(report, details);
+    return new Response(new Uint8Array(file).buffer, {
+        headers: {
+            ...anamnesisPdfPrivateHeaders,
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `${disposition}; filename="ficha-anamnese-spasmooth.pdf"`,
+            'X-Content-Type-Options': 'nosniff',
+        },
+    });
+}
+
 function wrapText(text: string, font: PDFFont, size: number, width: number, charset: Set<number>) {
     const formatted = Array.from(text.normalize('NFC').replace(/\s+/g, ' ').trim(), character =>
         charset.has(character.codePointAt(0)!) ? character : '?',

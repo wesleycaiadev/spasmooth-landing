@@ -11,11 +11,11 @@ export type BookingNotification = {
 
 export function bookingNotificationMessage(
     booking: BookingNotification,
-    links: { confirm: string; decline: string; panel: string; pdf?: string },
+    links: { confirm: string; decline: string; panel: string; pdf?: string; temporaryPdf?: boolean },
 ) {
     const line = (value: string) => value.replace(/[\u0000-\u001f\u007f*_~`]/g, ' ').trim();
     const pdf = booking.intakeCompleted ? links.pdf : undefined;
-    const pdfLine = pdf ? `\n📄 *Abrir PDF da anamnese*\n${pdf}` : '';
+    const pdfLine = pdf ? `\n📄 *Abrir PDF da anamnese*\n${pdf}${links.temporaryPdf ? '\n⏳ Link válido por 24 horas' : ''}` : '';
     const intake = booking.intakeCompleted === undefined ? '' :
         `📝 *Anamnese:* ${booking.intakeCompleted ? 'Preenchida' : 'Não preenchida'}${pdfLine}\n`;
     return `🗓️ *Novo Agendamento*

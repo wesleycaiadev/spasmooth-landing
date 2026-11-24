@@ -3,6 +3,9 @@ import 'server-only';
 import { get } from 'node:https';
 import { bookingActionUrl, createBookingActionToken } from '@/lib/booking-actions';
 import { encodeAnamnesisCode } from '@/lib/anamnesis/short-link';
+import { temporaryAnamnesisPdfLinksEnabled } from '@/lib/anamnesis/config';
+import { temporaryAnamnesisPdfUrl } from '@/lib/anamnesis/temporary-pdf-link';
+import { capabilitySecret } from '@/lib/security/server';
 import { bookingNotificationMessage, getNotificationResult, type BookingNotification } from '@/lib/booking-notification-message';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 
@@ -21,10 +24,13 @@ function buildMessage(booking: NotificationBooking) {
     const expiresAt = Math.min(Date.now() + 24 * 60 * 60_000, new Date(booking.startsAt).getTime());
     const confirm = bookingActionUrl(createBookingActionToken(booking.id, 'confirmar', expiresAt));
     const decline = bookingActionUrl(createBookingActionToken(booking.id, 'recusar', expiresAt));
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spasmooth.com.br';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.spasmooth.com.br';
     const panel = new URL('/admin/bookings', siteUrl).toString();
-    const pdf = booking.intakeCompleted ? new URL(`/f/${encodeAnamnesisCode(booking.id)}/pdf`, siteUrl).toString() : undefined;
-    return bookingNotificationMessage(booking, { confirm, decline, panel, pdf });
+    const temporaryPdf = booking.intakeCompleted === true && temporaryAnamnesisPdfLinksEnabled();
+    const pdf = temporaryPdf
+        ? temporaryAnamnesisPdfUrl(booking.id, siteUrl, capabilitySecret())
+        : booking.intakeCompleted ? new URL(`/f/${encodeAnamnesisCode(booking.id)}/pdf`, siteUrl).toString() : undefined;
+    return bookingNotificationMessage(booking, { confirm, decline, panel, pdf, temporaryPdf });
 }
 
 function requestCallMeBot(message: string) {

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { clinicalQuestionnaireVersion, getQuestionnaire, parseSubmission, questionnaireVersion, questionIsVisible, reviewReasons } from '../src/lib/anamnesis/questionnaire';
 import { detailedFigures } from '../src/lib/anamnesis/body-regions';
 import { anamnesisPdfPath, createAnamnesisReturn, decodeAnamnesisCode, encodeAnamnesisCode, readAnamnesisReturn } from '../src/lib/anamnesis/short-link';
+import { temporaryAnamnesisPdfUrl, validTemporaryAnamnesisPdfToken } from '../src/lib/anamnesis/temporary-pdf-link';
 import { matchesFormBinding, readAnamnesisReceipt } from '../src/lib/anamnesis/receipt';
 import { signCapability } from '../src/lib/security/policy';
 import { bookingNotificationMessage, getNotificationResult } from '../src/lib/booking-notification-message';
@@ -162,6 +163,29 @@ test('notification only includes booking fields, action links and an optional in
     assert.match(uncompleted, /Anamnese:\* Não preenchida/);
     assert.ok(uncompleted.includes(links.panel));
     assert.ok(!uncompleted.includes(pdfLink));
+    const temporary = bookingNotificationMessage({ ...booking, intakeCompleted: true }, { ...links, pdf: pdfLink, temporaryPdf: true });
+    assert.match(temporary, /Link válido por 24 horas/);
+    assert.doesNotMatch(completed, /24 horas/);
+});
+
+test('a temporary PDF link is scoped to one booking and expires after 24 hours', () => {
+    const id = 'a14226f1-d33c-4b2f-9f84-0dd3acf004dc';
+    const code = encodeAnamnesisCode(id);
+    const secret = 'temporary-pdf-link-test-secret';
+    const now = Date.UTC(2026, 10, 24);
+    const url = new URL(temporaryAnamnesisPdfUrl(id, 'https://example.test', secret, now));
+    const token = url.hash.slice(1);
+    assert.equal(url.pathname, `/f/${code}/pdf`);
+    assert.equal(url.search, '');
+    assert.equal(token.length, 48);
+    assert.ok(validTemporaryAnamnesisPdfToken(code, token, secret, now));
+    assert.ok(validTemporaryAnamnesisPdfToken(code, token, secret, now + 86_399_999));
+    assert.ok(!validTemporaryAnamnesisPdfToken(code, token, secret, now + 86_400_000));
+    assert.ok(!validTemporaryAnamnesisPdfToken(code, token, secret, now - 1000));
+    assert.ok(!validTemporaryAnamnesisPdfToken(code, token, 'different-secret', now));
+    assert.ok(!validTemporaryAnamnesisPdfToken('AAAAAAAAQACAAAAAAAAAAA', token, secret, now));
+    const tampered = token.slice(0, -1) + (token.endsWith('A') ? 'B' : 'A');
+    assert.ok(!validTemporaryAnamnesisPdfToken(code, tampered, secret, now));
 });
 
 test('a short ficha link encodes an identifier without authorizing a session or redirecting off-site', () => {

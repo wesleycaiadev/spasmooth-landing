@@ -25,6 +25,10 @@ export function anamnesisEnabled() {
     return process.env.BOOKING_ANAMNESIS_ENABLED === 'true';
 }
 
+export function temporaryAnamnesisPdfLinksEnabled() {
+    return process.env.BOOKING_ANAMNESIS_TEMPORARY_PDF_LINKS === 'true';
+}
+
 export function notificationDelay() {
     return boundedInteger(process.env.BOOKING_ANAMNESIS_DELAY_SECONDS, 60, 1200, 300);
 }

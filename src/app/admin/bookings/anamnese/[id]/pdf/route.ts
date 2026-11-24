@@ -3,18 +3,12 @@ import {
     ANAMNESIS_RETURN_COOKIE, ANAMNESIS_RETURN_COOKIE_PATH,
     ANAMNESIS_RETURN_MAX_AGE, anamnesisPdfLoginPath, createAnamnesisReturn,
 } from '@/lib/anamnesis/short-link';
-import { createAnamnesisPdf } from '@/lib/anamnesis/pdf';
+import { anamnesisPdfPrivateHeaders as privateHeaders, anamnesisPdfResponse } from '@/lib/anamnesis/pdf';
 import { getAnamnesisDetails } from '@/lib/anamnesis/report';
 import { capabilitySecret } from '@/lib/security/server';
 import { readAdminAnamnesis } from '@/services/admin/anamnesis';
 
 export const runtime = 'nodejs';
-
-const privateHeaders = {
-    'Cache-Control': 'private, no-store, max-age=0',
-    'Referrer-Policy': 'no-referrer',
-    'X-Robots-Tag': 'noindex, nofollow, noarchive',
-};
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -51,15 +45,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     try {
-        const file = await createAnamnesisPdf(data, details);
-        return new Response(new Uint8Array(file).buffer, {
-            headers: {
-                ...privateHeaders,
-                'Content-Type': 'application/pdf',
-                'Content-Disposition': `${fromWhatsApp ? 'inline' : 'attachment'}; filename="ficha-anamnese-spasmooth.pdf"`,
-                'X-Content-Type-Options': 'nosniff',
-            },
-        });
+        return await anamnesisPdfResponse(data, details, fromWhatsApp ? 'inline' : 'attachment');
     } catch {
         return new Response('PDF indisponível no momento.', { status: 503, headers: privateHeaders });
     }

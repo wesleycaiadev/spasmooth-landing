@@ -101,6 +101,13 @@ const nextConfig = {
                 ],
             },
             {
+                source: '/f/:code/pdf',
+                headers: [{
+                    key: 'Content-Security-Policy',
+                    value: "default-src 'none'; script-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'",
+                }],
+            },
+            {
                 source: '/agendamento/acao/:path*',
                 headers: [
                     { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
