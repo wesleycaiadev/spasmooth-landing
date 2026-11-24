@@ -24,7 +24,8 @@ function buildMessage(booking: NotificationBooking) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spasmooth.com.br';
     const panel = new URL('/admin/bookings', siteUrl).toString();
     const intake = booking.intakeCompleted === undefined ? undefined : new URL(`/f/${encodeAnamnesisCode(booking.id)}`, siteUrl).toString();
-    return bookingNotificationMessage(booking, { confirm, decline, panel, intake });
+    const pdf = booking.intakeCompleted ? new URL(`/f/${encodeAnamnesisCode(booking.id)}/pdf`, siteUrl).toString() : undefined;
+    return bookingNotificationMessage(booking, { confirm, decline, panel, intake, pdf });
 }
 
 function requestCallMeBot(message: string) {

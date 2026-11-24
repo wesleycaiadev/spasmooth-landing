@@ -11,11 +11,12 @@ export type BookingNotification = {
 
 export function bookingNotificationMessage(
     booking: BookingNotification,
-    links: { confirm: string; decline: string; panel: string; intake?: string },
+    links: { confirm: string; decline: string; panel: string; intake?: string; pdf?: string },
 ) {
     const line = (value: string) => value.replace(/[\u0000-\u001f\u007f*_~`]/g, ' ').trim();
+    const pdfLine = booking.intakeCompleted && links.pdf ? `\n📄 *PDF da Anamnese:* ${links.pdf}` : '';
     const intake = booking.intakeCompleted === undefined ? '' :
-        `📝 *Anamnese:* ${booking.intakeCompleted ? 'Preenchida' : 'Não preenchida'}\n`;
+        `📝 *Anamnese:* ${booking.intakeCompleted ? 'Preenchida' : 'Não preenchida'}${pdfLine}\n`;
     return `🗓️ *Novo Agendamento*
 👤 *Cliente:* ${line(booking.clientName)}
 📱 *WhatsApp:* ${line(booking.clientPhone)}
