@@ -40,7 +40,7 @@ export default async function AnamnesisPage({ params }: { params: Promise<{ id: 
                     <div><dt className="font-semibold">Data e unidade</dt><dd>{formatAnamnesisDate(data.starts_at)} · {data.unit}</dd></div>
                     <div><dt className="font-semibold">Serviço</dt><dd>{data.service_name ?? 'Serviço indisponível'}</dd></div>
                     <div><dt className="font-semibold">Profissional</dt><dd>{data.professional_name ?? 'Profissional indisponível'}</dd></div>
-                    <div><dt className="font-semibold">Estado da ficha</dt><dd>{anamnesisStatuses[data.status]}</dd></div>
+                    <div><dt className="font-semibold">Estado da ficha</dt><dd aria-live="polite">{anamnesisStatuses[data.status]}</dd></div>
                     <div><dt className="font-semibold">Notificação</dt><dd>{data.notification_status ? notifications[data.notification_status] : 'Sem envio programado'}</dd></div>
                     {data.submitted_at && <div><dt className="font-semibold">Preenchimento</dt><dd>{formatAnamnesisDate(data.submitted_at)}</dd></div>}
                     {data.reviewed_at && <div><dt className="font-semibold">Revisão</dt><dd>{formatAnamnesisDate(data.reviewed_at)} · {data.reviewed_by}</dd></div>}

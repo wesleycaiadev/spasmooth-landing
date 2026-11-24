@@ -6,30 +6,24 @@ import { reviewAdminAnamnesis } from '@/services/admin/anamnesis';
 
 export default function ReviewButton({ id }: { id: string }) {
     const router = useRouter();
-    const [pending, setPending] = useState(false);
-    const [error, setError] = useState(false);
+    const [state, setState] = useState<'idle' | 'pending' | 'saved' | 'error'>('idle');
 
     async function review() {
-        setPending(true);
-        setError(false);
-        try {
-            if (await reviewAdminAnamnesis(id)) {
-                router.refresh();
-                return;
-            }
-        } catch {
-            // Display the same response for a failed request or transition.
-        }
-        setError(true);
-        setPending(false);
+        if (state === 'pending' || state === 'saved') return;
+        setState('pending');
+        const saved = await reviewAdminAnamnesis(id).catch(() => false);
+        setState(saved ? 'saved' : 'error');
+        if (saved) router.refresh();
     }
+
+    if (state === 'saved') return <p role="status" className="text-sm font-semibold text-emerald-800">Revisão registrada.</p>;
 
     return (
         <div className="space-y-2">
-            <button type="button" onClick={review} disabled={pending} className="spa-button-primary disabled:opacity-60">
-                {pending ? 'Registrando…' : 'Registrar revisão'}
+            <button type="button" onClick={review} disabled={state === 'pending'} className="spa-button-primary disabled:opacity-60">
+                {state === 'pending' ? 'Registrando…' : 'Registrar revisão'}
             </button>
-            {error && <p role="alert" className="text-sm text-red-800">Não foi possível registrar a revisão. Atualize a página e tente novamente.</p>}
+            {state === 'error' && <p role="alert" className="text-sm text-red-800">Não foi possível registrar a revisão. Atualize a página e tente novamente.</p>}
         </div>
     );
 }

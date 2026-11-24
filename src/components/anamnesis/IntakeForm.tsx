@@ -12,7 +12,8 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
     const [kind, setKind] = useState<BodyKind>('discomfort');
     const [regions, setRegions] = useState<BodySelection[]>([]);
     const [consent, setConsent] = useState(false);
-    const [busy, setBusy] = useState(false);
+    const [sending, setSending] = useState<'complete' | 'skip'>();
+    const busy = sending !== undefined;
     const [error, setError] = useState('');
 
     function toggleRegion(region: BodyRegion) {
@@ -52,8 +53,14 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
 
     async function save(intent: 'complete' | 'skip', event?: FormEvent) {
         event?.preventDefault();
+        if (busy) return;
         setError('');
-        setBusy(true);
+        const hasAnswers = goals.length || regions.length || Object.keys(answers).some(key => key !== 'private_topics');
+        if (intent === 'complete' && !hasAnswers) {
+            setError('Escolha pelo menos uma resposta ou região do mapa, ou use “Pular esta etapa”.');
+            return;
+        }
+        setSending(intent);
         try {
             const result = await saveAnamnesis(intent === 'complete'
                 ? { intent, binding, answers: { consent, goals, answers, regions } }
@@ -66,11 +73,11 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
         } catch {
             setError('Não foi possível salvar. Tente novamente.');
         }
-        setBusy(false);
+        setSending(undefined);
     }
 
     return (
-        <form onSubmit={event => save('complete', event)} autoComplete="off" className="space-y-7">
+        <form onSubmit={event => save('complete', event)} autoComplete="off" aria-busy={busy} className="space-y-7">
             <fieldset disabled={busy} className="space-y-7">
                 <fieldset className="space-y-2">
                     <legend className="mb-2 font-bold text-[var(--spa-ink)]">O que você busca neste atendimento?</legend>
@@ -197,8 +204,12 @@ export default function IntakeForm({ questionnaire, binding }: { questionnaire: 
                 </div>
             )}
             <div className="flex flex-col gap-2">
-                <button type="submit" disabled={busy} className="spa-button-primary w-full disabled:opacity-60">{busy ? 'Aguarde…' : 'Salvar avaliação'}</button>
-                <button type="button" disabled={busy} onClick={() => save('skip')} className="min-h-11 rounded-xl font-semibold text-[var(--spa-ink)] underline disabled:opacity-60">Pular esta etapa</button>
+                <button type="submit" disabled={busy} className="spa-button-primary w-full disabled:opacity-60">
+                    {sending === 'complete' ? 'Enviando respostas…' : 'Enviar respostas'}
+                </button>
+                <button type="button" disabled={busy} onClick={() => save('skip')} className="min-h-11 rounded-xl font-semibold text-[var(--spa-ink)] underline disabled:opacity-60">
+                    {sending === 'skip' ? 'Pulando esta etapa…' : 'Pular esta etapa'}
+                </button>
             </div>
         </form>
     );
