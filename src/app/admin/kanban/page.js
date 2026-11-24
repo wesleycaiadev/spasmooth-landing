@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import * as leadsService from '@/services/admin/leads';
+import LeadAnamnesisCard from '@/components/anamnesis/LeadAnamnesisCard';
 import * as proService from '@/services/admin/professionals';
 import { Plus, Search, Filter, MoreVertical, MessageCircle, RefreshCw, Send, Trash2, LayoutList, KanbanSquare } from 'lucide-react';
 
@@ -599,6 +600,8 @@ export default function KanbanPage() {
                                     <p className="text-slate-700 italic font-serif leading-relaxed">&quot;{selectedLead.mensagem_interesse}&quot;</p>
                                 </div>
                             )}
+
+                            <LeadAnamnesisCard key={selectedLead.id} id={selectedLead.id} />
 
                             <div>
                                 <div className="flex justify-between items-center mb-2">

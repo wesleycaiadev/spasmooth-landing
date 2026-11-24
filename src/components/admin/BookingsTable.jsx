@@ -278,6 +278,11 @@ export default function BookingsTable({ initialBookings = [], professionals = []
                                             {/* Ações */}
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-1.5">
+                                                    {bk.has_anamnesis && (
+                                                        <a href={`/admin/bookings/anamnese/${bk.id}`} className="px-2 py-1.5 text-xs font-bold text-cyan-900 underline">
+                                                            Anamnese
+                                                        </a>
+                                                    )}
                                                     {transitions.length === 0 ? (
                                                         <span className="text-xs text-slate-400 italic">Finalizado</span>
                                                     ) : (

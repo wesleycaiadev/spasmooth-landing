@@ -14,7 +14,7 @@ export default function EntrarPage() {
       const response = await fetch('/api/admin/session', { method: 'POST' });
       const result = await response.json();
       if (!response.ok) { setError(typeof result.error === 'string' ? result.error : 'Não foi possível autorizar o acesso. Tente novamente.'); return; }
-      window.location.assign('/admin/kanban');
+      window.location.assign(result.redirectTo || '/admin/kanban');
     } catch { setError('Não foi possível abrir a sessão. Tente novamente.'); } finally { setBusy(false); }
   }
   const { isSignedIn, user, isLoaded } = useUser();

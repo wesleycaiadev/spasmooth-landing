@@ -1,73 +1,41 @@
-"use client";
+import { redirect } from 'next/navigation';
+import { anamnesisEnabled } from '@/lib/anamnesis/config';
+import { loadBookingQuestionnaire, requestAnamnesisReceipt } from '@/lib/anamnesis/server';
+import IntakeForm from '@/components/anamnesis/IntakeForm';
+import LegacyInterestForm from '@/components/booking/LegacyInterestForm';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { updateBookingInterest } from '@/services/booking';
-import { ArrowRight } from 'lucide-react';
+export const dynamic = 'force-dynamic';
 
-export default function InterestPage() {
-    const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [interest, setInterest] = useState('');
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+export default async function InterestPage() {
+    let receipt;
+    let record;
+    try {
+        receipt = await requestAnamnesisReceipt();
+        if (receipt) record = await loadBookingQuestionnaire(receipt.id);
+    } catch {
+        return <IntakeUnavailable />;
+    }
 
-        setLoading(true);
-
-        try {
-            const result = await updateBookingInterest(interest);
-            if (!result.success) throw new Error(result.error);
-
-            router.push('/obrigado');
-
-        } catch (error) {
-            console.error('Erro ao atualizar interesse:', error);
-            alert('Erro ao salvar. Tente novamente.');
-        } finally {
-            setLoading(false);
-        }
-    };
+    if (!record) return receipt || anamnesisEnabled() ? <IntakeUnavailable /> : <LegacyInterestForm />;
+    if (['completed', 'needs_review', 'reviewed', 'purged'].includes(record.status)) redirect('/obrigado');
 
     return (
-        <div className="min-h-screen bg-[#fafafa] flex flex-col items-center justify-center p-6">
-            <div className="max-w-xl w-full text-center mb-10 animate-slideUp">
-                <span className="text-[#b48e43] font-semibold tracking-wider text-sm uppercase mb-2 block">Passo 2 de 2</span>
-                <h1 className="text-3xl md:text-4xl font-serif text-[#4a4a4a] mb-4">
-                    Quais são seus principais objetivos?
-                </h1>
-                <p className="text-[#7a7a7a]">
-                    Queremos preparar uma experiência personalizada para você. Conte-nos um pouco sobre o que busca no SpaSmooth.
-                </p>
+        <main className="min-h-screen bg-[var(--spa-cream)] px-4 py-10 sm:px-6 sm:py-16">
+            <div className="mx-auto max-w-xl rounded-[2rem] border border-[var(--spa-line)] bg-white p-5 shadow-xl sm:p-9">
+                <h1 className="spa-display text-3xl text-[var(--spa-ink)] sm:text-4xl">Avaliação antes do atendimento</h1>
+                <p className="mb-7 mt-3 leading-relaxed">Conte o que ajuda você a se sentir confortável. Você pode responder só o que quiser ou seguir direto para o agradecimento.</p>
+                <IntakeForm questionnaire={record.questionnaire} binding={receipt.formBinding} />
             </div>
+        </main>
+    );
+}
 
-            <div className="max-w-xl w-full bg-white p-8 rounded-2xl border border-[#e6dcc5] shadow-xl shadow-[#cfc2a9]/10 animate-slideUp animation-delay-200">
-                <form onSubmit={handleSubmit}>
-                    <textarea
-                        required
-                        maxLength={500}
-                        value={interest}
-                        onChange={(e) => setInterest(e.target.value)}
-                        className="w-full h-40 px-5 py-4 rounded-xl bg-[#f9f9f9] border border-[#e0e0e0] focus:border-[#b48e43] focus:ring-1 focus:ring-[#b48e43] outline-none transition-all text-[#4a4a4a] placeholder:text-[#ccc] resize-none text-lg"
-                        placeholder="Ex: Gostaria de aliviar a tensão nas costas e conhecer tratamentos para rejuvenescimento facial..."
-                    ></textarea>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full mt-6 bg-[#b48e43] hover:bg-[#9a7834] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#b48e43]/20 transition-all transform hover:-translate-y-1 flex justify-center items-center gap-2"
-                    >
-                        {loading ? 'Finalizando...' : 'Finalizar Cadastro'} <ArrowRight className="w-5 h-5" />
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => router.push('/obrigado')}
-                        className="w-full mt-4 text-[#999] text-sm hover:text-[#b48e43] transition-colors"
-                    >
-                        Pular esta etapa
-                    </button>
-                </form>
-            </div>
-        </div>
+function IntakeUnavailable() {
+    return (
+        <main className="mx-auto max-w-xl px-5 py-16">
+            <h1 className="spa-display text-3xl text-[var(--spa-ink)]">Avaliação indisponível</h1>
+            <p className="my-5">A ficha está indisponível ou a sessão de preenchimento expirou.</p>
+            <a href="/obrigado" className="spa-button-primary">Ir para a página de agradecimento</a>
+        </main>
     );
 }

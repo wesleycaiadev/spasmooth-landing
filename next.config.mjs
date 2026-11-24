@@ -42,8 +42,23 @@ const securityHeaders = isProd
     ? [...baseHeaders, ...prodOnlyHeaders]
     : baseHeaders;
 
+const privateFormHeaders = [
+    { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+    { key: 'Referrer-Policy', value: 'no-referrer' },
+    { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+    ...(isProd ? prodOnlyHeaders
+        .filter(header => header.key === 'Content-Security-Policy')
+        .map(header => ({
+            ...header,
+            value: header.value.replace(/ https:\/\/(?:www\.google-analytics\.com|region1\.google-analytics\.com|www\.googletagmanager\.com)/g, '')
+                .replace(/; report-to csp-endpoint; report-uri \/api\/csp-report/, ''),
+        })) : []),
+];
+
 const nextConfig = {
     poweredByHeader: false,
+    // Server Action arguments can contain intake answers and booking contact details.
+    logging: { serverFunctions: false },
     experimental: {
         serverActions: { bodySizeLimit: '64kb' },
         // The CLI checker in Next 16.3 currently fails to parse TS 6 output in this project.
@@ -73,6 +88,17 @@ const nextConfig = {
             {
                 source: '/(.*)',
                 headers: securityHeaders,
+            },
+            { source: '/interesse', headers: privateFormHeaders },
+            { source: '/admin/bookings/anamnese/:path*', headers: privateFormHeaders },
+            {
+                source: '/f/:code',
+                headers: [
+                    { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
+                    { key: 'Referrer-Policy', value: 'no-referrer' },
+                    { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' },
+                    { key: 'Content-Security-Policy', value: "default-src 'none'; base-uri 'none'; frame-ancestors 'none'" },
+                ],
             },
             {
                 source: '/agendamento/acao/:path*',
