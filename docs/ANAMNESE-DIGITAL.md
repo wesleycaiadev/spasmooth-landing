@@ -19,6 +19,32 @@ O CallMeBot documenta uma chamada GET para envio. A aplicação diferencia aceit
 
 **Falhou**, **Resultado desconhecido** e filas acima do prazo precisam de acompanhamento em **Agendamentos**. O conteúdo da ficha e as observações livres ficam no painel. A mensagem usa os dados operacionais da reserva, o estado de preenchimento e links de acesso. Para investigação, `booking_notification_outbox` registra tentativa, estado, código de resultado e horário. Configure o monitoramento para verificar a idade da fila e falhas do worker sem capturar o corpo de requisições, o URL do provedor ou o cabeçalho de autorização.
 
+O link da ficha na mensagem usa `/f/<código>` no domínio do SpaSmooth. O código localiza a ficha e a consulta continua sujeita à autenticação e às permissões do painel. Se for necessário entrar novamente, o navegador guarda o destino da ficha por até dez minutos para reabri-la após o login.
+
+## Publicação e ativação
+
+1. Verifique o histórico do projeto de produção no Supabase. Aplique, em ordem, as migrações pendentes `20261122150000_booking_anamnesis.sql` e `20261123233000_anamnesis_clinical_submission.sql`. As tabelas e funções do agendamento existente são pré-requisitos.
+2. Publique o código com `BOOKING_ANAMNESIS_ENABLED=false` e configure `BOOKING_ANAMNESIS_WORKER_SECRET` com um segredo aleatório de pelo menos 32 caracteres. Confirme que a produção aponta para o Supabase certo e que o acesso administrativo funciona.
+3. Agende o worker por minuto. Use o Supabase Cron com `pg_net` e guarde uma cópia do segredo do worker no Vault com o nome `spasmooth_anamnesis_worker`. Use a URL canônica do site, sem redirecionamento, e confirme HTTP 200 do worker antes da ativação. [Supabase Cron e Vault](https://supabase.com/docs/guides/functions/schedule-functions)
+
+   No SQL Editor do projeto de produção, após conferir o host e as extensões:
+
+   ```sql
+   select cron.schedule('spasmooth-anamnesis', '* * * * *', $job$
+     select net.http_post(
+       url := 'https://www.spasmooth.com.br/api/booking/notifications-worker',
+       headers := jsonb_build_object('Authorization', 'Bearer ' || decrypted_secret),
+       body := '{}'::jsonb,
+       timeout_milliseconds := 35000
+     )
+     from vault.decrypted_secrets
+     where name = 'spasmooth_anamnesis_worker';
+   $job$);
+   ```
+
+4. Confirme as credenciais existentes do CallMeBot, o aviso de privacidade publicado e as contas Clerk designadas. Defina `BOOKING_ANAMNESIS_CLINICAL_REVIEWERS`, `BOOKING_ANAMNESIS_APPROVED_VERSION=spa-2` e `BOOKING_ANAMNESIS_ENABLED=true`. Na Vercel, alterações de variáveis entram em vigor no próximo deploy. [Variáveis de ambiente da Vercel](https://vercel.com/docs/environment-variables)
+5. Valide com reserva fictícia autorizada. Confira a mensagem única, o link curto com e sem sessão ativa, o PDF no painel e o agendador para uma ficha pendente. Mantenha a fila em operação durante uma reversão.
+
 ## Privacidade e ativação
 
 A [proposta clínica `spa-2`](ANAMNESE-REVISAO-CLINICA.md) reúne o questionário ampliado e suas regras condicionais. A emissão de novas fichas clínicas depende da aprovação da versão e da configuração das profissionais designadas.

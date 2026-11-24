@@ -1,6 +1,6 @@
 # Ficha de avaliação SpaSmooth · proposta para aprovação
 
-**Versão `spa-2` · aguardando aprovação clínica e revisão de privacidade.** A ficha é opcional e aparece após o envio do pedido de agendamento. A fotografia orientou a seleção dos temas e das regiões anatômicas. A versão abaixo foi escrita para o SpaSmooth.
+**Versão `spa-2` · aprovações clínica e de privacidade confirmadas pelo responsável do projeto em 23/11/2026.** A ficha é opcional e aparece após o envio do pedido de agendamento. A fotografia orientou a seleção dos temas e das regiões anatômicas. A versão abaixo foi escrita para o SpaSmooth.
 
 ## Perguntas para a responsável revisar
 

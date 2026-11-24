@@ -30,7 +30,7 @@ Um novo agendamento foi solicitado pelo site. Revise os dados e escolha uma aç�
 
 ✅ *Confirmar agendamento:* ${links.confirm}
 ❌ *Cancelar / Recusar:* ${links.decline}
-⚙️ *Abrir no painel administrativo:* ${links.panel}${links.intake ? `\n📋 *Consultar ficha de anamnese:* ${links.intake}` : ''}`;
+⚙️ *Abrir no painel administrativo:* ${links.panel}${links.intake ? `\n📋 *Ficha de anamnese:* ${links.intake}` : ''}`;
 }
 
 type NotificationResult = { status: 'accepted' | 'retry' | 'failed' | 'unknown'; reason: string };

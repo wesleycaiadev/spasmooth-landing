@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { clinicalQuestionnaireVersion, getQuestionnaire, parseSubmission, questionnaireVersion, questionIsVisible, reviewReasons } from '../src/lib/anamnesis/questionnaire';
 import { detailedFigures } from '../src/lib/anamnesis/body-regions';
+import { createAnamnesisReturn, decodeAnamnesisCode, encodeAnamnesisCode, readAnamnesisReturn } from '../src/lib/anamnesis/short-link';
 import { matchesFormBinding, readAnamnesisReceipt } from '../src/lib/anamnesis/receipt';
 import { signCapability } from '../src/lib/security/policy';
 import { bookingNotificationMessage, getNotificationResult } from '../src/lib/booking-notification-message';
@@ -151,12 +152,29 @@ test('notification only includes booking fields, action links and an optional in
     const links = { confirm: 'https://example.test/confirm', decline: 'https://example.test/decline', panel: 'https://example.test/admin' };
     const legacy = bookingNotificationMessage(booking, links);
     assert.doesNotMatch(legacy, /Anamnese|OBSERVACAO_RESTRITA|back-lower|pressure/);
-    const intakeLink = 'https://example.test/admin/bookings/anamnese/ficha';
+    const intakeLink = 'https://example.test/f/' + encodeAnamnesisCode('a14226f1-d33c-4b2f-9f84-0dd3acf004dc');
     const completed = bookingNotificationMessage({ ...booking, intakeCompleted: true }, { ...links, intake: intakeLink });
     for (const url of [links.confirm, links.decline, links.panel, intakeLink]) assert.ok(completed.includes(url));
     assert.match(completed, /Anamnese:\* Preenchida/);
     assert.doesNotMatch(completed, /OBSERVACAO_RESTRITA|back-lower|pressure/);
     assert.match(bookingNotificationMessage({ ...booking, intakeCompleted: false }, links), /Anamnese:\* Não preenchida/);
+});
+
+test('a short ficha link encodes an identifier without authorizing a session or redirecting off-site', () => {
+    const id = 'a14226f1-d33c-4b2f-9f84-0dd3acf004dc';
+    const secret = 'test-secret-for-anamnesis-short-link';
+    const code = encodeAnamnesisCode(id);
+    assert.match(code, /^[a-zA-Z0-9_-]{22}$/);
+    assert.equal(decodeAnamnesisCode(code), id);
+    assert.equal(decodeAnamnesisCode(code + '='), null);
+    assert.equal(decodeAnamnesisCode('______________________'), null);
+    assert.equal(decodeAnamnesisCode('Li4vLi4vYWRtaW4vZm9vYmFy'), null);
+    assert.equal(readAnamnesisReturn(code, secret), null);
+    assert.equal(readAnamnesisReturn(createAnamnesisReturn(id, secret), secret), `/admin/bookings/anamnese/${id}`);
+    assert.equal(readAnamnesisReturn(createAnamnesisReturn(id, secret), 'different-secret'), null);
+    assert.equal(readAnamnesisReturn(signCapability({ purpose: 'anamnesis-return', id: 'https://example.test/', exp: Date.now() + 60_000 }, secret), secret), null);
+    assert.equal(readAnamnesisReturn(signCapability({ purpose: 'anamnesis-return', id, exp: 0 }, secret), secret), null);
+    assert.equal(readAnamnesisReturn(signCapability({ purpose: 'admin', id, exp: Date.now() + 60_000 }, secret), secret), null);
 });
 
 test('provider failures distinguish bounded retry, rejection, acceptance and unknown outcomes', async () => {

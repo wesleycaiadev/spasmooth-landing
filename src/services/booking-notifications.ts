@@ -2,6 +2,7 @@ import 'server-only';
 
 import { get } from 'node:https';
 import { bookingActionUrl, createBookingActionToken } from '@/lib/booking-actions';
+import { encodeAnamnesisCode } from '@/lib/anamnesis/short-link';
 import { bookingNotificationMessage, getNotificationResult, type BookingNotification } from '@/lib/booking-notification-message';
 import { createAdminClient } from '@/lib/supabaseAdmin';
 
@@ -22,7 +23,7 @@ function buildMessage(booking: NotificationBooking) {
     const decline = bookingActionUrl(createBookingActionToken(booking.id, 'recusar', expiresAt));
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://spasmooth.com.br';
     const panel = new URL('/admin/bookings', siteUrl).toString();
-    const intake = booking.intakeCompleted === undefined ? undefined : new URL(`/admin/bookings/anamnese/${booking.id}`, siteUrl).toString();
+    const intake = booking.intakeCompleted === undefined ? undefined : new URL(`/f/${encodeAnamnesisCode(booking.id)}`, siteUrl).toString();
     return bookingNotificationMessage(booking, { confirm, decline, panel, intake });
 }
 
