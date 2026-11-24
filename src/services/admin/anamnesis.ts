@@ -3,32 +3,44 @@
 import { z } from 'zod';
 import { verifyAdmin } from '@/lib/auth';
 import { mayAccessQuestionnaire } from '@/lib/anamnesis/config';
+import type { AnamnesisReport, AnamnesisStatus } from '@/lib/anamnesis/report';
 import { isIntakeMutationAllowed } from '@/lib/anamnesis/server';
 import { createAdminClient } from '@/lib/supabaseAdmin';
-import type { IntakeSubmission } from '@/lib/anamnesis/questionnaire';
 
-type AnamnesisReport = {
+type AnamnesisSummaryRow = {
     questionnaire_version: string;
-    service_slug: string | null;
-    service_category: string;
-    status: 'pending' | 'not_filled' | 'completed' | 'needs_review' | 'reviewed' | 'purged';
-    submission: IntakeSubmission | null;
+    status: AnamnesisStatus;
     submitted_at: string | null;
-    reviewed_at: string | null;
-    reviewed_by: string | null;
-    purged_at: string | null;
-    client_name: string;
-    starts_at: string;
-    unit: string;
-    service_name: string | null;
-    professional_name: string | null;
-    notification_status: 'queued' | 'sending' | 'accepted' | 'unknown' | 'failed' | null;
+    deadline_at: string;
 };
 
-async function readFormVersion(db: ReturnType<typeof createAdminClient>, id: string) {
-    const { data, error } = await db.from('booking_anamneses').select('questionnaire_version').eq('booking_id', id).maybeSingle();
-    if (error) throw new Error('Anamnesis version unavailable');
-    return data?.questionnaire_version as string | undefined;
+async function readFormSummary(db: ReturnType<typeof createAdminClient>, id: string) {
+    const { data, error } = await db.from('booking_anamneses')
+        .select('questionnaire_version,status,submitted_at,deadline_at').eq('booking_id', id).maybeSingle();
+    if (error) throw new Error('Anamnesis summary unavailable');
+    return data as AnamnesisSummaryRow | null;
+}
+
+type AdminAnamnesisSummary =
+    | { kind: 'available'; status: AnamnesisStatus; hasSubmission: boolean }
+    | { kind: 'missing' | 'restricted' | 'unavailable' };
+
+export async function getAdminAnamnesisSummary(id: string): Promise<AdminAnamnesisSummary> {
+    try {
+        if (!z.uuid().safeParse(id).success) return { kind: 'missing' };
+        const admin = await verifyAdmin();
+        if (!admin.success) return { kind: 'unavailable' };
+        const summary = await readFormSummary(createAdminClient(), id);
+        if (!summary) return { kind: 'missing' };
+        if (!mayAccessQuestionnaire(summary.questionnaire_version, admin.userId)) return { kind: 'restricted' };
+        return {
+            kind: 'available',
+            status: summary.status === 'pending' && Date.parse(summary.deadline_at) <= Date.now() ? 'not_filled' : summary.status,
+            hasSubmission: Boolean(summary.submitted_at) && summary.status !== 'purged',
+        };
+    } catch {
+        return { kind: 'unavailable' };
+    }
 }
 
 export async function readAdminAnamnesis(id: string): Promise<{ data: AnamnesisReport | null; unavailable?: boolean; restricted?: boolean }> {
@@ -37,9 +49,9 @@ export async function readAdminAnamnesis(id: string): Promise<{ data: AnamnesisR
         const admin = await verifyAdmin();
         if (!admin.success) return { data: null };
         const db = createAdminClient();
-        const version = await readFormVersion(db, id);
-        if (!version) return { data: null };
-        if (!mayAccessQuestionnaire(version, admin.userId)) return { data: null, restricted: true };
+        const summary = await readFormSummary(db, id);
+        if (!summary) return { data: null };
+        if (!mayAccessQuestionnaire(summary.questionnaire_version, admin.userId)) return { data: null, restricted: true };
         const { data, error } = await db.rpc('read_booking_anamnesis', {
             p_booking_id: id, p_actor: admin.userId,
         });
@@ -55,8 +67,8 @@ export async function reviewAdminAnamnesis(id: string) {
         const admin = await verifyAdmin();
         if (!admin.success) return false;
         const db = createAdminClient();
-        const version = await readFormVersion(db, id);
-        if (!version || !mayAccessQuestionnaire(version, admin.userId)) return false;
+        const summary = await readFormSummary(db, id);
+        if (!summary || !mayAccessQuestionnaire(summary.questionnaire_version, admin.userId)) return false;
         const { data, error } = await db.rpc('review_booking_anamnesis', {
             p_booking_id: id, p_actor: admin.userId,
         });
